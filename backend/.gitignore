@@ -1,0 +1,16 @@
+# Created by https://www.gitignore.io/api/flask,python
+# Edit at https://www.gitignore.io/?templates=flask,python
+
+### Flask ###
+instance/*
+!instance/.gitignore
+.webassets-cache
+
+### Flask.Python Stack ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
