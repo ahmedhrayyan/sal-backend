@@ -12,7 +12,6 @@ def create_app(test_config=None):
     setup_db(app)
 
     @app.route('/')
-    @cross_origin()
     def index():
         return jsonify({'message': 'Hello World!'})
 
