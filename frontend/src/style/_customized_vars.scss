@@ -67,3 +67,18 @@ $theme-colors: (
 $font-family-sans-serif: "Poppins", -apple-system, BlinkMacSystemFont,
   "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
   "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+$body-bg: $light;
+$body-color: $gray-160;
+
+$input-color: $body-color;
+$input-border-color: #8a8886;
+$border-radius: 2px;
+$border-radius-lg: 2px;
+$border-radius-sm: 2px;
+$input-btn-padding-y: 0.42rem;
+$input-btn-padding-x: 0.57rem;
+$input-disabled-bg: $gray-30;
+$input-focus-border-color: $primary;
+$input-focus-border-width: 1px;
+$input-transition: none;
