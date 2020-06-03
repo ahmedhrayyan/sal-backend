@@ -119,14 +119,9 @@
   }
 
   .nav-btn {
+    @extend .btn;
     padding-right: $nav-btn-padding-x;
     padding-left: $nav-btn-padding-x;
-    flex-direction: column;
-  }
-
-  .dropdown-menu {
-    position: static;
-    float: none;
   }
 }
 
