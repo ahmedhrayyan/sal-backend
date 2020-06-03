@@ -139,3 +139,7 @@
 
   @return if($return-calc == true, calc(#{$value1} - #{$value2}), $value1 + unquote(" - ") + $value2);
 }
+
+@function rem($pixels, $context: $browser-context) {
+  @return $pixels/$context * 1rem;
+}

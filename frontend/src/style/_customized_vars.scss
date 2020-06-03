@@ -52,7 +52,9 @@ $success: $green;
 $warning: $yellow;
 $danger: $red;
 $light: $gray-30;
-$dark: $gray-150;
+$dark: #005a9e;
+$theme-divider: #004578;
+$body-divider: #edebe9;
 
 $theme-colors: (
   "primary": $primary,
@@ -70,6 +72,7 @@ $font-family-sans-serif: "Poppins", -apple-system, BlinkMacSystemFont,
 
 $body-bg: $light;
 $body-color: $gray-160;
+$browser-context: 14px;
 
 $btn-font-weight: 500;
 $input-btn-padding-y: 0.35rem;

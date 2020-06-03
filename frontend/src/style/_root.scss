@@ -18,5 +18,5 @@
   --font-family-sans-serif: #{inspect($font-family-sans-serif)};
   --font-family-monospace: #{inspect($font-family-monospace)};
 
-  font-size: 14px;
+  font-size: $browser-context;
 }
