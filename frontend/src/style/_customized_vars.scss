@@ -103,3 +103,17 @@ $avatar-sm-padding-x: rem(7px);
 $avatar-width: rem(40px);
 $avatar-height: rem(40px);
 
+$dropdown-padding-y: 0;
+$dropdown-item-padding-y: rem(8px);
+$dropdown-item-padding-x: rem(12px);
+$dropdown-min-width: rem(160px);
+$enable-shadows: true;
+$dropdown-box-shadow: 0px 3.2px 7.2px rgba(0, 0, 0, 0.13), 0px 0.6px 1.8px rgba(0, 0, 0, 0.1);
+$dropdown-link-color: $gray-190;
+$dropdown-link-hover-color: $gray-160;
+$dropdown-link-hover-bg: $gray-20;
+$dropdown-link-active-color: $gray-160;
+$dropdown-link-active-bg: $gray-30;
+$dropdown-link-disabled-color: $gray-90;
+$dropdown-link-focus-border: $gray-160;
+$dropdown-spacer: rem(4px);
