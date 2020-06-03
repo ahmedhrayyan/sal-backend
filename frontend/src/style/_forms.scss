@@ -33,7 +33,7 @@
   // Remove select outline from select box in FF
   &:-moz-focusring {
     color: transparent;
-    text-shadow: 0 0 0 $input-color;
+    text-shadow: 0 0 0 1px $input-color;
   }
 
   // Customize the `:focus` state to imitate native WebKit styles.
