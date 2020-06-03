@@ -1,7 +1,9 @@
 .avatar {
+  border: none;
   border-radius: 50%;
   padding: 0;
-  background-color: $body-bg;
+  overflow: hidden;
+  text-align: center;
   &.avatar-sm {
     width: $avatar-sm-width;
     height: $avatar-sm-height;
@@ -15,6 +17,6 @@
 
 .avatar-img {
   font-size: $font-size-sm;
-  width: 100%;
+  width: auto;
   height: 100%;
 }
