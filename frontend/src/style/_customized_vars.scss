@@ -75,15 +75,15 @@ $body-color: $gray-160;
 $browser-context: 14px;
 
 $btn-font-weight: 500;
-$input-btn-padding-y: 0.35rem;
-$input-btn-padding-x: 1.42rem;
+$input-btn-padding-y: rem(4.5px);
+$input-btn-padding-x: rem(20px);
 
 $input-color: $body-color;
 $input-border-color: #8a8886;
 $border-radius: 2px;
 $border-radius-lg: 2px;
 $border-radius-sm: 2px;
-$input-padding-x: 0.57rem;
+$input-padding-x: rem(8px);
 $input-disabled-bg: $gray-30;
 $input-focus-border-color: $primary;
 $input-focus-border-width: 1px;
