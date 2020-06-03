@@ -74,6 +74,10 @@ $body-bg: $light;
 $body-color: $gray-160;
 $browser-context: 14px;
 
+$font-size-lg: rem(16px);
+$font-size-sm: rem(12px);
+
+$btn-font-weight: 500;
 $input-btn-padding-y: rem(4.5px);
 $input-btn-padding-x: rem(20px);
 
@@ -90,3 +94,10 @@ $input-transition: none;
 
 $icon-x: rem(20px);
 $icon-y: rem(20px);
+$avatar-sm-width: rem(28px);
+$avatar-sm-height: rem(28px);
+$avatar-sm-padding-y: rem(2px);
+$avatar-sm-padding-x: rem(7px);
+$avatar-width: rem(40px);
+$avatar-height: rem(40px);
+

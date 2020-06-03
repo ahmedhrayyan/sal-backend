@@ -1,0 +1,20 @@
+.avatar {
+  border-radius: 50%;
+  padding: 0;
+  background-color: $body-bg;
+  &.avatar-sm {
+    width: $avatar-sm-width;
+    height: $avatar-sm-height;
+    margin: $avatar-sm-padding-y $avatar-sm-padding-x;
+  }
+  &.avatar-md {
+    width: $avatar-width;
+    height: $avatar-height;
+  }
+}
+
+.avatar-img {
+  font-size: $font-size-sm;
+  width: 100%;
+  height: 100%;
+}
