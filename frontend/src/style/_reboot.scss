@@ -84,6 +84,9 @@ hr {
   box-sizing: content-box; // 1
   height: 0; // 1
   overflow: visible; // 2
+  border: 0;
+  border-top: 1px solid $body-divider;
+  margin: 0;
 }
 
 //
