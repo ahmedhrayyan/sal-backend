@@ -33,7 +33,11 @@
   background-clip: padding-box;
   border: none;
   @include border-radius($dropdown-border-radius);
-  @include box-shadow($dropdown-box-shadow);
+  @if $enable-shadows {
+    @include box-shadow($dropdown-box-shadow);
+  } @else {
+    box-shadow: $dropdown-box-shadow;
+  }
 }
 
 @each $breakpoint in map-keys($grid-breakpoints) {
