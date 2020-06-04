@@ -174,7 +174,9 @@ strong {
 }
 
 small {
-  @include font-size($small-font-size); // Add the correct font size in all browsers
+  @include font-size(
+    $small-font-size
+  ); // Add the correct font size in all browsers
 }
 
 //
