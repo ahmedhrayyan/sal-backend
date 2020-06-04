@@ -4,16 +4,17 @@ import React, {
   Children,
   cloneElement,
   useState,
-  useRef,
 } from "react";
 
 interface Props {
   btnContent: ReactNode;
+  dropdownClass?: string;
   btnClass?: string;
 }
 
 const Dropdown: FunctionComponent<Props> = ({
   btnContent,
+  dropdownClass,
   btnClass,
   children,
 }) => {
@@ -28,7 +29,7 @@ const Dropdown: FunctionComponent<Props> = ({
   }
 
   return (
-    <div className="dropdown">
+    <div className={dropdownClass ? dropdownClass + ' dropdown' : 'dropdown'}>
       <button
         className={btnClass ? btnClass + " btn" : "btn"}
         aria-haspopup="true"
