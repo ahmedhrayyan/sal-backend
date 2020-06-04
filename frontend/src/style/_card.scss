@@ -26,9 +26,13 @@
     }
   }
 
-  > hr {
-    margin-right: 0;
-    margin-left: 0;
+  &.answer {
+    background: $gray-10;
+    box-shadow: $answer-box-shadow;
+
+    .card-body {
+      line-height: $answer-line-height;
+    }
   }
 
   > .list-group {
@@ -47,6 +51,29 @@
   }
 }
 
+.answer-cta-section {
+  display: flex;
+  justify-content: space-between;
+  padding-top: $answer-cta-padding-y;
+  padding-bottom: $answer-cta-padding-y;
+
+  .btn {
+    padding-left: $card-spacer-x;
+    padding-right: $card-spacer-x;
+  }
+}
+
+.card-divider {
+  margin-left: $card-spacer-x;
+  margin-right: $card-spacer-x;
+}
+
+.answer-form {
+  padding: $card-spacer-y $card-spacer-x;
+  .btn + .btn {
+    margin-left: $form-group-margin-bottom;
+  }
+}
 .card-body {
   // Enable `flex-grow: 1` for decks and groups so that card blocks take up
   // as much space as possible, ensuring footers are aligned to the bottom.
