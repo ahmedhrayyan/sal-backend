@@ -21,7 +21,7 @@ const Avatar: FunctionComponent<Props> = ({ src, size, info }) => {
           {info.role && (
             <>
               <br />
-              <span className="role">{info.role}</span>
+              <small className="text-muted">{info.role}</small>
             </>
           )}
         </p>
