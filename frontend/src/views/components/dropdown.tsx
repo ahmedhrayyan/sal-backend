@@ -23,6 +23,14 @@ const Dropdown: FunctionComponent<Props> = ({
   const [active, setActive] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    function handleEscape(evt: KeyboardEvent) {
+      evt.stopPropagation();
+      const esc_key_code = 27;
+      if (evt.keyCode === esc_key_code) {
+        hide();
+      }
+    }
+
     function handleDocumentClick(evt: MouseEvent) {
       evt.stopPropagation();
       const clicked = evt.target as any;
@@ -33,19 +41,33 @@ const Dropdown: FunctionComponent<Props> = ({
       ) {
         return;
       }
-      // else remove it
-      setActive(false);
+      // else hide it
+      hide();
     }
     document.addEventListener("click", handleDocumentClick, false);
+    document.addEventListener("keydown", handleEscape, false);
 
     // cleanup function
     return function () {
       document.removeEventListener("click", handleDocumentClick, false);
+      document.removeEventListener("keydown", handleEscape, false);
     };
   }, []);
 
   function toggleMenu(evt: React.MouseEvent<HTMLButtonElement>) {
-    setActive(!active);
+    if (active) {
+      hide();
+    } else {
+      show();
+    }
+  }
+
+  function hide() {
+    setActive(false);
+  }
+
+  function show() {
+    setActive(true);
   }
 
   return (
