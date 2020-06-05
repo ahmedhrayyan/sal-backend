@@ -3,6 +3,8 @@ import logo from '../../logo.svg';
 import alert from '../../images/icons/alert.svg';
 import questionMark from '../../images/icons/question-mark.svg';
 import dummyAvatar from "../../images/avatar.jpg";
+import Avatar from './avatar';
+import Dropdown from "./dropdown";
 
 interface Props {
 
@@ -31,9 +33,12 @@ const Navbar: FunctionComponent<Props> = () => {
         </button>
       </li>
       <li className="nav-item">
-        <button className="btn avatar avatar-sm">
-          <img src={dummyAvatar} alt="avatar" className="avatar-img"/>
-        </button>
+        <Dropdown
+          btnContent={<Avatar src={dummyAvatar} size="sm" />}
+          btnClass='avatar-btn'
+        >
+          <a href="#">item1</a>
+        </Dropdown>
       </li>
     </ul>
   </nav>

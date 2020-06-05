@@ -123,6 +123,10 @@
     padding-right: $nav-btn-padding-x;
     padding-left: $nav-btn-padding-x;
   }
+
+  .avatar-btn {
+    padding: $navbar-avatar-btn-padding-y $navbar-avatar-btn-padding-x;
+  }
 }
 
 // Navbar text
