@@ -49,6 +49,11 @@
       @include border-bottom-radius($card-inner-border-radius);
     }
   }
+
+  > hr {
+    margin-left: $card-spacer-x;
+    margin-right: $card-spacer-x;
+  }
 }
 
 .answer-cta-section {
@@ -63,10 +68,6 @@
   }
 }
 
-.card-divider {
-  margin-left: $card-spacer-x;
-  margin-right: $card-spacer-x;
-}
 
 .answer-form {
   padding: $card-spacer-y $card-spacer-x;
