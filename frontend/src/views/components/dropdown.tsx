@@ -4,6 +4,8 @@ import React, {
   Children,
   cloneElement,
   useState,
+  useRef,
+  useEffect,
 } from "react";
 
 interface Props {
@@ -19,17 +21,35 @@ const Dropdown: FunctionComponent<Props> = ({
   children,
 }) => {
   const [active, setActive] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleDocumentClick(evt: MouseEvent) {
+      evt.stopPropagation();
+      const clicked = evt.target as any;
+      // if the user click the dropdown or any of its children, do not hide the dropdown
+      if (
+        clicked === dropdownRef.current ||
+        dropdownRef.current?.contains(clicked)
+      ) {
+        return;
+      }
+      // else remove it
+      setActive(false);
+    }
+    document.addEventListener("click", handleDocumentClick, false);
+
+    // cleanup function
+    return function () {
+      document.removeEventListener("click", handleDocumentClick, false);
+    };
+  }, []);
 
   function toggleMenu(evt: React.MouseEvent<HTMLButtonElement>) {
-    if (active === true) {
-      setActive(false)
-    } else {
-      setActive(true)
-    }
+    setActive(!active);
   }
 
   return (
-    <div className={dropdownClass ? dropdownClass + ' dropdown' : 'dropdown'}>
+    <div ref={dropdownRef} className={dropdownClass ? dropdownClass + " dropdown" : "dropdown"}>
       <button
         className={btnClass ? btnClass + " btn" : "btn"}
         aria-haspopup="true"
