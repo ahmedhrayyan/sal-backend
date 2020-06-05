@@ -140,8 +140,10 @@
       margin-top: -2px;
     }
 
+    // make dropdown menu on top of the dropdown btn
     .dropdown-menu {
-      top: 0;
+      top: 0px;
+      margin-top: 0;
     }
   }
 }
