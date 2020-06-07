@@ -17,12 +17,7 @@
     border-color: $input-focus-border-color;
     border-width: $input-focus-border-width;
     box-shadow: 0 0 0 1px $input-focus-border-color;
-    @if $enable-shadows {
-      @include box-shadow($input-box-shadow, $input-focus-box-shadow);
-    } @else {
-      // Avoid using mixin so we can pass custom focus shadow properly
-      // box-shadow: $input-focus-box-shadow;
-    }
+    @include box-shadow(0 0 0 1px $input-focus-border-color) // make the focus border stand out
   }
   @include deprecate(
     "The `form-control-focus()` mixin",
