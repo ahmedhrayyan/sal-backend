@@ -73,6 +73,7 @@ $font-family-sans-serif: "Poppins", -apple-system, BlinkMacSystemFont,
 $body-bg: $light;
 $body-color: $gray-160;
 $browser-context: 14px;
+$rfs-rem-value: $browser-context / 1px; // make it unitless
 
 $font-size-lg: rem(16px);
 $font-size-sm: rem(12px);
