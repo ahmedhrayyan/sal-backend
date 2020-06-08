@@ -8,13 +8,19 @@ interface Props {}
 
 const AnswerSection: FunctionComponent<Props> = (props) => {
   const [formActive, setFormActive] = useState<boolean>(false);
-  const [textareaVal, setTextareaVal] = useState<string>('');
+  const [textareaVal, setTextareaVal] = useState<string>("");
   function showForm() {
     setFormActive(true);
   }
   function hideForm() {
-    setTextareaVal('')
-    setFormActive(false)
+    if (textareaVal !== "") {
+      const confirm = window.confirm("Discard what you have typed?");
+      if (!confirm) {
+        return;
+      }
+    }
+    setTextareaVal("");
+    setFormActive(false);
   }
 
   return (
@@ -32,7 +38,7 @@ const AnswerSection: FunctionComponent<Props> = (props) => {
               <span className="text-muted">Accepted by user</span>
             </small>
           </p>
-          <Dropdown btnContent={<img src={downArrow} alt="down-arrow icon" />}>
+          <Dropdown btnContent={<img className='icon' src={downArrow} alt="down-arrow icon" />}>
             <a href="#">item 1</a>
             <a href="#">item 2</a>
           </Dropdown>
@@ -49,7 +55,9 @@ const AnswerSection: FunctionComponent<Props> = (props) => {
       </div>
       <hr className="card-divider" />
       <div className="answer-cta-section">
-        <button className="btn btn-link" onClick={showForm}>Write an answer</button>
+        <button className="btn btn-link" onClick={showForm}>
+          Write an answer
+        </button>
         <button className="btn btn-link">View all answers</button>
       </div>
       <hr className="card-divider" />
@@ -61,10 +69,20 @@ const AnswerSection: FunctionComponent<Props> = (props) => {
             rows={3}
             className="form-control form-group"
             value={textareaVal}
-            onChange={evt => {setTextareaVal(evt.currentTarget.value)}}
+            onChange={(evt) => {
+              setTextareaVal(evt.currentTarget.value);
+            }}
           ></textarea>
-          <button className="btn btn-primary">Submit</button>
-          <button className="btn btn-secondary" onClick={hideForm}>Cancel</button>
+          <button type="submit" className="btn btn-primary">
+            Submit
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={hideForm}
+          >
+            Cancel
+          </button>
         </form>
       )}
     </div>
