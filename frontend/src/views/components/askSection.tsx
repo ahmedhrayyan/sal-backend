@@ -22,7 +22,7 @@ const AskSection: FunctionComponent<Props> = (props) => {
               <span className="text-muted">5 answers</span>
             </small>
           </p>
-          <Dropdown btnContent={<img src={downArrow} alt="down-arrow icon" />}>
+          <Dropdown btnContent={<img className="icon" src={downArrow} alt="down-arrow icon" />}>
             <a href="#">item 1</a>
             <a href="#">item 2</a>
           </Dropdown>
