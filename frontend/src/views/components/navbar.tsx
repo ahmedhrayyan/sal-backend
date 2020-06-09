@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../../logo.svg";
+import logo from "../../images/logo.svg";
 import alert from "../../images/icons/alert.svg";
 import questionMark from "../../images/icons/question-mark.svg";
 import Avatar from "./avatar";
