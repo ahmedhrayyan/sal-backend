@@ -103,6 +103,16 @@ fieldset:disabled a.btn {
   // No need for an active state here
 }
 
+// btn link light
+.btn-link-light {
+  @extend .btn-link;
+  color: $light;
+
+  &:hover {
+    color: $light;
+  }
+}
+
 //
 // Button Sizes
 //
