@@ -31,6 +31,8 @@ class Question(db.Model):
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
 
+    answers = db.relationship('Answer', backref='question', lazy=True)
+
     def __init__(self, user_id, body):
         self.user_id = user_id
         self.body = body
@@ -60,9 +62,12 @@ class Answer(db.Model):
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
 
-    def __init__(self, user_id, body):
+    question_id = Column(Integer, ForeignKey('questions.id'))
+
+    def __init__(self, user_id, body, question_id):
         self.user_id = user_id
         self.body = body
+        self.question_id = question_id
 
     def update(self):
         db.session.commit()
