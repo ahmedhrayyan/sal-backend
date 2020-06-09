@@ -1,7 +1,8 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, String, Integer, Text, ForeignKey
+from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
 from flask_migrate import Migrate
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -30,9 +31,9 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
+    created_at = Column(DateTime(), default=datetime.utcnow)
 
     answers = db.relationship('Answer', backref='question', lazy=True, foreign_keys='Answer.question_id')
-
     best_answer_id = db.Column(Integer, ForeignKey('answers.id'), nullable=True)
 
     def __init__(self, user_id, body):
@@ -54,7 +55,8 @@ class Question(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'body': self.body
+            'body': self.body,
+            'created_at': self.created_at
         }
 
 
@@ -63,6 +65,7 @@ class Answer(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
+    created_at = Column(DateTime(), default=datetime.utcnow)
 
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
 
@@ -87,5 +90,6 @@ class Answer(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'body': self.body,
-            'question_id': self.question_id
+            'question_id': self.question_id,
+            'created_at': self.created_at
         }
