@@ -31,7 +31,7 @@ class Question(db.Model):
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
 
-    answers = db.relationship('Answer', backref='question', lazy=True)
+    answers = db.relationship('Answer', backref='question', lazy=True, foreign_keys='Answer.question_id')
 
     best_answer_id = db.Column(Integer, ForeignKey('answers.id'), nullable=True)
 
