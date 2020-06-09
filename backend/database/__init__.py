@@ -64,7 +64,7 @@ class Answer(db.Model):
     user_id = Column(String(40), nullable=False)
     body = Column(String(), nullable=False)
 
-    question_id = Column(Integer, ForeignKey('questions.id'))
+    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
 
     def __init__(self, user_id, body, question_id):
         self.user_id = user_id
