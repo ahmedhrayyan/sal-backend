@@ -24,3 +24,4 @@ def setup_db(app, database_uri=None, test_env=False):
         db.create_all()
     else:
         migrate = Migrate(app, db)
+
