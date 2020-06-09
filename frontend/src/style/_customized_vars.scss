@@ -53,6 +53,7 @@ $warning: $yellow;
 $danger: $red;
 $light: $gray-30;
 $dark: #005a9e;
+$theme-light: #C7E0F4;
 $theme-divider: #004578;
 $body-divider: #edebe9;
 
@@ -137,3 +138,6 @@ $answer-box-shadow: 0px 6.4px 14.4px rgba(0, 0, 0, 0.13),
 $answer-cta-padding-y: rem(8px);
 
 $enable-shadows: true;
+
+// for stroke-dahsarray rule
+$spinner-circle-circumstance: 2 * (22 / 7) * 42;
