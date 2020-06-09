@@ -86,5 +86,6 @@ class Answer(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'body': self.body
+            'body': self.body,
+            'question_id': self.question_id
         }
