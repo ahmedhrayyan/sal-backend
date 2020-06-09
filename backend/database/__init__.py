@@ -33,6 +33,8 @@ class Question(db.Model):
 
     answers = db.relationship('Answer', backref='question', lazy=True)
 
+    best_answer_id = db.Column(Integer, ForeignKey('answers.id'), nullable=True)
+
     def __init__(self, user_id, body):
         self.user_id = user_id
         self.body = body
