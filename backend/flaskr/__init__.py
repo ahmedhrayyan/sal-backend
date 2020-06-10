@@ -15,7 +15,7 @@ def get_formated_quetsions(questions):
         formated = question.format()
         best_answer = None
         if (question.best_answer_id != None):
-            best_answer = Answer.query.get(best_answer).format()
+            best_answer = Answer.query.get(question.best_answer_id)
         else:
             # this could be None (no answers)
             best_answer = Answer.query.order_by(Answer.created_at).first()
