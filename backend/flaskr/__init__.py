@@ -137,7 +137,7 @@ def create_app(test_config=None):
     def not_found(error):
         return jsonify({
             'success': False,
-            'message': 'not found',
+            'message': error.description,
             'error': 404
         }), 404
 
