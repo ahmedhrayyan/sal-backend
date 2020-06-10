@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
-from database import setup_db
+from database import setup_db, Answer, Question
 
 
 def create_app(test_config=None):
@@ -11,8 +11,13 @@ def create_app(test_config=None):
         app.config.from_pyfile('config.py', silent=True)
     setup_db(app)
 
-    @app.route('/')
-    def index():
-        return jsonify({'message': 'Hello World!'})
+    # handling errors
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'message': 'not found',
+            'error': 404
+        }), 404
 
     return app
