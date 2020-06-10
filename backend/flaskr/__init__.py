@@ -129,6 +129,18 @@ def create_app(test_config=None):
             'answer': answers[0].format()
         })
 
+    @app.route('/answers/<answer_id>', methods=['GET'])
+    def get_answer(answer_id):
+        answer = Answer.query.get(answer_id)
+
+        if answer == None:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'answer': answer.format()
+        })
+
     # handling errors
     @app.errorhandler(404)
     def not_found(error):
