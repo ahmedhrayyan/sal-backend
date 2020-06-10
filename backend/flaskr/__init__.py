@@ -13,18 +13,9 @@ def get_formated_quetsions(questions):
     formated_questions = []
     for question in questions:
         formated = question.format()
-        best_answer = None
-        if (question.best_answer_id != None):
-            best_answer = Answer.query.get(question.best_answer_id)
-        else:
-            # this could be None (no answers)
-            best_answer = Answer.query.order_by(Answer.created_at).first()
-
         formated.update({
             'no_of_answers': len(question.answers),
-            'best_answer': best_answer.format() if best_answer else None
         })
-
         formated_questions.append(formated)
 
     return formated_questions
