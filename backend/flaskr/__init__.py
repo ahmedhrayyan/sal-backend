@@ -9,7 +9,7 @@ def get_paginated_items(req, items, items_per_page=10):
 
     return items[start_index:end_index]
 
-def get_formated_quetsions(questions):
+def get_formated_questions(questions):
     formated_questions = []
     for question in questions:
         formated = question.format()
@@ -33,7 +33,7 @@ def create_app(test_config=None):
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
         questions = get_paginated_items(request, all_questions)
-        formated_questions = get_formated_quetsions(questions)
+        formated_questions = get_formated_questions(questions)
 
         if len(questions) == 0:
             abort(404)
