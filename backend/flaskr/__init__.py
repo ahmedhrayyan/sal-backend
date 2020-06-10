@@ -111,6 +111,24 @@ def create_app(test_config=None):
             'no_of_answers': len(all_answers)
         })
 
+
+    @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
+    def get_latest_answer(question_id):
+        question = Question.query.get(question_id)
+
+        if question == None:
+            abort(404)
+
+        answers = question.answers
+
+        if len(answers) == 0:
+            abort(404, 'No answers for this question')
+
+        return jsonify({
+            'success': True,
+            'answer': answers[0].format()
+        })
+
     # handling errors
     @app.errorhandler(404)
     def not_found(error):
