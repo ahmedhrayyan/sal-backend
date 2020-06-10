@@ -53,6 +53,18 @@ def create_app(test_config=None):
             'no_of_questions': len(all_questions)
         })
 
+    @app.route('/questions/<question_id>', methods=['GET'])
+    def get_question(question_id):
+        question = Question.query.get(question_id)
+
+        if question == None:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'question': question.format()
+        })
+
 
     # handling errors
     @app.errorhandler(404)
