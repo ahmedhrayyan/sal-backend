@@ -123,13 +123,28 @@ def create_app(test_config=None):
     @app.route('/answers/<answer_id>', methods=['GET'])
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
-
         if answer == None:
             abort(404)
 
         return jsonify({
             'success': True,
             'answer': answer.format()
+        })
+
+    @app.route('/answers/<answer_id>', methods=['DELETE'])
+    def delete_answer(answer_id):
+        answer = Answer.query.get(answer_id)
+        if answer == None:
+            abort(404)
+
+        try:
+            answer.delete()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'del_id': answer_id
         })
 
     # handling errors
