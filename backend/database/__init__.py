@@ -33,7 +33,11 @@ class Question(db.Model):
     body = Column(String(), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    answers = db.relationship('Answer', backref='question', lazy=True, foreign_keys='Answer.question_id')
+    answers = db.relationship('Answer',
+        backref='question',
+        order_by='desc(Answer.created_at)',
+        lazy=True,
+        foreign_keys='Answer.question_id')
     best_answer_id = db.Column(Integer, ForeignKey('answers.id'), nullable=True)
 
     def __init__(self, user_id, body):
