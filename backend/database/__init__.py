@@ -32,12 +32,12 @@ class Question(db.Model):
     user_id = Column(String(40), nullable=False)
     content = Column(String(), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-
     answers = db.relationship('Answer',
         backref='question',
         order_by='desc(Answer.created_at)',
         lazy=True,
-        foreign_keys='Answer.question_id')
+        foreign_keys='Answer.question_id',
+        cascade="all")
     best_answer_id = db.Column(Integer, nullable=True)
 
     def __init__(self, user_id, content):
