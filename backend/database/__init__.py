@@ -30,7 +30,7 @@ class Question(db.Model):
     __tablename__ = 'questions'
     id = Column(Integer, primary_key=True)
     user_id = Column(String(40), nullable=False)
-    body = Column(String(), nullable=False)
+    content = Column(String(), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
     answers = db.relationship('Answer',
@@ -40,9 +40,9 @@ class Question(db.Model):
         foreign_keys='Answer.question_id')
     best_answer_id = db.Column(Integer, nullable=True)
 
-    def __init__(self, user_id, body):
+    def __init__(self, user_id, content):
         self.user_id = user_id
-        self.body = body
+        self.content = content
 
     def update(self):
         db.session.commit()
@@ -59,7 +59,7 @@ class Question(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'body': self.body,
+            'content': self.content,
             'created_at': self.created_at,
             'best_answer_id': self.best_answer_id
         }
@@ -69,14 +69,14 @@ class Answer(db.Model):
     __tablename__ = 'answers'
     id = Column(Integer, primary_key=True)
     user_id = Column(String(40), nullable=False)
-    body = Column(String(), nullable=False)
+    content = Column(String(), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
 
-    def __init__(self, user_id, body, question_id):
+    def __init__(self, user_id, content, question_id):
         self.user_id = user_id
-        self.body = body
+        self.content = content
         self.question_id = question_id
 
     def update(self):
@@ -94,7 +94,7 @@ class Answer(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'body': self.body,
+            'content': self.content,
             'question_id': self.question_id,
             'created_at': self.created_at
         }
