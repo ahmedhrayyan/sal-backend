@@ -83,6 +83,27 @@ def create_app(test_config=None):
             'best_answer_id': answer_id
         })
 
+    @app.route('/questions', methods=['POST'])
+    def post_question():
+        data = request.get_json()
+        if 'user_id' not in data:
+            abort(400, 'user_id expected in request body')
+        if 'content' not in data:
+            abort(400, 'content expected in request body')
+
+        new_question = Question(data['user_id'], data['content'])
+
+        try:
+            new_question.insert()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'created': new_question.format()
+        })
+
+
     @app.route('/questions/<question_id>/answers', methods=['GET'])
     def get_answers(question_id):
         question = Question.query.get(question_id)
