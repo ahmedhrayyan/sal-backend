@@ -65,6 +65,33 @@ def create_app(test_config=None):
             'question': question.format()
         })
 
+    @app.route('/questions/<question_id>', methods=['PATCH'])
+    def select_best_answer(question_id):
+        data = request.get_json()
+        if data is None or 'answer' not in data:
+            abort(400, 'answer: <id> expected in request body')
+
+        answer_id = data.get('answer')
+
+        question = Question.query.get(question_id)
+        if question == None:
+            abort(404, 'question not found')
+
+        answer = Answer.query.get(answer_id)
+        if answer not in question.answers:
+            abort(400, 'The provided answer is not valid')
+
+        question.best_answer_id = answer_id
+        try:
+            question.update()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'best_answer_id': answer_id
+        })
+
     @app.route('/questions/<question_id>/answers', methods=['GET'])
     def get_answers(question_id):
         question = Question.query.get(question_id)
