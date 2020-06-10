@@ -59,8 +59,8 @@ def create_app(test_config=None):
     @app.route('/questions/<question_id>', methods=['PATCH'])
     def select_best_answer(question_id):
         data = request.get_json()
-        if data is None or 'answer' not in data:
-            abort(400, 'answer: <id> expected in request body')
+        if 'answer' not in data:
+            abort(400, 'answer expected in request body')
 
         answer_id = data.get('answer')
 
@@ -70,7 +70,7 @@ def create_app(test_config=None):
 
         answer = Answer.query.get(answer_id)
         if answer not in question.answers:
-            abort(400, 'The provided answer is not valid')
+            abort(400, 'the provided answer is not valid')
 
         question.best_answer_id = answer_id
         try:
