@@ -65,6 +65,24 @@ def create_app(test_config=None):
             'question': question.format()
         })
 
+    @app.route('/questions/<question_id>/answers', methods=['GET'])
+    def get_answers(question_id):
+        question = Question.query.get(question_id)
+
+        if question == None:
+            abort(404)
+
+        all_answers = question.answers
+        answers = get_paginated_items(request, all_answers)
+
+        if len(answers) == 0:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'answers': [answer.format() for answer in answers],
+            'no_of_answers': len(all_answers)
+        })
 
     # handling errors
     @app.errorhandler(404)
