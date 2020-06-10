@@ -102,6 +102,30 @@ def create_app(test_config=None):
             'no_of_answers': len(all_answers)
         })
 
+    @app.route('/questions/<question_id>/answers', methods=['POST'])
+    def post_answer(question_id):
+        data = request.get_json()
+        if 'user_id' not in data:
+            abort(400, 'user_id expected in request body')
+        if 'content' not in data:
+            abort(400, 'content expected in request body')
+
+        question = Question.query.get(question_id)
+        if question == None:
+            abort(404, 'question not found')
+
+        new_answer = Answer(data['user_id'], data['content'], question_id)
+
+        try:
+            new_answer.insert()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'created': new_answer.format()
+        })
+
 
     @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
     def get_latest_answer(question_id):
