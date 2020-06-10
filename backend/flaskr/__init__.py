@@ -56,6 +56,7 @@ def create_app(test_config=None):
             'question': question.format()
         })
 
+
     @app.route('/questions/<question_id>', methods=['PATCH'])
     def select_best_answer(question_id):
         data = request.get_json()
@@ -83,6 +84,7 @@ def create_app(test_config=None):
             'best_answer_id': answer_id
         })
 
+
     @app.route('/questions', methods=['POST'])
     def post_question():
         data = request.get_json()
@@ -103,6 +105,7 @@ def create_app(test_config=None):
             'created': new_question.format()
         })
 
+
     @app.route('/questions/<question_id>')
     def remove_question(question_id):
         question = Answer.query.get(question_id)
@@ -118,6 +121,7 @@ def create_app(test_config=None):
             'success': True,
             'del_id': question_id
         })
+
 
     @app.route('/questions/<question_id>/answers', methods=['GET'])
     def get_answers(question_id):
@@ -137,6 +141,37 @@ def create_app(test_config=None):
             'answers': [answer.format() for answer in answers],
             'no_of_answers': len(all_answers)
         })
+
+
+    @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
+    def get_latest_answer(question_id):
+        question = Question.query.get(question_id)
+
+        if question == None:
+            abort(404)
+
+        answers = question.answers
+
+        if len(answers) == 0:
+            abort(404, 'No answers for this question')
+
+        return jsonify({
+            'success': True,
+            'answer': answers[0].format()
+        })
+
+
+    @app.route('/answers/<answer_id>', methods=['GET'])
+    def get_answer(answer_id):
+        answer = Answer.query.get(answer_id)
+        if answer == None:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'answer': answer.format()
+        })
+
 
     @app.route('/questions/<question_id>/answers', methods=['POST'])
     def post_answer(question_id):
@@ -162,34 +197,6 @@ def create_app(test_config=None):
             'created': new_answer.format()
         })
 
-
-    @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
-    def get_latest_answer(question_id):
-        question = Question.query.get(question_id)
-
-        if question == None:
-            abort(404)
-
-        answers = question.answers
-
-        if len(answers) == 0:
-            abort(404, 'No answers for this question')
-
-        return jsonify({
-            'success': True,
-            'answer': answers[0].format()
-        })
-
-    @app.route('/answers/<answer_id>', methods=['GET'])
-    def get_answer(answer_id):
-        answer = Answer.query.get(answer_id)
-        if answer == None:
-            abort(404)
-
-        return jsonify({
-            'success': True,
-            'answer': answer.format()
-        })
 
     @app.route('/answers/<answer_id>', methods=['DELETE'])
     def delete_answer(answer_id):
