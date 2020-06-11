@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
+from auth import init_auth0
 
 def get_paginated_items(req, items, items_per_page=10):
     page = req.args.get('page', 1, int)
@@ -26,6 +27,7 @@ def create_app(test_config=None):
         # load config file if it exists
         app.config.from_pyfile('config.py', silent=True)
     setup_db(app)
+    auth0 = init_auth0()
 
     @app.route('/questions', methods=['GET'])
     def get_questions():
@@ -173,6 +175,19 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'del_id': int(answer_id)
+        })
+
+    # get users public data
+    @app.route('/users/<user_id>')
+    def index(user_id):
+        # response is a dict object
+        response = auth0.get_user(user_id, ['name', 'picture'])
+        # check for errors
+        if response.get('error') is not None:
+            abort(response['statusCode'], response['message'])
+        return jsonify({
+            'success': True,
+            'user': response
         })
 
     # handling errors
