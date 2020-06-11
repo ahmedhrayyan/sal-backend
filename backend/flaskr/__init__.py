@@ -30,6 +30,7 @@ def create_app(test_config=None):
     auth0 = init_auth0()
 
     @app.route('/questions', methods=['GET'])
+    @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
         questions = get_paginated_items(request, all_questions)
@@ -43,6 +44,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>', methods=['GET'])
+    @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -53,6 +55,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>', methods=['PATCH'])
+    @requires_auth
     def select_best_answer(question_id):
         data = request.get_json()
         if 'answer' not in data:
@@ -75,6 +78,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions', methods=['POST'])
+    @requires_auth
     def post_question():
         data = request.get_json()
         if 'user_id' not in data:
@@ -92,6 +96,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>', methods=['DELETE'])
+    @requires_auth
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -106,6 +111,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>/answers', methods=['GET'])
+    @requires_auth
     def get_answers(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -121,6 +127,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
+    @requires_auth
     def get_latest_answer(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -134,6 +141,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/answers/<answer_id>', methods=['GET'])
+    @requires_auth
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -144,6 +152,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions/<question_id>/answers', methods=['POST'])
+    @requires_auth
     def post_answer(question_id):
         data = request.get_json()
         if 'user_id' not in data:
@@ -164,6 +173,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/answers/<answer_id>', methods=['DELETE'])
+    @requires_auth
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -179,6 +189,7 @@ def create_app(test_config=None):
 
     # get users public data
     @app.route('/users/<user_id>')
+    @requires_auth
     def index(user_id):
         # response is a dict object
         response = auth0.get_user(user_id, ['name', 'picture'])
