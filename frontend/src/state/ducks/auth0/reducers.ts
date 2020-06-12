@@ -17,7 +17,7 @@ function auth0Reducer(state = defaultState, action: Auth0ActionTypes) {
         isLoading: false,
         auth0Client: action.payload
       })
-    case Types.RECIEVE_LOGIN:
+    case Types.RECEIVE_LOGIN:
       return Object.assign({}, state, {
         isAuthenticated: true,
         user: action.payload

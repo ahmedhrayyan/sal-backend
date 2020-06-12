@@ -14,9 +14,9 @@ function initAuth0Success(auth0Client: any): Auth0ActionTypes {
   }
 }
 
-function recieveLogin(user: any): Auth0ActionTypes {
+function receiveLogin(user: any): Auth0ActionTypes {
   return {
-    type: Types.RECIEVE_LOGIN,
+    type: Types.RECEIVE_LOGIN,
     payload: user
   }
 }
@@ -48,7 +48,7 @@ export function initAuth0(initOptions: InitOptions, handleRedirect = defaultHand
     const isAuthenticated = await auth0Client.isAuthenticated();
     if (isAuthenticated) {
       const user = await auth0Client.getUser();
-      dispatch(recieveLogin(user))
+      dispatch(receiveLogin(user))
     }
 
     dispatch(initAuth0Success(auth0Client))

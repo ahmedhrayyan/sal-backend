@@ -1,7 +1,7 @@
 export enum Types {
   INIT_AUTH0_REQUEST = "INIT_AUTH0_REQUEST",
   INIT_AUTH0_SUCCESS = "INIT_AUTH0_SUCCESS",
-  RECIEVE_LOGIN = 'RECIEVE_LOGIN'
+  RECEIVE_LOGIN = 'RECEIVE_LOGIN'
 }
 
 interface requestInitAuth0Action {
@@ -13,14 +13,14 @@ interface successAuth0Action {
   payload: any;
 }
 
-interface recieveLoginAction {
-  type: typeof Types.RECIEVE_LOGIN,
+interface receiveLoginAction {
+  type: typeof Types.RECEIVE_LOGIN,
   payload: any
 }
 
 export type Auth0ActionTypes =
   | requestInitAuth0Action
   | successAuth0Action
-  | recieveLoginAction;
+  | receiveLoginAction;
 
 export default Types;
