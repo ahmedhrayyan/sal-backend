@@ -3,6 +3,9 @@ import config from "../../auth_config.json";
 import history from "../../state/ducks/auth0/utils";
 import { initAuth0 } from "../../state/ducks/auth0/actions";
 import { connect } from "react-redux";
+import { Router, Route } from "react-router-dom";
+import routes from "../../routes";
+import { Navbar } from "../components";
 
 interface Props {
   initAuth0: any
@@ -27,7 +30,20 @@ function App(props: Props) {
     );
   }, []);
 
-  return <div className="App"></div>;
+  return (
+    <Router history={history}>
+      <div className="app">
+        <header>
+          <Navbar />
+        </header>
+        {routes.map(route => {
+          return (
+            <Route key={route.path} {...route} />
+          )
+        })}
+      </div>
+    </Router>
+  )
 }
 
 const mapStateToProps = {

@@ -79,7 +79,7 @@ function Navbar(props: Props) {
       </form>
       {!props.isAuthenticated && (
         <button className="btn btn-link-light" onClick={login}>
-          Login
+          Sign In
         </button>
       )}
       {props.isAuthenticated && (
