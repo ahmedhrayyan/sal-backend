@@ -4,6 +4,7 @@ const defaultState = {
   errorMessage: null,
   lastUpdated: null,
   fetchedPageCount: 0, // we did not fetch any page yet
+  noOfQuestions: null,
   entities: new Map<number, any>()
 }
 
@@ -22,6 +23,7 @@ function questionsReducer(state = defaultState, action: any) {
         isFetching: false,
         questions: newEntities,
         fetchedPageCount: state.fetchedPageCount + 1,
+        noOfQuestions: action.payload.no_of_questions,
         lastUpdated: action.receivedAt
       })
     }
