@@ -46,11 +46,15 @@ def create_app(test_config=None):
     @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
+        formated_question = question.format()
+        formated_question.update({
+            'no_of_answers': len(question.answers)
+        })
         if question == None:
             abort(404)
         return jsonify({
             'success': True,
-            'question': question.format()
+            'question': formated_question
         })
 
     @app.route('/questions/<question_id>', methods=['PATCH'])
