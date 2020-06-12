@@ -9,7 +9,8 @@ import { Header, Spinner } from "../components";
 
 interface Props {
   isLoading: boolean,
-  initAuth0: any
+  isAuthenticated: boolean,
+  initAuth0: any,
 }
 function App(props: Props) {
   useEffect(() => {
@@ -43,20 +44,21 @@ function App(props: Props) {
   return (
     <Router history={history}>
       <Header />
-      <div className="app">
+      {props.isAuthenticated && <div>
         {routes.map(route => {
           return (
             <Route key={route.path} {...route} />
           )
         })}
-      </div>
+      </div>}
     </Router>
   )
 }
 
 function mapStateToProps(state: any) {
   return {
-    isLoading: state.auth0.isLoading
+    isLoading: state.auth0.isLoading,
+    isAuthenticated: state.auth0.isAuthenticated
   }
 }
 
