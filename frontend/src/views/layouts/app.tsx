@@ -5,9 +5,10 @@ import { initAuth0 } from "../../state/ducks/auth0/actions";
 import { connect } from "react-redux";
 import { Router, Route } from "react-router-dom";
 import routes from "../../routes";
-import { Header } from "../components";
+import { Header, Spinner } from "../components";
 
 interface Props {
+  isLoading: boolean,
   initAuth0: any
 }
 function App(props: Props) {
@@ -31,6 +32,14 @@ function App(props: Props) {
     );
   }, []);
 
+  if (props.isLoading) {
+    return (
+      <div className="app">
+        <Spinner className="spinner spinner-centered"/>
+      </div>
+    )
+  }
+
   return (
     <Router history={history}>
       <Header />
@@ -45,8 +54,14 @@ function App(props: Props) {
   )
 }
 
+function mapStateToProps(state: any) {
+  return {
+    isLoading: state.auth0.isLoading
+  }
+}
+
 const mapDispatchToProps = {
   initAuth0
 }
 
-export default connect(null, mapDispatchToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);
