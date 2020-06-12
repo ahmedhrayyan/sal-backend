@@ -3,15 +3,37 @@ import Avatar from "./avatar";
 import dummyAvatar from "../../images/avatar.jpg";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
+import { Link } from "react-router-dom";
+import { connect } from "react-redux";
+import { deleteQuestion } from "../../state/ducks/questions/actions";
 
 interface Props {
   content: string;
   noOfAnswers: number;
+  questionId: number;
   questionDate: Date;
-  style?: CSSProperties
+  userId: string;
+  questionUserId: string;
+  deleteQuestion: any;
+  token: string;
+  style?: CSSProperties;
 }
 
 const AskSection: FunctionComponent<Props> = (props) => {
+  function handleReporting() {
+    alert('Unfortunately, this action is not implemented yet!')
+  }
+  function handleUpdating() {
+    alert('Unfortunately, this action is not implemented yet!')
+  }
+
+  function handleDeleting() {
+    props.deleteQuestion(props.token, props.questionId)
+  }
+
+  // check if the user owns the question
+  const isUserQuestion = props.userId === props.questionUserId;
+
   return (
     <div className="card ask" style={props.style}>
       <div className="card-header">
@@ -26,11 +48,10 @@ const AskSection: FunctionComponent<Props> = (props) => {
               <br />
               <span className="text-muted">
                 {props.noOfAnswers === 0
-                  ? 'No answers yet'
+                  ? "No answers yet"
                   : props.noOfAnswers === 1
-                  ? '1 answer'
-                  : `${props.noOfAnswers} answers`
-                }
+                  ? "1 answer"
+                  : `${props.noOfAnswers} answers`}
               </span>
             </small>
           </p>
@@ -39,8 +60,14 @@ const AskSection: FunctionComponent<Props> = (props) => {
               <img className="icon" src={downArrow} alt="down-arrow icon" />
             }
           >
-            <a href="#">item 1</a>
-            <a href="#">item 2</a>
+            <Link to={`/${props.questionId}`}>View question</Link>
+            <button onClick={handleReporting}>Report this question</button>
+            {isUserQuestion && (
+              <button onClick={handleDeleting}>Delete Question</button>
+            )}
+            {isUserQuestion && (
+              <button onClick={handleUpdating}>Update Question</button>
+            )}
           </Dropdown>
         </div>
       </div>
@@ -51,4 +78,8 @@ const AskSection: FunctionComponent<Props> = (props) => {
   );
 };
 
-export default AskSection;
+const mapDispatchToProps = {
+  deleteQuestion
+}
+
+export default connect(null, mapDispatchToProps)(AskSection)
