@@ -4,7 +4,7 @@ const defaultState = {
   errorMessage: null,
   lastUpdated: null,
   fetchedPageCount: 0, // we did not fetch any page yet
-  questions: new Map<number, any>()
+  entities: new Map<number, any>()
 }
 
 function questionsReducer(state = defaultState, action: any) {
@@ -14,13 +14,13 @@ function questionsReducer(state = defaultState, action: any) {
         isFetching: true
       })
     case Types.QUESTIONS_SUCCESS: {
-      let newQuestions = new Map(state.questions) // clone old questions
-      for (const question of action.payload.questions) {
-        newQuestions.set(question.id, question)
+      let newEntities = new Map(state.entities) // clone old questions
+      for (const entity of action.payload.questions) {
+        newEntities.set(entity.id, entity)
       }
       return Object.assign({}, state, {
         isFetching: false,
-        questions: newQuestions,
+        questions: newEntities,
         fetchedPageCount: state.fetchedPageCount + 1,
         lastUpdated: action.receivedAt
       })
