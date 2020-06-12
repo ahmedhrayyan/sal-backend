@@ -28,7 +28,7 @@ function questionsReducer(state = defaultState, action: any) {
       }
       return Object.assign({}, state, {
         isFetching: false,
-        questions: newEntities,
+        entities: newEntities,
         fetchedPageCount,
         noOfQuestions: action.payload.no_of_questions,
         lastUpdated: action.receivedAt
