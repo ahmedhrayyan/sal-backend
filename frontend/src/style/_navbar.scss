@@ -70,6 +70,10 @@
 // custom search from for navbar
 .navbar-search {
   position: relative;
+  @media screen and (max-width: map-get($grid-breakpoints, md)) {
+    display: none;
+  }
+
   > input {
     background: rgba($white, 0.8);
     border-color: transparent;
