@@ -97,6 +97,6 @@ function mapStateToProps(state: any) {
   };
 }
 
-const mapDisptachToProps = {};
+const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDisptachToProps)(Navbar);
+export default connect(mapStateToProps, mapDispatchToProps)(Navbar);
