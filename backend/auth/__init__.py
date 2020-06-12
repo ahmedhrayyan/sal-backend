@@ -109,9 +109,9 @@ def requires_auth(f):
     return decorated
 
 
-def requires_scope(required_scope):
-    token_scopes = _request_ctx_stack_.top.current_user.scope.split(' ')
-    for scope in token_scopes:
-        if scope == required_scope:
+def requires_permission(required_permission):
+    permissions = _request_ctx_stack.top.current_user['permissions']
+    for permission in permissions:
+        if permission == required_permission:
             return True
     return False

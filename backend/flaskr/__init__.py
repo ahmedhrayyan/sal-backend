@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
-from auth import init_auth0, AuthError, requires_auth, requires_scope
+from auth import init_auth0, AuthError, requires_auth, requires_permission
 
 def get_paginated_items(req, items, items_per_page=10):
     page = req.args.get('page', 1, int)
@@ -18,7 +18,6 @@ def get_formated_questions(questions):
         })
         formated_questions.append(formated)
     return formated_questions
-
 
 def create_app(test_config=None):
     # create and configure the app
@@ -64,7 +63,11 @@ def create_app(test_config=None):
         question = Question.query.get(question_id)
         if question == None:
             abort(404, 'question not found')
-        answer = Answer.query.get(answer_id)
+        if _request_ctx_stack.top.current_user['sub'] != question.user_id:
+            if requires_permission('update:questions'):
+                raise AuthError('You don\'t have '
+                'the authority to delete other users answers', 403)
+            answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
         question.best_answer_id = answer_id
@@ -101,6 +104,10 @@ def create_app(test_config=None):
         question = Question.query.get(question_id)
         if question == None:
             abort(404)
+        if _request_ctx_stack.top.current_user['sub'] != question.user_id:
+            if not requires_permission('delete:questions'):
+                raise AuthError('You don\'t have '
+                'the authority to delete other users questions', 403)
         try:
             question.delete()
         except Exception:
@@ -178,6 +185,10 @@ def create_app(test_config=None):
         answer = Answer.query.get(answer_id)
         if answer == None:
             abort(404)
+        if _request_ctx_stack.top.current_user['sub'] != answer.user_id:
+            if not requires_permission('delete:answers'):
+                raise AuthError('You don\'t have '
+                'the authority to delete other users answers', 403)
         try:
             answer.delete()
         except Exception:
