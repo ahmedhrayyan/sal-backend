@@ -1,7 +1,7 @@
 import Types, { Auth0ActionTypes } from './types';
 const defaultState = {
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   user: null,
   auth0Client: null
 }
