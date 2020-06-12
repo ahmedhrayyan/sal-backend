@@ -91,9 +91,9 @@ function Navbar(props: Props) {
 
 function mapStateToProps(state: any) {
   return {
-    auth0Client: state.auth0Client,
-    isAuthenticated: state.isAuthenticated,
-    user: state.user
+    auth0Client: state.auth0.auth0Client,
+    isAuthenticated: state.auth0.isAuthenticated,
+    user: state.auth0.user
   };
 }
 
