@@ -86,6 +86,9 @@ const Dropdown: FunctionComponent<Props> = ({
         aria-labelledby="dropdownMenuLink"
       >
         {Children.map(children, (child: any) => {
+          if (!child || !child.props) {
+            return // not a react element
+          }
           return cloneElement(child, {
             className: child.props.className
               ? child.props.className + " dropdown-item"
