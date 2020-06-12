@@ -28,6 +28,25 @@ def create_app(test_config=None):
     setup_db(app)
     auth0 = init_auth0()
 
+    @app.route('/search', methods=['POST'])
+    @requires_auth
+    def search():
+        data = request.get_json() or []
+        if 'search' not in data:
+            abort(400, 'search expected in request body')
+        search_term = '%' + data['search'] + '%'
+        all_questions = Question.query.filter(
+            Question.content.ilike(search_term)).all()
+        questions = get_paginated_items(request, all_questions)
+        formated_questions = get_formated_questions(questions)
+        if len(questions) == 0:
+            abort(404)
+        return jsonify({
+            'success': True,
+            'questions': formated_questions,
+            'no_of_questions': len(all_questions)
+        })
+
     @app.route('/questions', methods=['GET'])
     @requires_auth
     def get_questions():
