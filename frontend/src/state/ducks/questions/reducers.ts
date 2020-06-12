@@ -3,6 +3,7 @@ const defaultState = {
   isFetching: false,
   errorMessage: null,
   lastUpdated: null,
+  fetchedPageCount: 0, // we did not fetch any page yet
   questions: new Map<number, any>()
 }
 
@@ -20,6 +21,7 @@ function questionsReducer(state = defaultState, action: any) {
       return Object.assign({}, state, {
         isFetching: false,
         questions: newQuestions,
+        fetchedPageCount: state.fetchedPageCount + 1,
         lastUpdated: action.receivedAt
       })
     }
