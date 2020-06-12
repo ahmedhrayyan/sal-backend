@@ -22,6 +22,25 @@
   }
 }
 
+@mixin make-content-container-max-widths(
+  $max-widths: $container-max-widths,
+  $breakpoints: $grid-breakpoints
+) {
+  @each $breakpoint, $container-max-width in $max-widths {
+    @include media-breakpoint-up($breakpoint, $breakpoints) {
+      max-width: $container-max-width;
+      @if $container-max-width == 960px {
+        padding-right: 120px;
+        padding-left: 120px;
+      }
+      @if $container-max-width == 720px {
+        padding-right: 60px;
+        padding-left: 60px;
+      }
+    }
+  }
+}
+
 @mixin make-row($gutter: $grid-gutter-width) {
   display: flex;
   flex-wrap: wrap;

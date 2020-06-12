@@ -14,6 +14,11 @@
     @include make-container();
   }
 
+  .content-container {
+    @include make-container();
+    @include make-content-container-max-widths();
+  }
+
   // Responsive containers that are 100% wide until a breakpoint
   @each $breakpoint, $container-max-width in $container-max-widths {
     .container-#{$breakpoint} {
