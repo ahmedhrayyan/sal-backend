@@ -84,11 +84,10 @@ def create_app(test_config=None):
     @requires_auth
     def post_question():
         data = request.get_json()
-        if 'user_id' not in data:
-            abort(400, 'user_id expected in request body')
         if 'content' not in data:
             abort(400, 'content expected in request body')
-        new_question = Question(data['user_id'], data['content'])
+        user_id = _request_ctx_stack.top.current_user['sub']
+        new_question = Question(user_id, data['content'])
         try:
             new_question.insert()
         except Exception:
@@ -162,14 +161,13 @@ def create_app(test_config=None):
     @requires_auth
     def post_answer(question_id):
         data = request.get_json()
-        if 'user_id' not in data:
-            abort(400, 'user_id expected in request body')
         if 'content' not in data:
             abort(400, 'content expected in request body')
         question = Question.query.get(question_id)
         if question == None:
             abort(404, 'question not found')
-        new_answer = Answer(data['user_id'], data['content'], question_id)
+        user_id = _request_ctx_stack.top.current_user['sub']
+        new_answer = Answer(user_id, data['content'], question_id)
         try:
             new_answer.insert()
         except Exception:
