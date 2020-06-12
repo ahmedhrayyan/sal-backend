@@ -5,7 +5,7 @@ import { initAuth0 } from "../../state/ducks/auth0/actions";
 import { connect } from "react-redux";
 import { Router, Route } from "react-router-dom";
 import routes from "../../routes";
-import { Navbar } from "../components";
+import { Header } from "../components";
 
 interface Props {
   initAuth0: any
@@ -32,10 +32,8 @@ function App(props: Props) {
 
   return (
     <Router history={history}>
+      <Header />
       <div className="app">
-        <header>
-          <Navbar />
-        </header>
         {routes.map(route => {
           return (
             <Route key={route.path} {...route} />
