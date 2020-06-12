@@ -79,7 +79,7 @@ def create_app(test_config=None):
     @app.route('/questions/<question_id>', methods=['PATCH'])
     @requires_auth
     def select_best_answer(question_id):
-        data = request.get_json()
+        data = request.get_json() or []
         if 'answer' not in data:
             abort(400, 'answer expected in request body')
         answer_id = data.get('answer')
@@ -106,7 +106,7 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['POST'])
     @requires_auth
     def post_question():
-        data = request.get_json()
+        data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
         user_id = _request_ctx_stack.top.current_user['sub']
@@ -183,7 +183,7 @@ def create_app(test_config=None):
     @app.route('/questions/<question_id>/answers', methods=['POST'])
     @requires_auth
     def post_answer(question_id):
-        data = request.get_json()
+        data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
         question = Question.query.get(question_id)
