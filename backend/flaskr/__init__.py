@@ -28,7 +28,7 @@ def create_app(test_config=None):
     setup_db(app)
     auth0 = init_auth0()
 
-    @app.route('/search', methods=['POST'])
+    @app.route('/api/search', methods=['POST'])
     @requires_auth
     def search():
         data = request.get_json() or []
@@ -47,7 +47,7 @@ def create_app(test_config=None):
             'no_of_questions': len(all_questions)
         })
 
-    @app.route('/questions', methods=['GET'])
+    @app.route('/api/questions', methods=['GET'])
     @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
@@ -61,7 +61,7 @@ def create_app(test_config=None):
             'no_of_questions': len(all_questions)
         })
 
-    @app.route('/questions/<question_id>', methods=['GET'])
+    @app.route('/api/questions/<question_id>', methods=['GET'])
     @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
@@ -76,7 +76,7 @@ def create_app(test_config=None):
             'question': formated_question
         })
 
-    @app.route('/questions/<question_id>', methods=['PATCH'])
+    @app.route('/api/questions/<question_id>', methods=['PATCH'])
     @requires_auth
     def select_best_answer(question_id):
         data = request.get_json() or []
@@ -103,7 +103,7 @@ def create_app(test_config=None):
             'best_answer_id': int(answer_id)
         })
 
-    @app.route('/questions', methods=['POST'])
+    @app.route('/api/questions', methods=['POST'])
     @requires_auth
     def post_question():
         data = request.get_json() or []
@@ -120,7 +120,7 @@ def create_app(test_config=None):
             'created': new_question.format()
         })
 
-    @app.route('/questions/<question_id>', methods=['DELETE'])
+    @app.route('/api/questions/<question_id>', methods=['DELETE'])
     @requires_auth
     def delete_question(question_id):
         question = Question.query.get(question_id)
@@ -139,7 +139,7 @@ def create_app(test_config=None):
             'del_id': int(question_id)
         })
 
-    @app.route('/questions/<question_id>/answers', methods=['GET'])
+    @app.route('/api/questions/<question_id>/answers', methods=['GET'])
     @requires_auth
     def get_answers(question_id):
         question = Question.query.get(question_id)
@@ -155,7 +155,7 @@ def create_app(test_config=None):
             'no_of_answers': len(all_answers)
         })
 
-    @app.route('/questions/<question_id>/answers/latest', methods=['GET'])
+    @app.route('/api/questions/<question_id>/answers/latest', methods=['GET'])
     @requires_auth
     def get_latest_answer(question_id):
         question = Question.query.get(question_id)
@@ -169,7 +169,7 @@ def create_app(test_config=None):
             'answer': answers[0].format()
         })
 
-    @app.route('/answers/<answer_id>', methods=['GET'])
+    @app.route('/api/answers/<answer_id>', methods=['GET'])
     @requires_auth
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
@@ -180,7 +180,7 @@ def create_app(test_config=None):
             'answer': answer.format()
         })
 
-    @app.route('/questions/<question_id>/answers', methods=['POST'])
+    @app.route('/api/questions/<question_id>/answers', methods=['POST'])
     @requires_auth
     def post_answer(question_id):
         data = request.get_json() or []
@@ -200,7 +200,7 @@ def create_app(test_config=None):
             'created': new_answer.format()
         })
 
-    @app.route('/answers/<answer_id>', methods=['DELETE'])
+    @app.route('/api/answers/<answer_id>', methods=['DELETE'])
     @requires_auth
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
@@ -220,7 +220,7 @@ def create_app(test_config=None):
         })
 
     # get users public data
-    @app.route('/users/<user_id>')
+    @app.route('/api/users/<user_id>')
     @requires_auth
     def index(user_id):
         # response is a dict object
