@@ -42,6 +42,7 @@ const apiService = () => (next: any) => (action: any) => {
   return callApi(endpoint, token)
   .then(response => {
     return next({
+      receivedAt: Date.now(),
       payload: response,
       type: successType
     })
