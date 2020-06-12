@@ -26,6 +26,7 @@ function receiveLogin(user: any): Auth0ActionTypes {
 interface InitOptions {
   domain: string,
   client_id: string,
+  audience: string,
   redirect_uri: string
 }
 function defaultHandleRedirect(appState?: any) {
