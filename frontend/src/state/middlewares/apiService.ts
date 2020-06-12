@@ -1,6 +1,6 @@
 const baseUrl = "/api";
 
-function callApi(endpoint: string, token?: string) {
+function callApi(endpoint: string, token?: string, method?: string) {
   let config: any = {};
   if (token) {
     config = {
@@ -8,6 +8,11 @@ function callApi(endpoint: string, token?: string) {
         Authorization: `Bearer ${token}`,
       },
     };
+  }
+  if (method) {
+    Object.assign(config, {
+      method
+    })
   }
 
   return fetch(baseUrl + endpoint, config)
@@ -32,14 +37,14 @@ const apiService = () => (next: any) => (action: any) => {
     return next(action);
   }
 
-  let { endpoint, token, types } = call;
+  let { endpoint, token, types, method='GET' } = call;
   const [ requestType, successType, errorType ] = types
   // dispatching the request
   next({
     type: requestType
   })
 
-  return callApi(endpoint, token)
+  return callApi(endpoint, token, method)
   .then(response => {
     return next({
       receivedAt: Date.now(),
