@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
-from auth import init_auth0, AuthError, requires_auth, requires_permission
+from auth import (init_auth0, Auth0Error, AuthError,
+    requires_auth, requires_permission)
 
 def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
@@ -18,8 +19,14 @@ def get_formated_questions(questions):
     formated_questions = []
     for question in questions:
         formated = question.format()
+        try:
+            latest_answer = question.answers[0]
+        except IndexError:
+            # there is not answers yet
+            latest_answer = None
         formated.update({
             'no_of_answers': len(question.answers),
+            'latest_answer': latest_answer
         })
         formated_questions.append(formated)
     return formated_questions
@@ -164,20 +171,6 @@ def create_app(test_config=None):
             'next_path': next_path
         })
 
-    @app.route('/api/questions/<question_id>/answers/latest', methods=['GET'])
-    @requires_auth
-    def get_latest_answer(question_id):
-        question = Question.query.get(question_id)
-        if question == None:
-            abort(404)
-        answers = question.answers
-        if len(answers) == 0:
-            abort(404, 'no answers for this question')
-        return jsonify({
-            'success': True,
-            'answer': answers[0].format()
-        })
-
     @app.route('/api/answers/<answer_id>', methods=['GET'])
     @requires_auth
     def get_answer(answer_id):
@@ -277,6 +270,14 @@ def create_app(test_config=None):
         }), 405
 
     @app.errorhandler(AuthError)
+    def handle_auth_error(error):
+        return jsonify({
+            'success': False,
+            'message': error.message,
+            'error': error.status_code
+        }), error.status_code
+
+    @app.errorhandler(Auth0Error)
     def handle_auth_error(error):
         return jsonify({
             'success': False,

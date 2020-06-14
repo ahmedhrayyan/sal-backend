@@ -1,6 +1,11 @@
 import http.client
 import json
 
+# Error handler
+class Auth0Error(Exception):
+    def __init__(self, message, status_code):
+        self.message = message
+        self.status_code = status_code
 class Auth0:
     def __init__(self, domain, client_id, client_secret):
         self.domain = domain
@@ -14,7 +19,10 @@ class Auth0:
         headers = {
             'content-type': 'application/json'
         }
-        conn.request('POST', '/oauth/token', json.dumps(payload), headers)
+        try:
+            conn.request('POST', '/oauth/token', json.dumps(payload), headers)
+        except Exception:
+            raise Auth0Error('Error initializing auth0 connection', 500)
         res = conn.getresponse()
         data = json.loads(res.read())
         self.access_token = data['access_token']
