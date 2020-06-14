@@ -1,10 +1,10 @@
 import { Types } from "./types";
 import { CALL_API } from "../../middlewares/apiService"
 
-export function fetchQuestions(token: string, pageCount: number | string) {
+function fetchQuestions(token: string, nextPageUrl: string) {
   return {
     [CALL_API]: {
-      endpoint: `/questions?page=${pageCount}`,
+      endpoint: nextPageUrl,
       token: token,
       types: [
         Types.QUESTIONS_REQUEST,
@@ -12,6 +12,20 @@ export function fetchQuestions(token: string, pageCount: number | string) {
         Types.QUESTIONS_FAILURE
       ]
     }
+  }
+}
+
+export function loadQuestions(token: string) {
+  return function(dispatch: any, getState: any) {
+    const {
+      nextPageUrl = '/api/questions',
+      pageCount = 0
+    } = getState().questions || {}
+    // don't make pointless requests
+    if (pageCount > 0 && !nextPageUrl) {
+      return
+    }
+    return dispatch(fetchQuestions(token, nextPageUrl))
   }
 }
 
