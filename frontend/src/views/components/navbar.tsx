@@ -39,17 +39,17 @@ function Nav(props: NavProps) {
 }
 
 interface Props {
-  auth0Client: Auth0Client;
+  auth0: Auth0Client;
   isAuthenticated: boolean;
-  user: any
+  user?: any;
 }
 function Navbar(props: Props) {
   function login() {
-    props.auth0Client.loginWithRedirect({});
+    props.auth0.loginWithRedirect({});
   }
 
   function logout() {
-    props.auth0Client.logout({returnTo: window.location.origin})
+    props.auth0.logout({returnTo: window.location.origin})
   }
 
   function goToProfile() {
@@ -91,9 +91,8 @@ function Navbar(props: Props) {
 
 function mapStateToProps(state: any) {
   return {
-    auth0Client: state.auth0.auth0Client,
-    isAuthenticated: state.auth0.isAuthenticated,
-    user: state.auth0.user
+    auth0: state.auth0.client,
+    isAuthenticated: state.auth0.isAuthenticated
   };
 }
 
