@@ -1,4 +1,4 @@
-import React, { FunctionComponent, CSSProperties } from "react";
+import React, { CSSProperties } from "react";
 import Avatar from "./avatar";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
@@ -11,27 +11,29 @@ import { connect } from "react-redux";
 interface Props {
   question: Question;
   users: Map<string, User>;
+  currentUser: string;
   token: string;
   deleteQuestion: any;
   style?: CSSProperties;
 }
-function AskSection({ question, users, token, deleteQuestion, style }: Props) {
-  const currentUser = users.get(question.user_id);
-  let user,
-    job = "loading...",
+function AskSection({
+  question,
+  users,
+  token,
+  deleteQuestion,
+  currentUser,
+  style,
+}: Props) {
+  let user = users.get(question.user_id);
+  let job = "loading...",
     userName = "loading...";
-  if (currentUser) {
-    userName = currentUser.user_metadata
-      ? currentUser.user_metadata.firstname +
-        " " +
-        currentUser.user_metadata.lastname
-      : currentUser.name;
-    job = currentUser.user_metadata
-      ? currentUser.user_metadata.job
-      : "software engineer"; // you've signed in using github :)
+  if (user) {
+    userName = user.user_metadata
+      ? user.user_metadata.firstname + " " + user.user_metadata.lastname
+      : user.name;
+    job = user.user_metadata ? user.user_metadata.job : "software engineer"; // you've signed in using github :)
   }
-  const currentUserQuestion =
-    currentUser && currentUser.user_id === question.user_id;
+  const currentUserQuestion = currentUser === question.user_id;
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
@@ -46,7 +48,7 @@ function AskSection({ question, users, token, deleteQuestion, style }: Props) {
     <div className="card ask" style={style}>
       <div className="card-header">
         <Avatar
-          src={currentUser?.picture || ""}
+          src={user?.picture || ""}
           info={{ name: userName, role: job }}
         />
         <div className="card-header-metadata">
@@ -69,7 +71,9 @@ function AskSection({ question, users, token, deleteQuestion, style }: Props) {
             }
           >
             <Link to={`/${question.id}`}>View question</Link>
-            <button onClick={handleReporting}>Report this question</button>
+            {!currentUserQuestion && (
+              <button onClick={handleReporting}>Report this question</button>
+            )}
             {currentUserQuestion && (
               <button onClick={handleDeleting}>Delete Question</button>
             )}
@@ -89,6 +93,7 @@ function AskSection({ question, users, token, deleteQuestion, style }: Props) {
 function mapStateToProps(state: any) {
   return {
     token: state.auth0.accessToken,
+    currentUser: state.auth0.currentUser,
     users: state.users.entities,
   };
 }
