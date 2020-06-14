@@ -48,7 +48,8 @@ def create_app(test_config=None):
             abort(400, 'search expected in request body')
         search_term = '%' + data['search'] + '%'
         all_questions = Question.query.filter(
-            Question.content.ilike(search_term)).all()
+            Question.content.ilike(search_term)
+            ).order_by(Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
@@ -63,7 +64,7 @@ def create_app(test_config=None):
     @app.route('/api/questions', methods=['GET'])
     @requires_auth
     def get_questions():
-        all_questions = Question.query.order_by(Question.created_at).all()
+        all_questions = Question.query.order_by(Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
