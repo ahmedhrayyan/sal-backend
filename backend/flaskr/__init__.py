@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
-from auth import init_auth0, AuthError, requires_auth, requires_permission
+from auth import (init_auth0, Auth0Error, AuthError,
+    requires_auth, requires_permission)
 
 def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
@@ -269,6 +270,14 @@ def create_app(test_config=None):
         }), 405
 
     @app.errorhandler(AuthError)
+    def handle_auth_error(error):
+        return jsonify({
+            'success': False,
+            'message': error.message,
+            'error': error.status_code
+        }), error.status_code
+
+    @app.errorhandler(Auth0Error)
     def handle_auth_error(error):
         return jsonify({
             'success': False,

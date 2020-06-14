@@ -3,7 +3,7 @@ import json
 from six.moves.urllib.request import urlopen
 from functools import wraps
 from jose import jwt
-from .auth0 import Auth0
+from .auth0 import Auth0, Auth0Error
 from flask import request, _request_ctx_stack
 
 if ('AUTH0_DOMAIN') not in environ or 'API_AUDIENCE' not in environ:
