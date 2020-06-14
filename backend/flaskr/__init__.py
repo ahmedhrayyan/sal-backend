@@ -20,7 +20,7 @@ def get_formated_questions(questions):
     for question in questions:
         formated = question.format()
         try:
-            latest_answer = question.answers[0]
+            latest_answer = question.answers[0].id
         except IndexError:
             # there is not answers yet
             latest_answer = None
