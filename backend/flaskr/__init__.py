@@ -61,7 +61,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/questions', methods=['GET'])
-    # @requires_auth
+    @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
         questions, next_path = get_paginated_items(request, all_questions)
