@@ -20,7 +20,8 @@ def get_formated_questions(questions):
         formated = question.format()
         try:
             latest_answer = question.answers[0]
-        except ValueError:
+        except IndexError:
+            # there is not answers yet
             latest_answer = None
         formated.update({
             'no_of_answers': len(question.answers),
