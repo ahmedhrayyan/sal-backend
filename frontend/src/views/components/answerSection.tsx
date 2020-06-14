@@ -82,7 +82,6 @@ function AnswerContent({
       <div className="card-body">
         <p className="card-text">{answer.content}</p>
       </div>
-      <hr />
     </>
   );
 }
@@ -124,7 +123,7 @@ function AnswerSection({
   return (
     <div className="card answer">
       {answerExists && !answer && (
-        <div className="spinner-container" style={{height: '40px'}}>
+        <div className="spinner-container" style={{height: '60px'}}>
           <Spinner className="spinner-sm spinner-centered" />
         </div>
       )}
@@ -137,6 +136,7 @@ function AnswerSection({
           questionUserId={questionUserId}
         />
       )}
+      {answerExists && <hr />}
       <div className="answer-cta-section">
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
