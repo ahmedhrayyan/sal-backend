@@ -6,13 +6,24 @@ import Avatar from "./avatar";
 import Dropdown from "./dropdown";
 import { connect } from "react-redux";
 import { Auth0Client } from "@auth0/auth0-spa-js";
+import { User } from "../../state/ducks/users/types";
 
 interface NavProps {
-  user: any,
+  user: User | null;
   logout: () => void;
   goToProfile: () => void;
 }
 function Nav(props: NavProps) {
+  let currentUser,
+    userName = "loading...";
+  if (props.user) {
+    currentUser = props.user;
+    userName = currentUser.user_metadata
+      ? currentUser.user_metadata.firstname +
+        " " +
+        currentUser.user_metadata.lastname
+      : currentUser.name;
+  }
   return (
     <ul className="navbar-nav">
       <li className="nav-item">
@@ -27,10 +38,10 @@ function Nav(props: NavProps) {
       </li>
       <li className="nav-item">
         <Dropdown
-          btnContent={<Avatar src={props.user.picture} size="sm" />}
+          btnContent={<Avatar src={currentUser?.picture || ""} size="sm" />}
           btnClass="avatar-btn"
         >
-          <button onClick={props.goToProfile}>{props.user.name}</button>
+          <button onClick={props.goToProfile}>{userName}</button>
           <button onClick={props.logout}>Logout</button>
         </Dropdown>
       </li>
@@ -41,7 +52,9 @@ function Nav(props: NavProps) {
 interface Props {
   auth0: Auth0Client;
   isAuthenticated: boolean;
-  user?: any;
+  currentUser: string;
+  isFetching: boolean;
+  users: Map<string, User>;
 }
 function Navbar(props: Props) {
   function login() {
@@ -49,11 +62,11 @@ function Navbar(props: Props) {
   }
 
   function logout() {
-    props.auth0.logout({returnTo: window.location.origin})
+    props.auth0.logout({ returnTo: window.location.origin });
   }
 
   function goToProfile() {
-    window.alert('Users profile page is not here yet, Stay tuned!')
+    window.alert("Users profile page is not here yet, Stay tuned!");
   }
 
   return (
@@ -83,7 +96,11 @@ function Navbar(props: Props) {
         </button>
       )}
       {props.isAuthenticated && (
-        <Nav user={props.user || {}} logout={logout} goToProfile={goToProfile} />
+        <Nav
+          user={props.users.get(props.currentUser) || null}
+          logout={logout}
+          goToProfile={goToProfile}
+        />
       )}
     </nav>
   );
@@ -92,7 +109,10 @@ function Navbar(props: Props) {
 function mapStateToProps(state: any) {
   return {
     auth0: state.auth0.client,
-    isAuthenticated: state.auth0.isAuthenticated
+    isAuthenticated: state.auth0.isAuthenticated,
+    currentUser: state.auth0.currentUser,
+    isFetching: state.users.isFetching,
+    users: state.users.entities,
   };
 }
 
