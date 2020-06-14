@@ -1,4 +1,4 @@
-const baseUrl = "/api";
+const baseUrl = "";
 
 function callApi(endpoint: string, token?: string, method?: string) {
   let config: any = {};
