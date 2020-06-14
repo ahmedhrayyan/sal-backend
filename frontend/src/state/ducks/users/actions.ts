@@ -19,7 +19,6 @@ export function loadUser(token: string, id: string) {
   return function(dispatch: any, getState: any) {
     const user = getState().users.entities.get(id);
     // do not send pointless requests
-    console.log(user, id)
     if (user || !id) {
       return null;
     }
