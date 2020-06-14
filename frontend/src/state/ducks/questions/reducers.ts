@@ -23,7 +23,7 @@ function questionsReducer(state = defaultState, action: any) {
         nextPageUrl: action.payload.next_path,
         noOfQuestions: action.payload.no_of_questions,
         lastUpdated: action.receivedAt,
-        pageCount: state.pageCount + 1
+        pageCount: state.pageCount + 1,
       });
     }
     case Types.QUESTIONS_FAILURE:
@@ -33,21 +33,21 @@ function questionsReducer(state = defaultState, action: any) {
       });
     case Types.Q_DELETE_REQUEST:
       return Object.assign({}, state, {
-        isFetching: true
-      })
+        isFetching: true,
+      });
     case Types.Q_DELETE_SUCCESS: {
-      const newEntities = new Map(state.entities)
-      newEntities.delete(action.payload.del_id)
+      const newEntities = new Map(state.entities);
+      newEntities.delete(action.payload.del_id);
       return Object.assign({}, state, {
         entities: newEntities,
-        isFetching: false
-      })
+        isFetching: false,
+      });
     }
     case Types.Q_DELETE_FAILURE:
       return Object.assign({}, state, {
         isFetching: false,
-        errorMessage: action.error
-      })
+        errorMessage: action.error,
+      });
 
     default:
       return state;

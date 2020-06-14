@@ -1,5 +1,5 @@
 import { Types } from "./types";
-import { CALL_API } from "../../middlewares/apiService"
+import { CALL_API } from "../../middlewares/apiService";
 
 function fetchQuestions(token: string, nextPageUrl: string) {
   return {
@@ -9,24 +9,22 @@ function fetchQuestions(token: string, nextPageUrl: string) {
       types: [
         Types.QUESTIONS_REQUEST,
         Types.QUESTIONS_SUCCESS,
-        Types.QUESTIONS_FAILURE
-      ]
-    }
-  }
+        Types.QUESTIONS_FAILURE,
+      ],
+    },
+  };
 }
 
 export function loadQuestions(token: string) {
-  return function(dispatch: any, getState: any) {
-    const {
-      nextPageUrl = '/api/questions',
-      pageCount = 0
-    } = getState().questions || {}
+  return function (dispatch: any, getState: any) {
+    const { nextPageUrl = "/api/questions", pageCount = 0 } =
+      getState().questions || {};
     // don't make pointless requests
     if (pageCount > 0 && !nextPageUrl) {
-      return
+      return;
     }
-    return dispatch(fetchQuestions(token, nextPageUrl))
-  }
+    return dispatch(fetchQuestions(token, nextPageUrl));
+  };
 }
 
 export function deleteQuestion(token: string, id: number | string) {
@@ -34,12 +32,12 @@ export function deleteQuestion(token: string, id: number | string) {
     [CALL_API]: {
       endpoint: `/questions/${id}`,
       token: token,
-      method: 'DELETE',
+      method: "DELETE",
       types: [
         Types.Q_DELETE_REQUEST,
         Types.Q_DELETE_SUCCESS,
-        Types.Q_DELETE_FAILURE
-      ]
-    }
-  }
+        Types.Q_DELETE_FAILURE,
+      ],
+    },
+  };
 }

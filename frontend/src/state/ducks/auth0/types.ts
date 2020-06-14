@@ -3,7 +3,7 @@ import { Auth0Client } from "@auth0/auth0-spa-js";
 export enum Types {
   INIT_AUTH0_REQUEST = "INIT_AUTH0_REQUEST",
   INIT_AUTH0_SUCCESS = "INIT_AUTH0_SUCCESS",
-  INIT_AUTH0_ERROR = 'INIT_AUTH0_ERROR'
+  INIT_AUTH0_ERROR = "INIT_AUTH0_ERROR",
 }
 
 interface requestInitAuth0Action {
@@ -14,7 +14,7 @@ export interface SuccessPayload {
   auth0Client: Auth0Client;
   isAuthenticated: boolean;
   accessToken: string;
-  currentUser: string // current user id
+  currentUser: string; // current user id
 }
 interface successAuth0Action {
   type: typeof Types.INIT_AUTH0_SUCCESS;
@@ -22,8 +22,8 @@ interface successAuth0Action {
 }
 
 interface initAuth0ErrorAction {
-  type: typeof Types.INIT_AUTH0_ERROR,
-  error: string
+  type: typeof Types.INIT_AUTH0_ERROR;
+  error: string;
 }
 
 export type Auth0ActionTypes =

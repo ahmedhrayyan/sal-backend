@@ -55,18 +55,21 @@ export function initAuth0(
       })
       .then(async (auth0Client) => {
         const isAuthenticated = await auth0Client.isAuthenticated();
-        let accessToken = null, currentUser = null
+        let accessToken = null,
+          currentUser = null;
         if (isAuthenticated) {
           accessToken = await auth0Client.getTokenSilently();
           // get current user id from json web token
-          currentUser = JSON.parse(atob(accessToken.split('.')[1])).sub
+          currentUser = JSON.parse(atob(accessToken.split(".")[1])).sub;
         }
-        dispatch(initAuth0Success({
-          auth0Client,
-          isAuthenticated,
-          accessToken,
-          currentUser
-        }));
+        dispatch(
+          initAuth0Success({
+            auth0Client,
+            isAuthenticated,
+            accessToken,
+            currentUser,
+          })
+        );
       })
       .catch((err) => {
         dispatch(initAuth0Error(err.message));

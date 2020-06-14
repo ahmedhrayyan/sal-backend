@@ -3,8 +3,8 @@ const routes = [
   {
     path: "/",
     component: Home,
-    exact: true
-  }
-]
+    exact: true,
+  },
+];
 
 export default routes;

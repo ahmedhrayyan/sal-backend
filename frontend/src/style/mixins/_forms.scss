@@ -17,7 +17,9 @@
     border-color: $input-focus-border-color;
     border-width: $input-focus-border-width;
     box-shadow: 0 0 0 1px $input-focus-border-color;
-    @include box-shadow(0 0 0 1px $input-focus-border-color); // make the focus border stand out
+    @include box-shadow(
+      0 0 0 1px $input-focus-border-color
+    ); // make the focus border stand out
 
     // remove chrome focus outline
     outline: 0;

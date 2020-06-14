@@ -30,9 +30,9 @@
     // secondary button
     @if $background == $white {
       border-color: transparent;
-      @include box-shadow(0 0 0 1px $border, inset 0 0 0 1px $active-border)
+      @include box-shadow(0 0 0 1px $border, inset 0 0 0 1px $active-border);
     } @else {
-      @include box-shadow(0 0 0 1px $border, inset 0 0 0 1px $white)
+      @include box-shadow(0 0 0 1px $border, inset 0 0 0 1px $white);
     }
   }
 
@@ -61,7 +61,6 @@
     } @else {
       border-color: $active-border;
     }
-
   }
 }
 

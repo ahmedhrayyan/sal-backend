@@ -8,11 +8,7 @@ const loggerMiddleware = createLogger();
 
 const store = createStore(
   combineReducers(reducers),
-  applyMiddleware(
-    apiService,
-    thunkMiddleware,
-    loggerMiddleware
-  )
+  applyMiddleware(apiService, thunkMiddleware, loggerMiddleware)
 );
 
 export default store;

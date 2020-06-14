@@ -13,7 +13,7 @@ function questionsReducer(state = defaultState, action: any) {
       });
     case Types.USER_SUCCESS: {
       let newEntities = new Map(state.entities); // clone old questions
-      newEntities.set(action.payload.user.user_id, action.payload.user)
+      newEntities.set(action.payload.user.user_id, action.payload.user);
       return Object.assign({}, state, {
         isFetching: false,
         entities: newEntities,
