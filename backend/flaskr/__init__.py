@@ -18,8 +18,13 @@ def get_formated_questions(questions):
     formated_questions = []
     for question in questions:
         formated = question.format()
+        try:
+            latest_answer = question.answers[0]
+        except ValueError:
+            latest_answer = None
         formated.update({
             'no_of_answers': len(question.answers),
+            'latest_answer': latest_answer
         })
         formated_questions.append(formated)
     return formated_questions
@@ -54,7 +59,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/questions', methods=['GET'])
-    @requires_auth
+    # @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
         questions, next_path = get_paginated_items(request, all_questions)
@@ -162,20 +167,6 @@ def create_app(test_config=None):
             'answers': [answer.format() for answer in answers],
             'no_of_answers': len(all_answers),
             'next_path': next_path
-        })
-
-    @app.route('/api/questions/<question_id>/answers/latest', methods=['GET'])
-    @requires_auth
-    def get_latest_answer(question_id):
-        question = Question.query.get(question_id)
-        if question == None:
-            abort(404)
-        answers = question.answers
-        if len(answers) == 0:
-            abort(404, 'no answers for this question')
-        return jsonify({
-            'success': True,
-            'answer': answers[0].format()
         })
 
     @app.route('/api/answers/<answer_id>', methods=['GET'])
