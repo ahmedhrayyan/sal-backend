@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
 from auth import init_auth0, AuthError, requires_auth, requires_permission
 
-def get_paginated_items(req, items, items_per_page=10):
+def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
     start_index = (page - 1) * items_per_page
     end_index = start_index + items_per_page
