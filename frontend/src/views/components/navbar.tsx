@@ -83,7 +83,7 @@ function Navbar(props: Props) {
         </button>
       )}
       {props.isAuthenticated && (
-        <Nav user={props.user} logout={logout} goToProfile={goToProfile} />
+        <Nav user={props.user || {}} logout={logout} goToProfile={goToProfile} />
       )}
     </nav>
   );
