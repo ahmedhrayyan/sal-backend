@@ -32,6 +32,7 @@
 
     .card-body {
       line-height: $answer-line-height;
+      padding-bottom: $card-padding-y - $ask-border-weight;
     }
   }
 
