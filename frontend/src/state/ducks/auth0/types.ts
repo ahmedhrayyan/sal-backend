@@ -14,6 +14,7 @@ export interface SuccessPayload {
   auth0Client: Auth0Client;
   isAuthenticated: boolean;
   accessToken: string;
+  currentUser: string // current user id
 }
 interface successAuth0Action {
   type: typeof Types.INIT_AUTH0_SUCCESS;

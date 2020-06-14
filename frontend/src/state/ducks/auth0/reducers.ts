@@ -4,6 +4,7 @@ const defaultState = {
   errorMessage: null,
   accessToken: null,
   isAuthenticated: false,
+  currentUser: null,
   client: null
 }
 
@@ -19,6 +20,7 @@ function auth0Reducer(state = defaultState, action: Auth0ActionTypes) {
         client: action.payload.auth0Client,
         isAuthenticated: action.payload.isAuthenticated,
         accessToken: action.payload.accessToken,
+        currentUser: action.payload.currentUser
       })
     case Types.INIT_AUTH0_ERROR:
       return Object.assign({}, state, {
