@@ -27,10 +27,14 @@ export function loadQuestions(token: string) {
   };
 }
 
-export function deleteQuestion(token: string, id: number | string) {
+export function deleteQuestion(token: string, id: number) {
+  if (!id) {
+    // don't send pointless requests
+    return null
+  }
   return {
     [CALL_API]: {
-      endpoint: `/questions/${id}`,
+      endpoint: `/api/questions/${id}`,
       token: token,
       method: "DELETE",
       types: [
@@ -38,6 +42,9 @@ export function deleteQuestion(token: string, id: number | string) {
         Types.Q_DELETE_SUCCESS,
         Types.Q_DELETE_FAILURE,
       ],
+      config: {
+        method: 'DELETE'
+      }
     },
   };
 }
