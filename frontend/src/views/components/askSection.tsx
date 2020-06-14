@@ -1,6 +1,5 @@
 import React, { FunctionComponent, CSSProperties } from "react";
 import Avatar from "./avatar";
-import dummyAvatar from "../../images/avatar.jpg";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import { Link } from "react-router-dom";
