@@ -7,22 +7,22 @@
 
 .spinner {
   svg {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
   }
 }
 
 .spinner-sm {
   svg {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
   }
 }
 
 .spinner-circle,
 .spinner-semi-circle {
   fill: none;
-  stroke-width: 4;
+  stroke-width: 3;
 }
 
 .spinner-circle {
@@ -31,10 +31,10 @@
 
 .spinner-semi-circle {
   stroke: $primary;
-
   // see: https://codepen.io/ahmedhrayyan/pen/GLBELM
   stroke-dasharray: $spinner-circle-circumstance;
   stroke-dashoffset: $spinner-circle-circumstance * 0.7;
+
   transform-origin: 50% 50%;
   animation-name: spinner-keyframe;
   animation-timing-function: linear;
@@ -49,4 +49,9 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.spinner-container {
+  width: 100%;
+  position: relative;
 }
