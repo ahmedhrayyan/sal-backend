@@ -7,7 +7,12 @@ def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
     start_index = (page - 1) * items_per_page
     end_index = start_index + items_per_page
-    return items[start_index:end_index]
+    # include next_path in paginated items
+    if len(items) - page * items_per_page > 0:
+        next_path = request.path + f'?page={page+1}'
+    else:
+        next_path = None
+    return [items[start_index:end_index], next_path]
 
 def get_formated_questions(questions):
     formated_questions = []
@@ -37,28 +42,31 @@ def create_app(test_config=None):
         search_term = '%' + data['search'] + '%'
         all_questions = Question.query.filter(
             Question.content.ilike(search_term)).all()
-        questions = get_paginated_items(request, all_questions)
+        questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
             abort(404)
         return jsonify({
             'success': True,
             'questions': formated_questions,
-            'no_of_questions': len(all_questions)
+            'no_of_questions': len(all_questions),
+            'next_path': next_path
         })
 
     @app.route('/api/questions', methods=['GET'])
     @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(Question.created_at).all()
-        questions = get_paginated_items(request, all_questions)
+        questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
             abort(404)
         return jsonify({
             'success': True,
             'questions': formated_questions,
-            'no_of_questions': len(all_questions)
+            'no_of_questions': len(all_questions),
+            'next_path': next_path
+
         })
 
     @app.route('/api/questions/<question_id>', methods=['GET'])
@@ -146,13 +154,14 @@ def create_app(test_config=None):
         if question == None:
             abort(404)
         all_answers = question.answers
-        answers = get_paginated_items(request, all_answers)
+        answers, next_path = get_paginated_items(request, all_answers)
         if len(answers) == 0:
             abort(404)
         return jsonify({
             'success': True,
             'answers': [answer.format() for answer in answers],
-            'no_of_answers': len(all_answers)
+            'no_of_answers': len(all_answers),
+            'next_path': next_path
         })
 
     @app.route('/api/questions/<question_id>/answers/latest', methods=['GET'])
