@@ -284,4 +284,12 @@ def create_app(test_config=None):
             'error': error.status_code
         }), error.status_code
 
+    @app.errorhandler(500)
+    def handle_auth_error(error):
+        return jsonify({
+            'success': False,
+            'message': error.description,
+            'error': 500
+        }), 500
+
     return app
