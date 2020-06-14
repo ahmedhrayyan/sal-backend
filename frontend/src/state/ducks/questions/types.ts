@@ -7,11 +7,12 @@ export enum Types {
   Q_DELETE_FAILURE = "Q_DELETE_FAILURE",
 }
 
-export type Question = {
+export interface Question {
   id: number;
   user_id: string;
   content: string;
   created_at: string;
-  best_answer_id: number;
+  best_answer: number;
+  latest_answer: number;
   no_of_answers: number;
 };
