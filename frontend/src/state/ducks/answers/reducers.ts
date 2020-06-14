@@ -1,26 +1,26 @@
-import { Types, User } from "./types";
+import { Types, Answer } from "./types";
 const defaultState = {
   isFetching: false,
   errorMessage: null,
-  entities: new Map<string, User>(),
+  entities: new Map<number, Answer>(),
 };
 
-function usersReducer(state = defaultState, action: any) {
+function answersReducer(state = defaultState, action: any) {
   switch (action.type) {
-    case Types.USER_REQUEST:
+    case Types.ANSWER_REQUEST:
       return Object.assign({}, state, {
         isFetching: true,
       });
-    case Types.USER_SUCCESS: {
+    case Types.ANSWER_SUCCESS: {
       let newEntities = new Map(state.entities); // clone old questions
-      newEntities.set(action.payload.user.user_id, action.payload.user);
+      newEntities.set(action.payload.answer.id, action.payload.answer);
       return Object.assign({}, state, {
         isFetching: false,
         entities: newEntities,
         lastUpdated: action.receivedAt,
       });
     }
-    case Types.USER_FAILURE:
+    case Types.ANSWER_FAILURE:
       return Object.assign({}, state, {
         errorMessage: action.error,
         isFetching: false,
@@ -30,4 +30,4 @@ function usersReducer(state = defaultState, action: any) {
   }
 }
 
-export default usersReducer;
+export default answersReducer;
