@@ -1,18 +1,19 @@
 const baseUrl = "";
 
-function callApi(endpoint: string, token?: string, method?: string) {
-  let config: any = {};
+function callApi(endpoint: string, config: any, token?: string) {
   if (token) {
-    config = {
-      headers: {
+    // if there is headers in config, don't override it
+    if (config.headers) {
+      Object.assign(config.headers, {
         Authorization: `Bearer ${token}`,
-      },
-    };
-  }
-  if (method) {
-    Object.assign(config, {
-      method
-    })
+      });
+    } else {
+      Object.assign(config, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
   }
 
   return fetch(baseUrl + endpoint, config)
@@ -37,27 +38,27 @@ const apiService = () => (next: any) => (action: any) => {
     return next(action);
   }
 
-  let { endpoint, token, types, method='GET' } = call;
-  const [ requestType, successType, errorType ] = types
+  let { endpoint, token, types, config } = call;
+  const [requestType, successType, errorType] = types;
   // dispatching the request
   next({
-    type: requestType
-  })
+    type: requestType,
+  });
 
-  return callApi(endpoint, token, method)
-  .then(response => {
-    return next({
-      receivedAt: Date.now(),
-      payload: response,
-      type: successType
+  return callApi(endpoint, config, token)
+    .then((response) => {
+      return next({
+        receivedAt: Date.now(),
+        payload: response,
+        type: successType,
+      });
     })
-  })
-  .catch(error => {
-    return next({
-      error: error.message,
-      type: errorType
-    })
-  })
+    .catch((error) => {
+      return next({
+        error: error.message,
+        type: errorType,
+      });
+    });
 };
 
-export default apiService
+export default apiService;
