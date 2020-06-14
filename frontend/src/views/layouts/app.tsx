@@ -2,15 +2,19 @@ import React, { useEffect } from "react";
 import config from "../../auth_config.json";
 import history from "../../state/ducks/auth0/utils";
 import { initAuth0 } from "../../state/ducks/auth0/actions";
+import { loadUser } from "../../state/ducks/users/actions";
 import { connect } from "react-redux";
 import { Router, Route } from "react-router-dom";
 import routes from "../../routes";
 import { Header, Spinner } from "../components";
 
 interface Props {
+  initAuth0: any,
   isLoading: boolean,
   isAuthenticated: boolean,
-  initAuth0: any,
+  token: string;
+  currentUser: string;
+  loadUser: any;
 }
 function App(props: Props) {
   useEffect(() => {
@@ -33,6 +37,12 @@ function App(props: Props) {
       handleAuth0Redirect
     );
   }, []);
+  useEffect(() => {
+    // load currentUser
+    if (props.isAuthenticated) {
+      props.loadUser(props.token, props.currentUser)
+    }
+  }, [props.isAuthenticated])
 
   if (props.isLoading) {
     return (
@@ -60,11 +70,14 @@ function mapStateToProps(state: any) {
   return {
     isLoading: state.auth0.isLoading,
     isAuthenticated: state.auth0.isAuthenticated,
+    currentUser: state.auth0.currentUser,
+    token: state.auth0.accessToken
   }
 }
 
 const mapDispatchToProps = {
-  initAuth0
+  initAuth0,
+  loadUser
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
