@@ -108,7 +108,7 @@ def create_app(test_config=None):
             answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
-        question.best_answer_id = answer_id
+        question.best_answer = answer_id
         try:
             question.update()
         except Exception:
