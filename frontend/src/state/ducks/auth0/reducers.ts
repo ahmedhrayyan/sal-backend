@@ -1,9 +1,8 @@
 import Types, { Auth0ActionTypes } from './types';
 const defaultState = {
-  isAuthenticated: false,
   isLoading: true,
-  user: null,
-  auth0Client: null
+  errorMessage: null,
+  client: null
 }
 
 function auth0Reducer(state = defaultState, action: Auth0ActionTypes) {
@@ -15,12 +14,12 @@ function auth0Reducer(state = defaultState, action: Auth0ActionTypes) {
     case Types.INIT_AUTH0_SUCCESS:
       return Object.assign({}, state, {
         isLoading: false,
-        auth0Client: action.payload
+        client: action.payload
       })
-    case Types.RECEIVE_LOGIN:
+    case Types.INIT_AUTH0_ERROR:
       return Object.assign({}, state, {
-        isAuthenticated: true,
-        user: action.payload
+        isLoading: false,
+        errorMessage: action.error
       })
     default:
       return state;
