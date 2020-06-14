@@ -4,38 +4,26 @@ import dummyAvatar from "../../images/avatar.jpg";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import { Link } from "react-router-dom";
-import { connect } from "react-redux";
-import { deleteQuestion } from "../../state/ducks/questions/actions";
+import { Question } from "../../state/ducks/questions/types"
 
 interface Props {
-  content: string;
-  noOfAnswers: number;
-  questionId: number;
-  questionDate: Date;
-  userId: string;
-  questionUserId: string;
-  deleteQuestion: any;
-  token: string;
+  question: Question
   style?: CSSProperties;
 }
 
-const AskSection: FunctionComponent<Props> = (props) => {
+const AskSection: FunctionComponent<Props> = ({
+  question,
+  style
+}) => {
   function handleReporting() {
     alert('Unfortunately, this action is not implemented yet!')
   }
   function handleUpdating() {
     alert('Unfortunately, this action is not implemented yet!')
   }
-
-  function handleDeleting() {
-    props.deleteQuestion(props.token, props.questionId)
-  }
-
-  // check if the user owns the question
-  const isUserQuestion = props.userId === props.questionUserId;
-
+  const createdAt = new Date(question.created_at)
   return (
-    <div className="card ask" style={props.style}>
+    <div className="card ask" style={style}>
       <div className="card-header">
         <Avatar
           src={dummyAvatar}
@@ -44,14 +32,14 @@ const AskSection: FunctionComponent<Props> = (props) => {
         <div className="card-header-metadata">
           <p className="content">
             <small>
-              {props.questionDate.toLocaleDateString()}
+              {createdAt.toLocaleDateString()}
               <br />
               <span className="text-muted">
-                {props.noOfAnswers === 0
+                {question.no_of_answers === 0
                   ? "No answers yet"
-                  : props.noOfAnswers === 1
+                  : question.no_of_answers === 1
                   ? "1 answer"
-                  : `${props.noOfAnswers} answers`}
+                  : `${question.no_of_answers} answers`}
               </span>
             </small>
           </p>
@@ -60,26 +48,18 @@ const AskSection: FunctionComponent<Props> = (props) => {
               <img className="icon" src={downArrow} alt="down-arrow icon" />
             }
           >
-            <Link to={`/${props.questionId}`}>View question</Link>
+            <Link to={`/${question.id}`}>View question</Link>
             <button onClick={handleReporting}>Report this question</button>
-            {isUserQuestion && (
-              <button onClick={handleDeleting}>Delete Question</button>
-            )}
-            {isUserQuestion && (
-              <button onClick={handleUpdating}>Update Question</button>
-            )}
+            <button>Delete Question</button>
+            <button onClick={handleUpdating}>Update Question</button>
           </Dropdown>
         </div>
       </div>
       <div className="card-body">
-        <p className="card-text">{props.content}</p>
+        <p className="card-text">{question.content}</p>
       </div>
     </div>
   );
 };
 
-const mapDispatchToProps = {
-  deleteQuestion
-}
-
-export default connect(null, mapDispatchToProps)(AskSection)
+export default AskSection
