@@ -61,7 +61,7 @@ class Question(db.Model):
             'user_id': self.user_id,
             'content': self.content,
             'created_at': self.created_at,
-            'best_answer_id': self.best_answer_id
+            'best_answer': self.best_answer
         }
 
 
