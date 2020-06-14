@@ -4,30 +4,51 @@ import dummyAvatar from "../../images/avatar.jpg";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import { Link } from "react-router-dom";
-import { Question } from "../../state/ducks/questions/types"
+import { Question } from "../../state/ducks/questions/types";
+import { deleteQuestion } from "../../state/ducks/questions/actions";
+import { User } from "../../state/ducks/users/types";
+import { connect } from "react-redux";
 
 interface Props {
-  question: Question
+  question: Question;
+  users: Map<string, User>;
+  token: string;
+  deleteQuestion: any;
   style?: CSSProperties;
 }
-
-const AskSection: FunctionComponent<Props> = ({
-  question,
-  style
-}) => {
+function AskSection({ question, users, token, deleteQuestion, style }: Props) {
+  const currentUser = users.get(question.user_id);
+  let user,
+    job = "loading...",
+    userName = "loading...";
+  if (currentUser) {
+    userName = currentUser.user_metadata
+      ? currentUser.user_metadata.firstname +
+        " " +
+        currentUser.user_metadata.lastname
+      : currentUser.name;
+    job = currentUser.user_metadata
+      ? currentUser.user_metadata.job
+      : "software engineer"; // you've signed in using github :)
+  }
+  const currentUserQuestion =
+    currentUser && currentUser.user_id === question.user_id;
   function handleReporting() {
-    alert('Unfortunately, this action is not implemented yet!')
+    alert("Unfortunately, this action is not implemented yet!");
   }
   function handleUpdating() {
-    alert('Unfortunately, this action is not implemented yet!')
+    alert("Unfortunately, this action is not implemented yet!");
   }
-  const createdAt = new Date(question.created_at)
+  function handleDeleting() {
+    deleteQuestion(token, question.id);
+  }
+  const createdAt = new Date(question.created_at);
   return (
     <div className="card ask" style={style}>
       <div className="card-header">
         <Avatar
-          src={dummyAvatar}
-          info={{ name: "Mona Kane", role: "Software Engineer" }}
+          src={currentUser?.picture || ""}
+          info={{ name: userName, role: job }}
         />
         <div className="card-header-metadata">
           <p className="content">
@@ -50,8 +71,12 @@ const AskSection: FunctionComponent<Props> = ({
           >
             <Link to={`/${question.id}`}>View question</Link>
             <button onClick={handleReporting}>Report this question</button>
-            <button>Delete Question</button>
-            <button onClick={handleUpdating}>Update Question</button>
+            {currentUserQuestion && (
+              <button onClick={handleDeleting}>Delete Question</button>
+            )}
+            {currentUserQuestion && (
+              <button onClick={handleUpdating}>Update Question</button>
+            )}
           </Dropdown>
         </div>
       </div>
@@ -60,6 +85,16 @@ const AskSection: FunctionComponent<Props> = ({
       </div>
     </div>
   );
-};
+}
 
-export default AskSection
+function mapStateToProps(state: any) {
+  return {
+    token: state.auth0.accessToken,
+    users: state.users.entities,
+  };
+}
+
+const mapDispatchToProps = {
+  deleteQuestion,
+};
+export default connect(mapStateToProps, mapDispatchToProps)(AskSection);
