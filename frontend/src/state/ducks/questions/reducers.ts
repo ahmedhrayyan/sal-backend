@@ -2,10 +2,6 @@ import { Types } from "./types";
 const defaultState = {
   isFetching: false,
   errorMessage: null,
-  lastUpdated: null,
-  pageCount: 0, // we did not fetch any pages yet
-  nextPageUrl: null,
-  noOfQuestions: null,
   entities: new Map<number, any>(),
 };
 
