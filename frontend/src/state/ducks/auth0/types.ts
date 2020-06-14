@@ -1,3 +1,5 @@
+import { Auth0Client } from "@auth0/auth0-spa-js";
+
 export enum Types {
   INIT_AUTH0_REQUEST = "INIT_AUTH0_REQUEST",
   INIT_AUTH0_SUCCESS = "INIT_AUTH0_SUCCESS",
@@ -8,9 +10,14 @@ interface requestInitAuth0Action {
   type: typeof Types.INIT_AUTH0_REQUEST;
 }
 
+export interface SuccessPayload {
+  auth0Client: Auth0Client;
+  isAuthenticated: boolean;
+  accessToken: string;
+}
 interface successAuth0Action {
   type: typeof Types.INIT_AUTH0_SUCCESS;
-  payload: any;
+  payload: SuccessPayload;
 }
 
 interface initAuth0ErrorAction {
