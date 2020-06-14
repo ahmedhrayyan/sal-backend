@@ -38,7 +38,7 @@ const apiService = () => (next: any) => (action: any) => {
     return next(action);
   }
 
-  let { endpoint, token, types, config } = call;
+  let { endpoint, token, types, config={} } = call;
   const [requestType, successType, errorType] = types;
   // dispatching the request
   next({
