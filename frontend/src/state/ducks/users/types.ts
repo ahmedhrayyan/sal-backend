@@ -5,6 +5,7 @@ export enum Types {
 }
 
 export interface User {
+  user_id: string;
   name: string; // given name by auth0
   picture: string;
   user_metadata?: {
