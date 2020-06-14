@@ -1,12 +1,111 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { useState } from "react";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import Avatar from "./avatar";
-import dummyAvatar from "../../images/avatar.jpg";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
+import Spinner from "./spinner";
+import { Answer } from "../../state/ducks/answers/types";
+import { User } from "../../state/ducks/users/types";
 
-interface Props {}
-
-const AnswerSection: FunctionComponent<Props> = (props) => {
+interface AnswerProps {
+  answer: Answer;
+  users: Map<string, User>;
+  currentUser: string;
+  bestAnswer: number;
+  questionUserId: string;
+}
+function AnswerContent({
+  answer,
+  users,
+  currentUser,
+  bestAnswer,
+  questionUserId
+}: AnswerProps) {
+  function handleReporting() {
+    alert("Unfortunately, this action is not implemented yet!");
+  }
+  function handleUpdating() {
+    alert("Unfortunately, this action is not implemented yet!");
+  }
+  let user = users.get(answer.user_id);
+  let job = "loading...",
+    userName = "loading...";
+  if (user) {
+    userName = user.user_metadata
+      ? user.user_metadata.firstname + " " + user.user_metadata.lastname
+      : user.name;
+    job = user.user_metadata ? user.user_metadata.job : "software engineer";
+    // you've signed in using github :)
+  }
+  const currentUserAnswer = currentUser === answer.user_id;
+  const currentUserQuestion = currentUser === questionUserId;
+  const createdAt = new Date(answer.created_at);
+  const isBestAnswer = bestAnswer === answer.id;
+  return (
+    <>
+      <div className="card-header">
+        <Avatar
+          src={user?.picture || ""}
+          info={{ name: userName, role: job }}
+        />
+        <div className="card-header-metadata">
+          <p className="content">
+            <small>
+              {createdAt.toLocaleDateString()}
+              <br />
+              <span className="text-muted">
+                {isBestAnswer ? "Accepted by user" : "Latest answer"}
+              </span>
+            </small>
+          </p>
+          <Dropdown
+            btnContent={
+              <img className="icon" src={downArrow} alt="down-arrow icon" />
+            }
+          >
+            {!currentUserAnswer && (
+              <button onClick={handleReporting}>Report this answer</button>
+            )}
+            {currentUserQuestion && (
+              <button>Select best answer</button>
+            )}
+            {currentUserAnswer && (
+              <button onClick={handleUpdating}>Update answer</button>
+            )}
+            {currentUserAnswer && (
+              <button>Delete answer</button>
+            )}
+          </Dropdown>
+        </div>
+      </div>
+      <div className="card-body">
+        <p className="card-text">{answer.content}</p>
+      </div>
+      <hr />
+    </>
+  );
+}
+interface Props {
+  answer: Answer | undefined;
+  users: Map<string, User>;
+  token: string;
+  currentUser: string;
+  bestAnswer: number;
+  answerExists: boolean;
+  questionId: number;
+  questionUserId: string;
+}
+function AnswerSection({
+  answer,
+  users,
+  token,
+  currentUser,
+  bestAnswer,
+  answerExists,
+  questionId,
+  questionUserId
+}: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
   function showForm() {
@@ -22,45 +121,31 @@ const AnswerSection: FunctionComponent<Props> = (props) => {
     setTextareaVal("");
     setFormActive(false);
   }
-
   return (
     <div className="card answer">
-      <div className="card-header">
-        <Avatar
-          src={dummyAvatar}
-          info={{ name: "Mona Kane", role: "Software Engineer" }}
-        />
-        <div className="card-header-metadata">
-          <p className="content">
-            <small>
-              1/6/2020
-              <br />
-              <span className="text-muted">Accepted by user</span>
-            </small>
-          </p>
-          <Dropdown btnContent={<img className='icon' src={downArrow} alt="down-arrow icon" />}>
-            <a href="#">item 1</a>
-            <a href="#">item 2</a>
-          </Dropdown>
+      {answerExists && !answer && (
+        <div className="spinner-container" style={{height: '40px'}}>
+          <Spinner className="spinner-sm spinner-centered" />
         </div>
-      </div>
-      <div className="card-body">
-        <p className="card-text">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur non
-          tellus ac justo mattis mollis. Fusce nec erat at mi tristique gravida.
-          Curabitur tempor dui ac ipsum vehicula feugiat. Fusce lacinia tellus
-          vel rhoncus commodo. Vivamus efficitur odio ac finibus interdum.
-          Praesent hendrerit libero vitae nulla sodales hendrerit.
-        </p>
-      </div>
-      <hr className="card-divider" />
+      )}
+      {answer && (
+        <AnswerContent
+          answer={answer}
+          users={users}
+          currentUser={currentUser}
+          bestAnswer={bestAnswer}
+          questionUserId={questionUserId}
+        />
+      )}
       <div className="answer-cta-section">
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
         </button>
-        <button className="btn btn-link">View all answers</button>
+        <Link to={`/${questionId}` || "/"} className="btn btn-link">
+          View all answers
+        </Link>
       </div>
-      <hr className="card-divider" />
+      <hr />
       {formActive && (
         <form action="" className="answer-form">
           <textarea
@@ -87,6 +172,13 @@ const AnswerSection: FunctionComponent<Props> = (props) => {
       )}
     </div>
   );
-};
+}
 
-export default AnswerSection;
+function mapStateToProps(state: any) {
+  return {
+    token: state.auth0.accessToken,
+    currentUser: state.auth0.currentUser,
+    users: state.users.entities,
+  };
+}
+export default connect(mapStateToProps, {})(AnswerSection);
