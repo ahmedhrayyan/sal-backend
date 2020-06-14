@@ -3,7 +3,8 @@ const defaultState = {
   isFetching: false,
   errorMessage: null,
   lastUpdated: null,
-  fetchedPageCount: 0, // we did not fetch any pages yet
+  pageCount: 0, // we did not fetch any pages yet
+  nextPageUrl: null,
   noOfQuestions: null,
   entities: new Map<number, any>(),
 };
@@ -15,14 +16,6 @@ function questionsReducer(state = defaultState, action: any) {
         isFetching: true,
       });
     case Types.QUESTIONS_SUCCESS: {
-      // make sure we have fetched a whole page (10 questions per page)
-      // otherwise do not increase the fetchedPageCount
-      const noOfNewEntities = action.payload.questions.length;
-      const fetchedPageCount =
-        noOfNewEntities < 10
-          ? state.fetchedPageCount
-          : state.fetchedPageCount + 1;
-
       let newEntities = new Map(state.entities); // clone old questions
       for (const entity of action.payload.questions) {
         newEntities.set(entity.id, entity);
@@ -30,7 +23,7 @@ function questionsReducer(state = defaultState, action: any) {
       return Object.assign({}, state, {
         isFetching: false,
         entities: newEntities,
-        fetchedPageCount,
+        nextPageUrl: action.payload.next_path,
         noOfQuestions: action.payload.no_of_questions,
         lastUpdated: action.receivedAt,
       });
