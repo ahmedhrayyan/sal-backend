@@ -1,8 +1,8 @@
-import { Types } from "./types";
+import { Types, Question } from "./types";
 const defaultState = {
   isFetching: false,
   errorMessage: null,
-  entities: new Map<number, any>(),
+  entities: new Map<number, Question>(),
 };
 
 function questionsReducer(state = defaultState, action: any) {

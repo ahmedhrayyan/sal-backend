@@ -6,3 +6,12 @@ export enum Types {
   Q_DELETE_SUCCESS = 'Q_DELETE_SUCCESS',
   Q_DELETE_FAILURE = 'Q_DELETE_FAILURE'
 }
+
+export type Question = {
+  id: number;
+  user_id: string;
+  content: string;
+  created_at: string;
+  best_answer_id: number;
+  no_of_answers: number;
+}
