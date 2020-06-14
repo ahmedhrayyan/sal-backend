@@ -38,7 +38,7 @@ class Question(db.Model):
         lazy=True,
         foreign_keys='Answer.question_id',
         cascade="all")
-    best_answer_id = db.Column(Integer, nullable=True)
+    best_answer = db.Column(Integer, nullable=True)
 
     def __init__(self, user_id, content):
         self.user_id = user_id
