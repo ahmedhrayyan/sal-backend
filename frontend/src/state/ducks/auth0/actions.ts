@@ -27,7 +27,8 @@ interface InitOptions {
   domain: string,
   client_id: string,
   audience: string,
-  redirect_uri: string
+  redirect_uri: string,
+  useRefreshToken: boolean
 }
 function defaultHandleRedirect(appState?: any) {
   window.history.replaceState({}, document.title, window.location.pathname);

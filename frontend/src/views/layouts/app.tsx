@@ -28,6 +28,7 @@ function App(props: Props) {
         client_id: config.clientId,
         audience: config.audience,
         redirect_uri: window.location.origin,
+        useRefreshToken: config.useRefreshToken
       },
       handleAuth0Redirect
     );
