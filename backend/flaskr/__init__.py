@@ -233,7 +233,7 @@ def create_app(test_config=None):
     @requires_auth
     def index(user_id):
         # response is a dict object
-        public_fields = ['name', 'picture', 'user_metadata']
+        public_fields = ['user_id', 'name', 'picture', 'user_metadata']
         response = auth0.get_user(user_id, public_fields)
         # check for errors
         if response.get('error') is not None:
@@ -283,5 +283,13 @@ def create_app(test_config=None):
             'message': error.message,
             'error': error.status_code
         }), error.status_code
+
+    @app.errorhandler(500)
+    def handle_auth_error(error):
+        return jsonify({
+            'success': False,
+            'message': error.description,
+            'error': 500
+        }), 500
 
     return app
