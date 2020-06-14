@@ -41,19 +41,15 @@ export function initAuth0(
   return function (dispatch: any) {
     dispatch(requestInitAuth0());
     createAuth0Client(initOptions)
-      .then((auth0Client: Auth0Client) => {
+      .then(async (auth0Client) => {
         // handle authentication from the url
         if (
           window.location.search.includes("code=") &&
           window.location.search.includes("state=")
         ) {
-          auth0Client
-            .handleRedirectCallback()
-            .then((appState) => handleRedirect(appState));
+          const appState = await auth0Client.handleRedirectCallback();
+          handleRedirect(appState);
         }
-        return auth0Client;
-      })
-      .then(async (auth0Client) => {
         const isAuthenticated = await auth0Client.isAuthenticated();
         let accessToken = null,
           currentUser = null;
