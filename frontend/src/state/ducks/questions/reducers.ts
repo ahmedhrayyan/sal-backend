@@ -2,6 +2,7 @@ import { Types, Question } from "./types";
 const defaultState = {
   isFetching: false,
   errorMessage: null,
+  pageCount: 0, // we haven't fetched any page yet
   entities: new Map<number, Question>(),
 };
 
@@ -22,6 +23,7 @@ function questionsReducer(state = defaultState, action: any) {
         nextPageUrl: action.payload.next_path,
         noOfQuestions: action.payload.no_of_questions,
         lastUpdated: action.receivedAt,
+        pageCount: state.pageCount + 1
       });
     }
     case Types.QUESTIONS_FAILURE:
