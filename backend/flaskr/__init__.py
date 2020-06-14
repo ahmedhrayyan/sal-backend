@@ -233,7 +233,7 @@ def create_app(test_config=None):
     @requires_auth
     def index(user_id):
         # response is a dict object
-        public_fields = ['name', 'picture', 'user_metadata']
+        public_fields = ['user_id', 'name', 'picture', 'user_metadata']
         response = auth0.get_user(user_id, public_fields)
         # check for errors
         if response.get('error') is not None:
