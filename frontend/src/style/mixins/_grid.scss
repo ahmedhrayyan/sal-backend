@@ -30,8 +30,8 @@
     @include media-breakpoint-up($breakpoint, $breakpoints) {
       max-width: $container-max-width;
       @if $container-max-width == 960px {
-        padding-right: 120px;
-        padding-left: 120px;
+        padding-right: 160px;
+        padding-left: 160px;
       }
       @if $container-max-width == 720px {
         padding-right: 60px;
