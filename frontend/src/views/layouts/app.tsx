@@ -59,7 +59,7 @@ function App(props: Props) {
 function mapStateToProps(state: any) {
   return {
     isLoading: state.auth0.isLoading,
-    isAuthenticated: state.auth0.isAuthenticated
+    isAuthenticated: state.auth0.isAuthenticated,
   }
 }
 
