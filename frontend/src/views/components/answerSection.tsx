@@ -147,9 +147,11 @@ function AnswerSection({
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
         </button>
-        <Link to={`/${questionId}` || "/"} className="btn btn-link">
-          View all answers
-        </Link>
+        {answerExists && (
+          <Link to={`/${questionId}` || "/"} className="btn btn-link">
+            View all answers
+          </Link>
+        )}
       </div>
       <hr />
       {formActive && (
