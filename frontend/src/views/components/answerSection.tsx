@@ -23,12 +23,12 @@ function AnswerContent({
   loadUser,
   currentUser,
   bestAnswer,
-  questionUserId
+  questionUserId,
 }: AnswerProps) {
   useEffect(() => {
     // load answer author
-    loadUser(answer.user_id)
-  }, [])
+    loadUser(answer.user_id);
+  }, []);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
@@ -74,15 +74,11 @@ function AnswerContent({
             {!currentUserAnswer && (
               <button onClick={handleReporting}>Report this answer</button>
             )}
-            {currentUserQuestion && (
-              <button>Select best answer</button>
-            )}
+            {currentUserQuestion && <button>Select best answer</button>}
             {currentUserAnswer && (
               <button onClick={handleUpdating}>Update answer</button>
             )}
-            {currentUserAnswer && (
-              <button>Delete answer</button>
-            )}
+            {currentUserAnswer && <button>Delete answer</button>}
           </Dropdown>
         </div>
       </div>
@@ -112,7 +108,7 @@ function AnswerSection({
   bestAnswer,
   answerExists,
   questionId,
-  questionUserId
+  questionUserId,
 }: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
@@ -132,7 +128,7 @@ function AnswerSection({
   return (
     <div className="card answer">
       {answerExists && !answer && (
-        <div className="spinner-container" style={{height: '60px'}}>
+        <div className="spinner-container" style={{ height: "60px" }}>
           <Spinner className="spinner-sm spinner-centered" />
         </div>
       )}
@@ -158,16 +154,18 @@ function AnswerSection({
       <hr />
       {formActive && (
         <form action="" className="answer-form">
-          <textarea
-            name=""
-            id=""
-            rows={3}
-            className="form-control form-group"
-            value={textareaVal}
-            onChange={(evt) => {
-              setTextareaVal(evt.currentTarget.value);
-            }}
-          ></textarea>
+          <div className="form-group">
+            <textarea
+              name=""
+              id=""
+              rows={3}
+              className="form-control"
+              value={textareaVal}
+              onChange={(evt) => {
+                setTextareaVal(evt.currentTarget.value);
+              }}
+            />
+          </div>
           <button type="submit" className="btn btn-primary">
             Submit
           </button>
@@ -192,6 +190,6 @@ function mapStateToProps(state: any) {
   };
 }
 const mapDispatchToProps = {
-  loadUser
-}
+  loadUser,
+};
 export default connect(mapStateToProps, mapDispatchToProps)(AnswerSection);
