@@ -64,7 +64,7 @@ function AskSection({
               {createdAt.toLocaleDateString()}
               <br />
               <span className="text-muted">
-                {question.no_of_answers === 0
+                {!question.no_of_answers
                   ? "No answers yet"
                   : question.no_of_answers === 1
                   ? "1 answer"
