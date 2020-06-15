@@ -41,7 +41,12 @@ function Nav(props: NavProps) {
           btnContent={<Avatar src={currentUser?.picture || ""} size="sm" />}
           btnClass="avatar-btn"
         >
-          <button onClick={props.goToProfile}>{userName}</button>
+          <button
+            onClick={props.goToProfile}
+            style={{ textTransform: "capitalize" }}
+          >
+            {userName}
+          </button>
           <button onClick={props.logout}>Logout</button>
         </Dropdown>
       </li>
