@@ -88,8 +88,8 @@ function Home(props: Props) {
     <div className="content-container">
       <QuestionForm />
       {props.fetchingQuestions && props.questions.size === 0 && (
-        <div className="spinner-container" style={{ height: "200px" }}>
-          <Spinner className="spinner spinner-centered" />
+        <div className="spinner-container" style={{ height: "120px" }}>
+          <Spinner className="spinner-sm spinner-centered" />
         </div>
       )}
       {QAComponents}
