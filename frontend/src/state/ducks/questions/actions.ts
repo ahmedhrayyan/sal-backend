@@ -36,7 +36,6 @@ export function deleteQuestion(token: string, id: number) {
     [CALL_API]: {
       endpoint: `/api/questions/${id}`,
       token: token,
-      method: "DELETE",
       types: [
         Types.Q_DELETE_REQUEST,
         Types.Q_DELETE_SUCCESS,
@@ -47,4 +46,25 @@ export function deleteQuestion(token: string, id: number) {
       }
     },
   };
+}
+
+export function postQuestion(token: string, content: string) {
+  return {
+    [CALL_API]: {
+      endpoint: '/api/questions',
+      token: token,
+      types: [
+        Types.Q_POST_REQUEST,
+        Types.Q_POST_SUCCESS,
+        Types.Q_POST_FAILURE,
+      ],
+      config: {
+        method: 'post',
+        body: JSON.stringify({content}),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    }
+  }
 }

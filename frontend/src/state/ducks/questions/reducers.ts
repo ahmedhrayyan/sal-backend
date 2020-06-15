@@ -49,6 +49,26 @@ function questionsReducer(state = defaultState, action: any) {
         errorMessage: action.error,
       });
 
+    case Types.Q_POST_REQUEST:
+      return Object.assign({}, state, {
+        isFetching: true,
+      });
+    case Types.Q_POST_SUCCESS: {
+      let newEntities = new Map([
+        [action.payload.created.id, action.payload.created],
+      ]);
+      newEntities = new Map([...newEntities, ...state.entities]);
+      return Object.assign({}, state, {
+        isFetching: false,
+        entities: newEntities,
+      });
+    }
+    case Types.Q_POST_FAILURE:
+      return Object.assign({}, state, {
+        isFetching: false,
+        errorMessage: action.error,
+      });
+
     default:
       return state;
   }
