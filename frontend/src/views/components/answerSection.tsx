@@ -25,10 +25,6 @@ function AnswerContent({
   bestAnswer,
   questionUserId,
 }: AnswerProps) {
-  useEffect(() => {
-    // load answer author
-    loadUser(answer.user_id);
-  }, []);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }

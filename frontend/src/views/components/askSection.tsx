@@ -27,10 +27,6 @@ function AskSection({
   currentUser,
   style,
 }: Props) {
-  useEffect(() => {
-    // load question author
-    loadUser(token, question.user_id)
-  }, [])
   let user = users.get(question.user_id);
   let job = "loading...",
     userName = "loading...";
