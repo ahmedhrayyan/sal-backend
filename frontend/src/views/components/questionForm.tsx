@@ -1,6 +1,11 @@
 import React, { useState, FormEvent } from "react";
+import { connect } from "react-redux";
+import { postQuestion } from "../../state/ducks/questions/actions";
 
-interface Props {}
+interface Props {
+  postQuestion: any;
+  token: string;
+}
 function QuestionFrom(props: Props) {
   const [formFocused, setFormFocused] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
@@ -22,13 +27,24 @@ function QuestionFrom(props: Props) {
     }
     setTextareaVal("");
   }
+  function handleSubmit(evt: FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+    props.postQuestion(props.token, textareaVal);
+    setTextareaVal('')
+    handleBlur()
+  }
   const btnStyle = {
     marginTop: "10px",
     marginRight: "10px",
   };
   return (
-    <form action="" onFocus={handleFocus} onBlur={handleBlur}>
-      <div className="form-group" style={{ margin: "60px 7px 0" }}>
+    <form
+      action=""
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onSubmit={handleSubmit}
+    >
+      <div className="form-group" style={{ margin: "30px 7px 0" }}>
         <textarea
           placeholder="Your question..."
           className="form-control"
@@ -56,4 +72,14 @@ function QuestionFrom(props: Props) {
   );
 }
 
-export default QuestionFrom;
+function mapStateToProps(state: any) {
+  return {
+    token: state.auth0.accessToken,
+  };
+}
+
+const mapDispatchToProps = {
+  postQuestion,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(QuestionFrom);
