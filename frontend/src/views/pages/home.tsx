@@ -17,6 +17,7 @@ import { AnswerSection } from "../components";
 import { Spinner } from "../components";
 import { QuestionForm } from "../components";
 import { Answer } from "../../state/ducks/answers/types";
+import { answers } from "../../state/ducks";
 
 interface Props {
   token: string;
@@ -37,15 +38,30 @@ function Home(props: Props) {
       props.loadQuestions(props.token);
     }
   }, []);
+  const usersToBeFetched = useRef<Set<string>>(new Set());
   useEffect(() => {
     for (const question of props.questions.values()) {
+      // do not make multiple requests with the same id
+      usersToBeFetched.current.add(question.user_id)
       // fetch answers
       props.loadAnswer(
         props.token,
         question.best_answer || question.latest_answer
-      );
+      )
+    }
+    for (const user_id of usersToBeFetched.current) {
+      props.loadUser(props.token, user_id)
     }
   }, [props.questions]);
+
+  useEffect(() => {
+    for (const answer of props.answers.values()) {
+      // load answer author if he hasn't been called above
+      if (!usersToBeFetched.current.has(answer.user_id)) {
+        props.loadUser(answer.user_id)
+      }
+    }
+  }, [props.answers]);
 
   let QAComponents: ReactNode[] = [];
   for (const question of props.questions.values()) {
