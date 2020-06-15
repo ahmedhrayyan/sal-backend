@@ -54,10 +54,10 @@ function questionsReducer(state = defaultState, action: any) {
         isFetching: true,
       });
     case Types.Q_POST_SUCCESS: {
-      let newEntities = new Map([
+      const newEntities = new Map([
         [action.payload.created.id, action.payload.created],
+        ...state.entities
       ]);
-      newEntities = new Map([...newEntities, ...state.entities]);
       return Object.assign({}, state, {
         isFetching: false,
         entities: newEntities,
