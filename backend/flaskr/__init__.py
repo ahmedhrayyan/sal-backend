@@ -2,7 +2,8 @@ from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
 from auth import (init_auth0, Auth0Error, AuthError,
-    requires_auth, requires_permission)
+                  requires_auth, requires_permission)
+
 
 def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
@@ -14,6 +15,7 @@ def get_paginated_items(req, items, items_per_page=20):
     else:
         next_path = None
     return [items[start_index:end_index], next_path]
+
 
 def get_formated_questions(questions):
     formated_questions = []
@@ -30,6 +32,7 @@ def get_formated_questions(questions):
         })
         formated_questions.append(formated)
     return formated_questions
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -49,7 +52,7 @@ def create_app(test_config=None):
         search_term = '%' + data['search'] + '%'
         all_questions = Question.query.filter(
             Question.content.ilike(search_term)
-            ).order_by(Question.created_at.desc()).all()
+        ).order_by(Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
@@ -64,7 +67,8 @@ def create_app(test_config=None):
     @app.route('/api/questions', methods=['GET'])
     @requires_auth
     def get_questions():
-        all_questions = Question.query.order_by(Question.created_at.desc()).all()
+        all_questions = Question.query.order_by(
+            Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
@@ -105,7 +109,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
             if requires_permission('update:questions'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users answers', 403)
+                                'the authority to delete other users answers', 403)
             answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
@@ -145,7 +149,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
             if not requires_permission('delete:questions'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users questions', 403)
+                                'the authority to delete other users questions', 403)
         try:
             question.delete()
         except Exception:
@@ -212,7 +216,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != answer.user_id:
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users answers', 403)
+                                'the authority to delete other users answers', 403)
         try:
             answer.delete()
         except Exception:

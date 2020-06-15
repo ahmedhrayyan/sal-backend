@@ -26,6 +26,7 @@ def setup_db(app, database_uri=None, test_env=False):
     else:
         migrate = Migrate(app, db)
 
+
 class Question(db.Model):
     __tablename__ = 'questions'
     id = Column(Integer, primary_key=True)
@@ -33,11 +34,11 @@ class Question(db.Model):
     content = Column(String(), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
     answers = db.relationship('Answer',
-        backref='question',
-        order_by='desc(Answer.created_at)',
-        lazy=True,
-        foreign_keys='Answer.question_id',
-        cascade="all")
+                              backref='question',
+                              order_by='desc(Answer.created_at)',
+                              lazy=True,
+                              foreign_keys='Answer.question_id',
+                              cascade="all")
     best_answer = db.Column(Integer, nullable=True)
 
     def __init__(self, user_id, content):
