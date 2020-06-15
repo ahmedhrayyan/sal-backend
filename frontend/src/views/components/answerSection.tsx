@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
@@ -7,10 +7,12 @@ import Dropdown from "./dropdown";
 import Spinner from "./spinner";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
+import { loadUser } from "../../state/ducks/users/actions";
 
 interface AnswerProps {
   answer: Answer;
   users: Map<string, User>;
+  loadUser: any;
   currentUser: string;
   bestAnswer: number;
   questionUserId: string;
@@ -18,10 +20,15 @@ interface AnswerProps {
 function AnswerContent({
   answer,
   users,
+  loadUser,
   currentUser,
   bestAnswer,
   questionUserId
 }: AnswerProps) {
+  useEffect(() => {
+    // load answer author
+    loadUser(answer.user_id)
+  }, [])
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
@@ -88,6 +95,7 @@ function AnswerContent({
 interface Props {
   answer: Answer | undefined;
   users: Map<string, User>;
+  loadUser: any;
   token: string;
   currentUser: string;
   bestAnswer: number;
@@ -98,6 +106,7 @@ interface Props {
 function AnswerSection({
   answer,
   users,
+  loadUser,
   token,
   currentUser,
   bestAnswer,
@@ -134,6 +143,7 @@ function AnswerSection({
           currentUser={currentUser}
           bestAnswer={bestAnswer}
           questionUserId={questionUserId}
+          loadUser={loadUser}
         />
       )}
       {answerExists && <hr />}
@@ -181,4 +191,7 @@ function mapStateToProps(state: any) {
     users: state.users.entities,
   };
 }
-export default connect(mapStateToProps, {})(AnswerSection);
+const mapDispatchToProps = {
+  loadUser
+}
+export default connect(mapStateToProps, mapDispatchToProps)(AnswerSection);
