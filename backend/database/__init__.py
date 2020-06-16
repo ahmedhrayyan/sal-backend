@@ -62,7 +62,8 @@ class Question(db.Model):
             'user_id': self.user_id,
             'content': self.content,
             'created_at': self.created_at,
-            'best_answer': self.best_answer
+            'best_answer': self.best_answer,
+            'no_of_answers': len(self.answers)
         }
 
 

@@ -27,7 +27,6 @@ def get_formated_questions(questions):
             # there is not answers yet
             latest_answer = None
         formated.update({
-            'no_of_answers': len(question.answers),
             'latest_answer': latest_answer
         })
         formated_questions.append(formated)
@@ -85,15 +84,11 @@ def create_app(test_config=None):
     @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
-        formated_question = question.format()
-        formated_question.update({
-            'no_of_answers': len(question.answers)
-        })
         if question == None:
             abort(404)
         return jsonify({
             'success': True,
-            'question': formated_question
+            'question': question.format()
         })
 
     @app.route('/api/questions/<question_id>', methods=['PATCH'])
