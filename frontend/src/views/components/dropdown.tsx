@@ -6,12 +6,15 @@ import React, {
   useState,
   useRef,
   useEffect,
+  Dispatch,
+  SetStateAction,
 } from "react";
 
 interface Props {
   btnContent: ReactNode;
   dropdownClass?: string;
   btnClass?: string;
+  useDropdown?: [boolean, Dispatch<SetStateAction<boolean>>],
 }
 
 const Dropdown: FunctionComponent<Props> = ({
@@ -19,8 +22,15 @@ const Dropdown: FunctionComponent<Props> = ({
   dropdownClass,
   btnClass,
   children,
+  useDropdown
 }) => {
-  const [active, setActive] = useState<boolean>(false);
+
+  let [active, setActive] = useState<boolean>(false)
+  if (useDropdown) {
+    // this is just to give the parent component an optional way
+    // to access Dropdown component state (renderProps and similar is not optional)
+    [active, setActive] = useDropdown;
+  }
   const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleEscape(evt: KeyboardEvent) {
