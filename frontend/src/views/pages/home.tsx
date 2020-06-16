@@ -1,11 +1,4 @@
-import React, {
-  useEffect,
-  ReactNode,
-  Fragment,
-  useState,
-  useRef,
-  FormEvent,
-} from "react";
+import React, { useEffect, ReactNode, useRef } from "react";
 import { connect } from "react-redux";
 import { loadQuestions } from "../../state/ducks/questions/actions";
 import { Question } from "../../state/ducks/questions/types";
@@ -29,6 +22,7 @@ interface Props {
   loadAnswer: any;
   answers: Map<number, Answer>;
   fetchingUser: boolean;
+  currentUser: string; // current user_id
 }
 
 function Home(props: Props) {
@@ -42,24 +36,30 @@ function Home(props: Props) {
   useEffect(() => {
     for (const question of props.questions.values()) {
       // do not make multiple requests with the same id
-      if (!requestedUsers.current.has(question.user_id)) {
-        props.loadUser(props.token, question.user_id)
-        requestedUsers.current.add(question.user_id)
+      // we've requested the current user in in App component
+      if (
+        !requestedUsers.current.has(question.user_id) &&
+        question.user_id !== props.currentUser
+      ) {
+        props.loadUser(props.token, question.user_id);
+        requestedUsers.current.add(question.user_id);
       }
       // fetch answers
       props.loadAnswer(
         props.token,
         question.best_answer || question.latest_answer
-      )
+      );
     }
   }, [props.questions]);
 
   useEffect(() => {
     for (const answer of props.answers.values()) {
-      // do not make multiple requests with the same id
-      if (!requestedUsers.current.has(answer.user_id)) {
-        props.loadUser(props.token, answer.user_id)
-        requestedUsers.current.add(answer.user_id)
+      if (
+        !requestedUsers.current.has(answer.user_id) &&
+        answer.user_id !== props.currentUser
+      ) {
+        props.loadUser(props.token, answer.user_id);
+        requestedUsers.current.add(answer.user_id);
       }
     }
   }, [props.answers]);
@@ -101,6 +101,7 @@ function Home(props: Props) {
 function mapStateToProps(state: any) {
   return {
     token: state.auth0.accessToken,
+    currentUser: state.auth0.currentUser,
     questions: state.questions.entities,
     fetchingQuestions: state.questions.isFetching,
     users: state.users.entities,
