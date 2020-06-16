@@ -42,6 +42,25 @@ function answersReducer(state = defaultState, action: any) {
         isFetching: false,
         errorMessage: action.error,
       });
+    case Types.A_POST_REQUEST:
+      return Object.assign({}, state, {
+        isFetching: true,
+      });
+    case Types.A_POST_SUCCESS: {
+      const newEntities = new Map([
+        [action.payload.created.id, action.payload.created],
+        ...state.entities,
+      ]);
+      return Object.assign({}, state, {
+        isFetching: false,
+        entities: newEntities,
+      });
+    }
+    case Types.A_POST_FAILURE:
+      return Object.assign({}, state, {
+        isFetching: false,
+        errorMessage: action.error,
+      });
     default:
       return state;
   }

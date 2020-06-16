@@ -42,3 +42,24 @@ export function deleteAnswer(token: string, id: string) {
     },
   };
 }
+
+export function postAnswer(token: string, questionId: number, content: string) {
+  return {
+    [CALL_API]: {
+      endpoint: `/api/questions/${questionId}/answers`,
+      token: token,
+      types: [
+        Types.A_POST_REQUEST,
+        Types.A_POST_SUCCESS,
+        Types.A_POST_FAILURE,
+      ],
+      config: {
+        method: 'POST',
+        body: JSON.stringify({content}),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    }
+  }
+}
