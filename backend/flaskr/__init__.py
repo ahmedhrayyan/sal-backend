@@ -212,8 +212,14 @@ def create_app(test_config=None):
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
+
+        question = Question.query.get(answer.question_id)
         try:
             answer.delete()
+            # unset question best_answer if it was the deleted answer
+            if question.best_answer == answer.id:
+                question.best_answer = None
+                question.update()
         except Exception:
             abort(422)
         return jsonify({
