@@ -105,7 +105,7 @@ def create_app(test_config=None):
             if requires_permission('update:questions'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
-            answer = Answer.query.get(answer_id)
+        answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
         question.best_answer = answer_id
