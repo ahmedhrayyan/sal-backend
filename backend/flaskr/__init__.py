@@ -43,7 +43,6 @@ def create_app(test_config=None):
     auth0 = init_auth0()
 
     @app.route('/api/search', methods=['POST'])
-    @requires_auth
     def search():
         data = request.get_json() or []
         if 'search' not in data:
@@ -64,7 +63,6 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/questions', methods=['GET'])
-    @requires_auth
     def get_questions():
         all_questions = Question.query.order_by(
             Question.created_at.desc()).all()
@@ -81,7 +79,6 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/questions/<question_id>', methods=['GET'])
-    @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -155,7 +152,6 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/questions/<question_id>/answers', methods=['GET'])
-    @requires_auth
     def get_answers(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -172,7 +168,6 @@ def create_app(test_config=None):
         })
 
     @app.route('/api/answers/<answer_id>', methods=['GET'])
-    @requires_auth
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -212,8 +207,14 @@ def create_app(test_config=None):
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
+
+        question = Question.query.get(answer.question_id)
         try:
             answer.delete()
+            # unset question best_answer if it was the deleted answer
+            if question.best_answer == answer.id:
+                question.best_answer = None
+                question.update()
         except Exception:
             abort(422)
         return jsonify({
@@ -223,7 +224,6 @@ def create_app(test_config=None):
 
     # get users public data
     @app.route('/api/users/<user_id>')
-    @requires_auth
     def index(user_id):
         # response is a dict object
         public_fields = ['user_id', 'name', 'picture', 'user_metadata']
