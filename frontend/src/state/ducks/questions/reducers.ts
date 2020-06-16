@@ -2,6 +2,7 @@ import { Types, Question } from "./types";
 const defaultState = {
   isFetching: false,
   isPosting: false,
+  isUpdating: false,
   errorMessage: null,
   pageCount: 0, // we haven't fetched any page yet
   entities: new Map<number, Question>(),
@@ -71,19 +72,19 @@ function questionsReducer(state = defaultState, action: any) {
       });
     case Types.Q_BA_REQUEST:
       return Object.assign({}, state, {
-        isFetching: true,
+        isUpdating: true,
       });
     case Types.Q_BA_SUCCESS: {
       const newEntities = new Map(state.entities);
       newEntities.set(action.payload.patched.id, action.payload.patched);
       return Object.assign({}, state, {
-        isFetching: false,
+        isUpdating: false,
         entities: newEntities
       });
     }
     case Types.Q_BA_FAILURE: {
       return Object.assign({}, state, {
-        isFetching: false,
+        isUpdating: false,
         errorMessage: action.error
       });
     }
