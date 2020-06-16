@@ -20,16 +20,7 @@ interface AnswerProps {
   deleteAnswer: any;
   token: string;
 }
-function AnswerContent({
-  answer,
-  users,
-  currentUser,
-  bestAnswer,
-  questionUserId,
-  selectBestAnswer,
-  deleteAnswer,
-  token,
-}: AnswerProps) {
+function AnswerContent(props: AnswerProps) {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
@@ -38,13 +29,13 @@ function AnswerContent({
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleBestAnswer() {
-    selectBestAnswer(answer.question_id, answer.id, token);
+    props.selectBestAnswer(props.answer.question_id, props.answer.id, props.token);
     setShowDropdown(false);
   }
   function handleDelete() {
-    deleteAnswer(answer.id, token);
+    props.deleteAnswer(props.answer.id, props.token);
   }
-  let user = users.get(answer.user_id);
+  let user = props.users.get(props.answer.user_id);
   let job = "loading...",
     userName = "loading...";
   if (user) {
@@ -54,10 +45,10 @@ function AnswerContent({
     job = user.user_metadata ? user.user_metadata.job : "software engineer";
     // you've signed in using github :)
   }
-  const currentUserAnswer = currentUser === answer.user_id;
-  const currentUserQuestion = currentUser === questionUserId;
-  const createdAt = new Date(answer.created_at);
-  const isBestAnswer = bestAnswer === answer.id;
+  const currentUserAnswer = props.currentUser === props.answer.user_id;
+  const currentUserQuestion = props.currentUser === props.questionUserId;
+  const createdAt = new Date(props.answer.created_at);
+  const isBestAnswer = props.bestAnswer === props.answer.id;
   return (
     <>
       <div className="card-header">
@@ -97,7 +88,7 @@ function AnswerContent({
         </div>
       </div>
       <div className="card-body">
-        <p className="card-text">{answer.content}</p>
+        <p className="card-text">{props.answer.content}</p>
       </div>
     </>
   );
@@ -115,19 +106,7 @@ interface Props {
   deleteAnswer: any;
   postAnswer: any;
 }
-function AnswerSection({
-  answer,
-  users,
-  token,
-  currentUser,
-  bestAnswer,
-  answerExists,
-  questionId,
-  questionUserId,
-  selectBestAnswer,
-  deleteAnswer,
-  postAnswer,
-}: Props) {
+function AnswerSection(props: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
   function showForm() {
@@ -145,36 +124,36 @@ function AnswerSection({
   }
   function handleSubmit(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
-    postAnswer(questionId, textareaVal, token);
+    props.postAnswer(props.questionId, textareaVal, props.token);
     setTextareaVal('');
     setFormActive(false)
   }
   return (
     <div className="card answer">
-      {answerExists && !answer && (
+      {props.answerExists && !props.answer && (
         <div className="spinner-container" style={{ height: "60px" }}>
           <Spinner className="spinner-sm spinner-centered" />
         </div>
       )}
-      {answer && (
+      {props.answer && (
         <AnswerContent
-          answer={answer}
-          users={users}
-          currentUser={currentUser}
-          bestAnswer={bestAnswer}
-          questionUserId={questionUserId}
-          selectBestAnswer={selectBestAnswer}
-          token={token}
-          deleteAnswer={deleteAnswer}
+          answer={props.answer}
+          users={props.users}
+          currentUser={props.currentUser}
+          bestAnswer={props.bestAnswer}
+          questionUserId={props.questionUserId}
+          selectBestAnswer={props.selectBestAnswer}
+          token={props.token}
+          deleteAnswer={props.deleteAnswer}
         />
       )}
-      {answerExists && <hr />}
+      {props.answerExists && <hr />}
       <div className="answer-cta-section">
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
         </button>
-        {answerExists && (
-          <Link to={`/${questionId}` || "/"} className="btn btn-link">
+        {props.answerExists && (
+          <Link to={`/${props.questionId}` || "/"} className="btn btn-link">
             View all answers
           </Link>
         )}

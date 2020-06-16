@@ -16,15 +16,8 @@ interface Props {
   deleteQuestion: any;
   style?: CSSProperties;
 }
-function QuestionSection({
-  question,
-  users,
-  token,
-  deleteQuestion,
-  currentUser,
-  style,
-}: Props) {
-  let user = users.get(question.user_id);
+function QuestionSection(props: Props) {
+  let user = props.users.get(props.question.user_id);
   let job = "loading...",
     userName = "loading...";
   if (user) {
@@ -33,7 +26,7 @@ function QuestionSection({
       : user.name;
     job = user.user_metadata ? user.user_metadata.job : "software engineer"; // you've signed in using github :)
   }
-  const currentUserQuestion = currentUser === question.user_id;
+  const currentUserQuestion = props.currentUser === props.question.user_id;
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
@@ -41,11 +34,11 @@ function QuestionSection({
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleDeleting() {
-    deleteQuestion(question.id, token);
+    props.deleteQuestion(props.question.id, props.token);
   }
-  const createdAt = new Date(question.created_at);
+  const createdAt = new Date(props.question.created_at);
   return (
-    <div className="card ask" style={style}>
+    <div className="card ask" style={props.style}>
       <div className="card-header">
         <Avatar
           src={user?.picture || ""}
@@ -57,11 +50,11 @@ function QuestionSection({
               {createdAt.toLocaleDateString()}
               <br />
               <span className="text-muted">
-                {!question.no_of_answers
+                {!props.question.no_of_answers
                   ? "No answers yet"
-                  : question.no_of_answers === 1
+                  : props.question.no_of_answers === 1
                   ? "1 answer"
-                  : `${question.no_of_answers} answers`}
+                  : `${props.question.no_of_answers} answers`}
               </span>
             </small>
           </p>
@@ -70,7 +63,7 @@ function QuestionSection({
               <img className="icon" src={downArrow} alt="down-arrow icon" />
             }
           >
-            <Link to={`/${question.id}`}>View question</Link>
+            <Link to={`/${props.question.id}`}>View question</Link>
             {!currentUserQuestion && (
               <button onClick={handleReporting}>Report this question</button>
             )}
@@ -84,7 +77,7 @@ function QuestionSection({
         </div>
       </div>
       <div className="card-body">
-        <p className="card-text">{question.content}</p>
+        <p className="card-text">{props.question.content}</p>
       </div>
     </div>
   );
