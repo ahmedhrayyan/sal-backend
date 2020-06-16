@@ -25,6 +25,23 @@ function answersReducer(state = defaultState, action: any) {
         errorMessage: action.error,
         isFetching: false,
       });
+    case Types.A_DELETE_REQUEST:
+      return Object.assign({}, state, {
+        isFetching: true,
+      });
+    case Types.A_DELETE_SUCCESS: {
+      const newEntities = new Map(state.entities);
+      newEntities.delete(action.payload.del_id);
+      return Object.assign({}, state, {
+        entities: newEntities,
+        isFetching: false,
+      });
+    }
+    case Types.A_DELETE_FAILURE:
+      return Object.assign({}, state, {
+        isFetching: false,
+        errorMessage: action.error,
+      });
     default:
       return state;
   }

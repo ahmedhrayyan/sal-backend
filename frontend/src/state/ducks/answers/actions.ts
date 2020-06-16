@@ -25,3 +25,20 @@ export function loadAnswer(token: string, id: string) {
     return dispatch(fetchAnswer(token, id));
   };
 }
+
+export function deleteAnswer(token: string, id: string) {
+  return {
+    [CALL_API]: {
+      endpoint: `/api/answers/${id}`,
+      token: token,
+      types: [
+        Types.A_DELETE_REQUEST,
+        Types.A_DELETE_SUCCESS,
+        Types.ANSWER_FAILURE
+      ],
+      config: {
+        method: 'DELETE'
+      }
+    },
+  };
+}
