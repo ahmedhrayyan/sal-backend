@@ -30,6 +30,7 @@ function AnswerContent({
   deleteAnswer,
   token,
 }: AnswerProps) {
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
@@ -38,7 +39,7 @@ function AnswerContent({
   }
   function handleBestAnswer() {
     selectBestAnswer(answer.question_id, answer.id, token);
-    window.focus()
+    setShowDropdown(false);
   }
   function handleDelete() {
     deleteAnswer(answer.id, token);
@@ -75,6 +76,7 @@ function AnswerContent({
             </small>
           </p>
           <Dropdown
+            useDropdown={[showDropdown, setShowDropdown]}
             btnContent={
               <img className="icon" src={downArrow} alt="down-arrow icon" />
             }
