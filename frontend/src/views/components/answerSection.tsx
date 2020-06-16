@@ -38,6 +38,7 @@ function AnswerContent({
   }
   function handleBestAnswer() {
     selectBestAnswer(answer.question_id, answer.id, token);
+    window.focus()
   }
   function handleDelete() {
     deleteAnswer(answer.id, token);
@@ -142,7 +143,7 @@ function AnswerSection({
   }
   function handleSubmit(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
-    postAnswer(token, questionId, textareaVal);
+    postAnswer(questionId, textareaVal, token);
     setTextareaVal('');
     setFormActive(false)
   }
