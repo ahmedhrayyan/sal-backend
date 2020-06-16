@@ -26,7 +26,7 @@ export function loadQuestions() {
   };
 }
 
-export function deleteQuestion(token: string, id: number) {
+export function deleteQuestion(id: number, token: string) {
   if (!id) {
     // don't send pointless requests
     return null
@@ -47,7 +47,7 @@ export function deleteQuestion(token: string, id: number) {
   };
 }
 
-export function postQuestion(token: string, content: string) {
+export function postQuestion(content: string, token: string) {
   return {
     [CALL_API]: {
       endpoint: '/api/questions',
@@ -68,7 +68,7 @@ export function postQuestion(token: string, content: string) {
   }
 }
 
-export function selectBestAnswer(token: string, question_id: number, answer_id: number) {
+export function selectBestAnswer(question_id: number, answer_id: number, token: string) {
   return {
     [CALL_API]: {
       endpoint: `/api/questions/${question_id}`,

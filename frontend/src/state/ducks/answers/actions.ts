@@ -25,7 +25,7 @@ export function loadAnswer(id: string) {
   };
 }
 
-export function deleteAnswer(token: string, id: string) {
+export function deleteAnswer(id: string, token: string) {
   return {
     [CALL_API]: {
       endpoint: `/api/answers/${id}`,
@@ -42,7 +42,7 @@ export function deleteAnswer(token: string, id: string) {
   };
 }
 
-export function postAnswer(token: string, questionId: number, content: string) {
+export function postAnswer(questionId: number, content: string, token: string,) {
   return {
     [CALL_API]: {
       endpoint: `/api/questions/${questionId}/answers`,

@@ -41,7 +41,7 @@ function QuestionSection({
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleDeleting() {
-    deleteQuestion(token, question.id);
+    deleteQuestion(question.id, token);
   }
   const createdAt = new Date(question.created_at);
   return (

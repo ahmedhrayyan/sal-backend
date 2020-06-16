@@ -37,10 +37,10 @@ function AnswerContent({
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleBestAnswer() {
-    selectBestAnswer(token, answer.question_id, answer.id);
+    selectBestAnswer(answer.question_id, answer.id, token);
   }
   function handleDelete() {
-    deleteAnswer(token, answer.id);
+    deleteAnswer(answer.id, token);
   }
   let user = users.get(answer.user_id);
   let job = "loading...",

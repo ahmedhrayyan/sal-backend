@@ -29,7 +29,7 @@ function QuestionFrom(props: Props) {
   }
   function handleSubmit(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
-    props.postQuestion(props.token, textareaVal);
+    props.postQuestion(textareaVal, props.token);
     setTextareaVal('')
     handleBlur()
   }
