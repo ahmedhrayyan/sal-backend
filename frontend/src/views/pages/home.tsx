@@ -16,6 +16,7 @@ interface Props {
   questions: Map<number, Question>;
   isFetchingQuestions: boolean;
   isPostingQuestion: boolean;
+  isUpdatingQuestion: boolean;
   loadUser: any;
   users: Map<number, User>;
   loadAnswer: any;
@@ -76,6 +77,7 @@ function Home(props: Props) {
           )}
           questionId={question.id}
           questionUserId={question.user_id}
+          isUpdatingQuestion={props.isUpdatingQuestion}
         />
       </div>
     );
@@ -104,6 +106,7 @@ function mapStateToProps(state: any) {
     questions: state.questions.entities,
     isFetchingQuestions: state.questions.isFetching,
     isPostingQuestion: state.questions.isPosting,
+    isUpdatingQuestion: state.questions.isUpdating,
     users: state.users.entities,
     answers: state.answers.entities,
   };

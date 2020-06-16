@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
@@ -19,8 +19,15 @@ interface AnswerProps {
   selectBestAnswer: any;
   deleteAnswer: any;
   token: string;
+  isUpdatingQuestion: boolean;
 }
 function AnswerContent(props: AnswerProps) {
+  const [requestBASent, setRequestBASent] = useState<boolean>(false);
+  useEffect(() => {
+    if (!props.isUpdatingQuestion) {
+      setRequestBASent(false);
+    }
+  }, [props.isUpdatingQuestion])
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
@@ -29,7 +36,12 @@ function AnswerContent(props: AnswerProps) {
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleBestAnswer() {
-    props.selectBestAnswer(props.answer.question_id, props.answer.id, props.token);
+    props.selectBestAnswer(
+      props.answer.question_id,
+      props.answer.id,
+      props.token
+    );
+    setRequestBASent(true);
     setShowDropdown(false);
   }
   function handleDelete() {
@@ -62,7 +74,11 @@ function AnswerContent(props: AnswerProps) {
               {createdAt.toLocaleDateString()}
               <br />
               <span className="text-muted">
-                {isBestAnswer ? "Accepted by user" : "Latest answer"}
+                {requestBASent
+                  ? "loading..."
+                  : isBestAnswer
+                  ? "Accepted by user"
+                  : "Latest answer"}
               </span>
             </small>
           </p>
@@ -105,6 +121,7 @@ interface Props {
   selectBestAnswer: any;
   deleteAnswer: any;
   postAnswer: any;
+  isUpdatingQuestion: boolean;
 }
 function AnswerSection(props: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
@@ -125,8 +142,8 @@ function AnswerSection(props: Props) {
   function handleSubmit(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
     props.postAnswer(props.questionId, textareaVal, props.token);
-    setTextareaVal('');
-    setFormActive(false)
+    setTextareaVal("");
+    setFormActive(false);
   }
   return (
     <div className="card answer">
@@ -145,6 +162,7 @@ function AnswerSection(props: Props) {
           selectBestAnswer={props.selectBestAnswer}
           token={props.token}
           deleteAnswer={props.deleteAnswer}
+          isUpdatingQuestion={props.isUpdatingQuestion}
         />
       )}
       {props.answerExists && <hr />}
@@ -173,7 +191,11 @@ function AnswerSection(props: Props) {
               }}
             />
           </div>
-          <button type="submit" className="btn btn-primary" disabled={textareaVal === ''}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={textareaVal === ""}
+          >
             Submit
           </button>
           <button
