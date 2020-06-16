@@ -14,12 +14,12 @@ import { Answer } from "../../state/ducks/answers/types";
 interface Props {
   loadQuestions: any;
   questions: Map<number, Question>;
-  fetchingQuestions: boolean;
+  isFetchingQuestions: boolean;
+  isPostingQuestion: boolean;
   loadUser: any;
   users: Map<number, User>;
   loadAnswer: any;
   answers: Map<number, Answer>;
-  fetchingUser: boolean;
   currentUser: string; // current user_id
 }
 
@@ -43,9 +43,7 @@ function Home(props: Props) {
         requestedUsers.current.add(question.user_id);
       }
       // fetch answers
-      props.loadAnswer(
-        question.best_answer || question.latest_answer
-      );
+      props.loadAnswer(question.best_answer || question.latest_answer);
     }
   }, [props.questions]);
 
@@ -82,11 +80,16 @@ function Home(props: Props) {
       </div>
     );
   }
+  // homepage top spinner condition
+  const condition =
+    (props.isFetchingQuestions && props.questions.size === 0) ||
+    props.isPostingQuestion;
   return (
     <div className="content-container">
       <QuestionForm />
-      {props.fetchingQuestions && props.questions.size === 0 && (
-        <div className="spinner-container" style={{ height: "120px" }}>
+      {/* show spinner on homepage top */}
+      {condition && (
+        <div className="spinner-container" style={{ height: "180px" }}>
           <Spinner className="spinner-sm spinner-centered" />
         </div>
       )}
@@ -99,7 +102,8 @@ function mapStateToProps(state: any) {
   return {
     currentUser: state.auth0.currentUser,
     questions: state.questions.entities,
-    fetchingQuestions: state.questions.isFetching,
+    isFetchingQuestions: state.questions.isFetching,
+    isPostingQuestion: state.questions.isPosting,
     users: state.users.entities,
     answers: state.answers.entities,
   };
