@@ -6,6 +6,7 @@ import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import Spinner from "./spinner";
 import { selectBestAnswer } from "../../state/ducks/questions/actions";
+import { deleteAnswer } from "../../state/ducks/answers/actions";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
 
@@ -16,6 +17,7 @@ interface AnswerProps {
   bestAnswer: number;
   questionUserId: string;
   selectBestAnswer: any;
+  deleteAnswer: any;
   token: string;
 }
 function AnswerContent({
@@ -25,6 +27,7 @@ function AnswerContent({
   bestAnswer,
   questionUserId,
   selectBestAnswer,
+  deleteAnswer,
   token,
 }: AnswerProps) {
   function handleReporting() {
@@ -35,6 +38,9 @@ function AnswerContent({
   }
   function handleBestAnswer() {
     selectBestAnswer(token, answer.question_id, answer.id);
+  }
+  function handleDelete() {
+    deleteAnswer(token, answer.id);
   }
   let user = users.get(answer.user_id);
   let job = "loading...",
@@ -81,7 +87,9 @@ function AnswerContent({
             {currentUserAnswer && (
               <button onClick={handleUpdating}>Update answer</button>
             )}
-            {currentUserAnswer && <button>Delete answer</button>}
+            {currentUserAnswer && (
+              <button onClick={handleDelete}>Delete answer</button>
+            )}
           </Dropdown>
         </div>
       </div>
@@ -101,6 +109,7 @@ interface Props {
   questionId: number;
   questionUserId: string;
   selectBestAnswer: any;
+  deleteAnswer: any;
 }
 function AnswerSection({
   answer,
@@ -112,6 +121,7 @@ function AnswerSection({
   questionId,
   questionUserId,
   selectBestAnswer,
+  deleteAnswer,
 }: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
@@ -144,6 +154,7 @@ function AnswerSection({
           questionUserId={questionUserId}
           selectBestAnswer={selectBestAnswer}
           token={token}
+          deleteAnswer={deleteAnswer}
         />
       )}
       {answerExists && <hr />}
@@ -197,5 +208,6 @@ function mapStateToProps(state: any) {
 }
 const mapDispatchToProps = {
   selectBestAnswer,
+  deleteAnswer,
 };
 export default connect(mapStateToProps, mapDispatchToProps)(AnswerSection);
