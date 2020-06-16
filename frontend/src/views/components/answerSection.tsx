@@ -5,31 +5,36 @@ import Avatar from "./avatar";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import Spinner from "./spinner";
+import { selectBestAnswer } from "../../state/ducks/questions/actions";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
-import { loadUser } from "../../state/ducks/users/actions";
 
 interface AnswerProps {
   answer: Answer;
   users: Map<string, User>;
-  loadUser: any;
   currentUser: string;
   bestAnswer: number;
   questionUserId: string;
+  selectBestAnswer: any;
+  token: string;
 }
 function AnswerContent({
   answer,
   users,
-  loadUser,
   currentUser,
   bestAnswer,
   questionUserId,
+  selectBestAnswer,
+  token,
 }: AnswerProps) {
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
   }
   function handleUpdating() {
     alert("Unfortunately, this action is not implemented yet!");
+  }
+  function handleBestAnswer() {
+    selectBestAnswer(token, answer.question_id, answer.id);
   }
   let user = users.get(answer.user_id);
   let job = "loading...",
@@ -70,7 +75,9 @@ function AnswerContent({
             {!currentUserAnswer && (
               <button onClick={handleReporting}>Report this answer</button>
             )}
-            {currentUserQuestion && <button>Select best answer</button>}
+            {currentUserQuestion && (
+              <button onClick={handleBestAnswer}>Select best answer</button>
+            )}
             {currentUserAnswer && (
               <button onClick={handleUpdating}>Update answer</button>
             )}
@@ -87,24 +94,24 @@ function AnswerContent({
 interface Props {
   answer: Answer | undefined;
   users: Map<string, User>;
-  loadUser: any;
   token: string;
   currentUser: string;
   bestAnswer: number;
   answerExists: boolean;
   questionId: number;
   questionUserId: string;
+  selectBestAnswer: any;
 }
 function AnswerSection({
   answer,
   users,
-  loadUser,
   token,
   currentUser,
   bestAnswer,
   answerExists,
   questionId,
   questionUserId,
+  selectBestAnswer,
 }: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
@@ -135,7 +142,8 @@ function AnswerSection({
           currentUser={currentUser}
           bestAnswer={bestAnswer}
           questionUserId={questionUserId}
-          loadUser={loadUser}
+          selectBestAnswer={selectBestAnswer}
+          token={token}
         />
       )}
       {answerExists && <hr />}
@@ -188,6 +196,6 @@ function mapStateToProps(state: any) {
   };
 }
 const mapDispatchToProps = {
-  loadUser,
+  selectBestAnswer,
 };
 export default connect(mapStateToProps, mapDispatchToProps)(AnswerSection);
