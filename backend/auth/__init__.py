@@ -13,9 +13,12 @@ api_audience = environ['API_AUDIENCE']
 algorithms = ["RS256"]
 
 # Auth0 management api (manipulate auth0 data)
+
+
 def init_auth0():
     if ('CLIENT_ID' not in environ or 'CLIENT_SECRET' not in environ):
-        raise ValueError('AUTH0_DOMAIN, CLIENT_ID and CLIENT_SECRET expected in environ')
+        raise ValueError(
+            'AUTH0_DOMAIN, CLIENT_ID and CLIENT_SECRET expected in environ')
     client_id = environ['CLIENT_ID']
     client_secret = environ['CLIENT_SECRET']
     auth0 = Auth0(domain, client_id, client_secret)
@@ -25,10 +28,13 @@ def init_auth0():
 # See: https://auth0.com/docs/quickstart/backend/python/01-authorization
 
 # Error handler
+
+
 class AuthError(Exception):
     def __init__(self, message, status_code):
         self.message = message
         self.status_code = status_code
+
 
 def get_token_auth_header():
     auth = request.headers.get("Authorization", None)
@@ -56,6 +62,7 @@ def get_token_auth_header():
         }, 401)
     token = parts[1]
     return token
+
 
 def requires_auth(f):
     @wraps(f)

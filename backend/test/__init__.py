@@ -5,6 +5,7 @@ from flaskr import create_app
 from database import setup_db, Answer, Question, db
 from instance.config import SQLALCHEMY_DATABASE_URI
 
+
 class SalTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
@@ -55,8 +56,8 @@ class SalTestCase(unittest.TestCase):
 
     def test_400_post_question(self):
         res = self.client().post('/questions',
-            data={},
-            content_type='application/json')
+                                 data={},
+                                 content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
         self.assertFalse(data['success'])
@@ -64,11 +65,11 @@ class SalTestCase(unittest.TestCase):
 
     def test_post_question(self):
         res = self.client().post('/questions',
-            data=json.dumps({
-                'user_id': 'test',
-                'content': 'Is this great or what'
-            }),
-            content_type='application/json')
+                                 data=json.dumps({
+                                     'user_id': 'test',
+                                     'content': 'Is this great or what'
+                                 }),
+                                 content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['success'])
@@ -77,7 +78,7 @@ class SalTestCase(unittest.TestCase):
     def test_400_patch_question(self):
         question_id = self.question.id
         res = self.client().patch('/questions/' + str(question_id),
-            content_type='application/json')
+                                  content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
         self.assertFalse(data['success'])
@@ -87,10 +88,10 @@ class SalTestCase(unittest.TestCase):
         question_id = self.question.id
         answer_id = self.answer.id
         res = self.client().patch('/questions/' + str(question_id),
-            data=json.dumps({
-                'answer': answer_id
-            }),
-            content_type='application/json')
+                                  data=json.dumps({
+                                      'answer': answer_id
+                                  }),
+                                  content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['success'])
@@ -154,10 +155,10 @@ class SalTestCase(unittest.TestCase):
     def test_400_post_answer(self):
         question_id = self.question.id
         res = self.client().post('/questions/' + str(question_id) + '/answers',
-            data=json.dumps({
-                'user_id': 'test'
-            }),
-            content_type='application/json')
+                                 data=json.dumps({
+                                     'user_id': 'test'
+                                 }),
+                                 content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
         self.assertFalse(data['success'])
@@ -166,11 +167,11 @@ class SalTestCase(unittest.TestCase):
     def test_post_answer(self):
         question_id = self.question.id
         res = self.client().post('/questions/'+str(question_id)+'/answers',
-            data=json.dumps({
-                'user_id': 'test',
-                'content': 'It\'s Awesome'
-            }),
-            content_type='application/json')
+                                 data=json.dumps({
+                                     'user_id': 'test',
+                                     'content': 'It\'s Awesome'
+                                 }),
+                                 content_type='application/json')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['success'])

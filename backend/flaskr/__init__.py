@@ -2,7 +2,8 @@ from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
 from auth import (init_auth0, Auth0Error, AuthError,
-    requires_auth, requires_permission)
+                  requires_auth, requires_permission)
+
 
 def get_paginated_items(req, items, items_per_page=20):
     page = req.args.get('page', 1, int)
@@ -15,6 +16,7 @@ def get_paginated_items(req, items, items_per_page=20):
         next_path = None
     return [items[start_index:end_index], next_path]
 
+
 def get_formated_questions(questions):
     formated_questions = []
     for question in questions:
@@ -25,11 +27,11 @@ def get_formated_questions(questions):
             # there is not answers yet
             latest_answer = None
         formated.update({
-            'no_of_answers': len(question.answers),
             'latest_answer': latest_answer
         })
         formated_questions.append(formated)
     return formated_questions
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -49,7 +51,7 @@ def create_app(test_config=None):
         search_term = '%' + data['search'] + '%'
         all_questions = Question.query.filter(
             Question.content.ilike(search_term)
-            ).order_by(Question.created_at.desc()).all()
+        ).order_by(Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
@@ -64,7 +66,8 @@ def create_app(test_config=None):
     @app.route('/api/questions', methods=['GET'])
     @requires_auth
     def get_questions():
-        all_questions = Question.query.order_by(Question.created_at.desc()).all()
+        all_questions = Question.query.order_by(
+            Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
         formated_questions = get_formated_questions(questions)
         if len(questions) == 0:
@@ -81,15 +84,11 @@ def create_app(test_config=None):
     @requires_auth
     def get_question(question_id):
         question = Question.query.get(question_id)
-        formated_question = question.format()
-        formated_question.update({
-            'no_of_answers': len(question.answers)
-        })
         if question == None:
             abort(404)
         return jsonify({
             'success': True,
-            'question': formated_question
+            'question': question.format()
         })
 
     @app.route('/api/questions/<question_id>', methods=['PATCH'])
@@ -105,7 +104,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
             if requires_permission('update:questions'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users answers', 403)
+                                'the authority to delete other users answers', 403)
             answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
@@ -116,7 +115,7 @@ def create_app(test_config=None):
             abort(422)
         return jsonify({
             'success': True,
-            'best_answer_id': int(answer_id)
+            'patched': question.format()
         })
 
     @app.route('/api/questions', methods=['POST'])
@@ -145,7 +144,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
             if not requires_permission('delete:questions'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users questions', 403)
+                                'the authority to delete other users questions', 403)
         try:
             question.delete()
         except Exception:
@@ -212,7 +211,7 @@ def create_app(test_config=None):
         if _request_ctx_stack.top.current_user['sub'] != answer.user_id:
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
-                'the authority to delete other users answers', 403)
+                                'the authority to delete other users answers', 403)
         try:
             answer.delete()
         except Exception:
