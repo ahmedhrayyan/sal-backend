@@ -120,7 +120,7 @@ def create_app(test_config=None):
             abort(422)
         return jsonify({
             'success': True,
-            'best_answer_id': int(answer_id)
+            'patched': question.format()
         })
 
     @app.route('/api/questions', methods=['POST'])
