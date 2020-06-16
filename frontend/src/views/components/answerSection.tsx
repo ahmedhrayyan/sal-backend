@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FormEvent } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
@@ -6,7 +6,7 @@ import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
 import Spinner from "./spinner";
 import { selectBestAnswer } from "../../state/ducks/questions/actions";
-import { deleteAnswer } from "../../state/ducks/answers/actions";
+import { deleteAnswer, postAnswer } from "../../state/ducks/answers/actions";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
 
@@ -110,6 +110,7 @@ interface Props {
   questionUserId: string;
   selectBestAnswer: any;
   deleteAnswer: any;
+  postAnswer: any;
 }
 function AnswerSection({
   answer,
@@ -122,6 +123,7 @@ function AnswerSection({
   questionUserId,
   selectBestAnswer,
   deleteAnswer,
+  postAnswer,
 }: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
@@ -137,6 +139,12 @@ function AnswerSection({
     }
     setTextareaVal("");
     setFormActive(false);
+  }
+  function handleSubmit(evt: FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+    postAnswer(token, questionId, textareaVal);
+    setTextareaVal('');
+    setFormActive(false)
   }
   return (
     <div className="card answer">
@@ -170,7 +178,7 @@ function AnswerSection({
       </div>
       <hr />
       {formActive && (
-        <form action="" className="answer-form">
+        <form action="" className="answer-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <textarea
               name=""
@@ -183,7 +191,7 @@ function AnswerSection({
               }}
             />
           </div>
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" disabled={textareaVal === ''}>
             Submit
           </button>
           <button
@@ -209,5 +217,6 @@ function mapStateToProps(state: any) {
 const mapDispatchToProps = {
   selectBestAnswer,
   deleteAnswer,
+  postAnswer,
 };
 export default connect(mapStateToProps, mapDispatchToProps)(AnswerSection);
