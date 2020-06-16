@@ -38,27 +38,28 @@ function Home(props: Props) {
       props.loadQuestions(props.token);
     }
   }, []);
-  const usersToBeFetched = useRef<Set<string>>(new Set());
+  const requestedUsers = useRef<Set<string>>(new Set());
   useEffect(() => {
     for (const question of props.questions.values()) {
       // do not make multiple requests with the same id
-      usersToBeFetched.current.add(question.user_id)
+      if (!requestedUsers.current.has(question.user_id)) {
+        props.loadUser(props.token, question.user_id)
+        requestedUsers.current.add(question.user_id)
+      }
       // fetch answers
       props.loadAnswer(
         props.token,
         question.best_answer || question.latest_answer
       )
     }
-    for (const user_id of usersToBeFetched.current) {
-      props.loadUser(props.token, user_id)
-    }
   }, [props.questions]);
 
   useEffect(() => {
     for (const answer of props.answers.values()) {
-      // load answer author if he hasn't been called above
-      if (!usersToBeFetched.current.has(answer.user_id)) {
-        props.loadUser(answer.user_id)
+      // do not make multiple requests with the same id
+      if (!requestedUsers.current.has(answer.user_id)) {
+        props.loadUser(props.token, answer.user_id)
+        requestedUsers.current.add(answer.user_id)
       }
     }
   }, [props.answers]);

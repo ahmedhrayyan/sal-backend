@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, FormEvent } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
