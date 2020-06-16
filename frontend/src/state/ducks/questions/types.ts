@@ -7,7 +7,10 @@ export enum Types {
   Q_DELETE_FAILURE = "Q_DELETE_FAILURE",
   Q_POST_REQUEST = 'Q_POST_REQUEST',
   Q_POST_SUCCESS = 'Q_POST_SUCCESS',
-  Q_POST_FAILURE = 'Q_POST_FAILURE'
+  Q_POST_FAILURE = 'Q_POST_FAILURE',
+  Q_BA_REQUEST = 'Q_BA_REQUEST', // question best answer
+  Q_BA_SUCCESS = 'Q_BA_SUCCESS',
+  Q_BA_FAILURE = 'Q_BA_FAILURE'
 }
 
 export interface Question {

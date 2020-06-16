@@ -59,8 +59,29 @@ export function postQuestion(token: string, content: string) {
         Types.Q_POST_FAILURE,
       ],
       config: {
-        method: 'post',
+        method: 'POST',
         body: JSON.stringify({content}),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    }
+  }
+}
+
+export function selectBestAnswer(token: string, question_id: number, answer_id: number) {
+  return {
+    [CALL_API]: {
+      endpoint: `/api/questions/${question_id}`,
+      token: token,
+      types: [
+        Types.Q_BA_REQUEST,
+        Types.Q_BA_SUCCESS,
+        Types.Q_BA_FAILURE,
+      ],
+      config: {
+        method: 'PATCH',
+        body: JSON.stringify({answer: answer_id}),
         headers: {
           'Content-Type': 'application/json'
         }

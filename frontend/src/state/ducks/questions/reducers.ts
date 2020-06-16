@@ -56,7 +56,7 @@ function questionsReducer(state = defaultState, action: any) {
     case Types.Q_POST_SUCCESS: {
       const newEntities = new Map([
         [action.payload.created.id, action.payload.created],
-        ...state.entities
+        ...state.entities,
       ]);
       return Object.assign({}, state, {
         isFetching: false,
@@ -68,6 +68,24 @@ function questionsReducer(state = defaultState, action: any) {
         isFetching: false,
         errorMessage: action.error,
       });
+    case Types.Q_BA_REQUEST:
+      return Object.assign({}, state, {
+        isFetching: true,
+      });
+    case Types.Q_BA_SUCCESS: {
+      const newEntities = new Map(state.entities);
+      newEntities.set(action.payload.patched.id, action.payload.patched);
+      return Object.assign({}, state, {
+        isFetching: false,
+        entities: newEntities
+      });
+    }
+    case Types.Q_BA_FAILURE: {
+      return Object.assign({}, state, {
+        isFetching: false,
+        errorMessage: action.error
+      });
+    }
 
     default:
       return state;
