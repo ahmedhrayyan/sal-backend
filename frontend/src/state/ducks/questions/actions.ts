@@ -1,11 +1,10 @@
 import { Types } from "./types";
 import { CALL_API } from "../../middlewares/apiService";
 
-function fetchQuestions(token: string, nextPageUrl: string) {
+function fetchQuestions(nextPageUrl: string) {
   return {
     [CALL_API]: {
       endpoint: nextPageUrl,
-      token: token,
       types: [
         Types.QUESTIONS_REQUEST,
         Types.QUESTIONS_SUCCESS,
@@ -15,7 +14,7 @@ function fetchQuestions(token: string, nextPageUrl: string) {
   };
 }
 
-export function loadQuestions(token: string) {
+export function loadQuestions() {
   return function (dispatch: any, getState: any) {
     const { nextPageUrl = "/api/questions", pageCount = 0 } =
       getState().questions || {};
@@ -23,7 +22,7 @@ export function loadQuestions(token: string) {
     if (pageCount > 0 && !nextPageUrl) {
       return;
     }
-    return dispatch(fetchQuestions(token, nextPageUrl));
+    return dispatch(fetchQuestions(nextPageUrl));
   };
 }
 

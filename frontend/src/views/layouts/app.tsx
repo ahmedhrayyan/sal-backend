@@ -12,7 +12,6 @@ interface Props {
   initAuth0: any,
   isLoading: boolean,
   isAuthenticated: boolean,
-  token: string;
   currentUser: string;
   loadUser: any;
 }
@@ -40,7 +39,7 @@ function App(props: Props) {
   useEffect(() => {
     // load currentUser
     if (props.isAuthenticated) {
-      props.loadUser(props.token, props.currentUser)
+      props.loadUser(props.currentUser)
     }
   }, [props.isAuthenticated])
 
@@ -71,7 +70,6 @@ function mapStateToProps(state: any) {
     isLoading: state.auth0.isLoading,
     isAuthenticated: state.auth0.isAuthenticated,
     currentUser: state.auth0.currentUser,
-    token: state.auth0.accessToken
   }
 }
 

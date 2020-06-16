@@ -13,7 +13,6 @@ import { Answer } from "../../state/ducks/answers/types";
 import { answers } from "../../state/ducks";
 
 interface Props {
-  token: string;
   loadQuestions: any;
   questions: Map<number, Question>;
   fetchingQuestions: boolean;
@@ -29,7 +28,7 @@ function Home(props: Props) {
   useEffect(() => {
     // if there is not question
     if (!props.questions.size) {
-      props.loadQuestions(props.token);
+      props.loadQuestions();
     }
   }, []);
   const requestedUsers = useRef<Set<string>>(new Set());
@@ -41,12 +40,11 @@ function Home(props: Props) {
         !requestedUsers.current.has(question.user_id) &&
         question.user_id !== props.currentUser
       ) {
-        props.loadUser(props.token, question.user_id);
+        props.loadUser(question.user_id);
         requestedUsers.current.add(question.user_id);
       }
       // fetch answers
       props.loadAnswer(
-        props.token,
         question.best_answer || question.latest_answer
       );
     }
@@ -58,7 +56,7 @@ function Home(props: Props) {
         !requestedUsers.current.has(answer.user_id) &&
         answer.user_id !== props.currentUser
       ) {
-        props.loadUser(props.token, answer.user_id);
+        props.loadUser(answer.user_id);
         requestedUsers.current.add(answer.user_id);
       }
     }
@@ -100,7 +98,6 @@ function Home(props: Props) {
 
 function mapStateToProps(state: any) {
   return {
-    token: state.auth0.accessToken,
     currentUser: state.auth0.currentUser,
     questions: state.questions.entities,
     fetchingQuestions: state.questions.isFetching,
