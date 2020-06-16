@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect } from "react";
+import React, { CSSProperties } from "react";
 import Avatar from "./avatar";
 import downArrow from "../../images/icons/down-arrow.svg";
 import Dropdown from "./dropdown";
@@ -6,22 +6,19 @@ import { Link } from "react-router-dom";
 import { Question } from "../../state/ducks/questions/types";
 import { deleteQuestion } from "../../state/ducks/questions/actions";
 import { User } from "../../state/ducks/users/types";
-import { loadUser } from "../../state/ducks/users/actions";
 import { connect } from "react-redux";
 
 interface Props {
   question: Question;
   users: Map<string, User>;
-  loadUser: any,
   currentUser: string;
   token: string;
   deleteQuestion: any;
   style?: CSSProperties;
 }
-function AskSection({
+function QuestionSection({
   question,
   users,
-  loadUser,
   token,
   deleteQuestion,
   currentUser,
@@ -103,6 +100,5 @@ function mapStateToProps(state: any) {
 
 const mapDispatchToProps = {
   deleteQuestion,
-  loadUser
 };
-export default connect(mapStateToProps, mapDispatchToProps)(AskSection);
+export default connect(mapStateToProps, mapDispatchToProps)(QuestionSection);

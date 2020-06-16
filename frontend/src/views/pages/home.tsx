@@ -5,12 +5,11 @@ import { Question } from "../../state/ducks/questions/types";
 import { loadUser } from "../../state/ducks/users/actions";
 import { User } from "../../state/ducks/users/types";
 import { loadAnswer } from "../../state/ducks/answers/actions";
-import { AskSection } from "../components";
+import { QuestionSection } from "../components";
 import { AnswerSection } from "../components";
 import { Spinner } from "../components";
 import { QuestionForm } from "../components";
 import { Answer } from "../../state/ducks/answers/types";
-import { answers } from "../../state/ducks";
 
 interface Props {
   loadQuestions: any;
@@ -66,7 +65,7 @@ function Home(props: Props) {
   for (const question of props.questions.values()) {
     QAComponents.push(
       <div key={question.id}>
-        <AskSection
+        <QuestionSection
           key={question.id}
           style={{ margin: "60px 7px 0" }}
           question={question}
