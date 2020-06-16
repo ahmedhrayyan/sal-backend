@@ -2,10 +2,14 @@ import http.client
 import json
 
 # Error handler
+
+
 class Auth0Error(Exception):
     def __init__(self, message, status_code):
         self.message = message
         self.status_code = status_code
+
+
 class Auth0:
     def __init__(self, domain, client_id, client_secret):
         self.domain = domain
