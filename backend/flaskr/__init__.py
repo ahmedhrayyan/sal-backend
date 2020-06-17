@@ -21,14 +21,6 @@ def get_formated_questions(questions):
     formated_questions = []
     for question in questions:
         formated = question.format()
-        try:
-            latest_answer = question.answers[0].id
-        except IndexError:
-            # there is not answers yet
-            latest_answer = None
-        formated.update({
-            'latest_answer': latest_answer
-        })
         formated_questions.append(formated)
     return formated_questions
 
