@@ -44,7 +44,7 @@ function Home(props: Props) {
         requestedUsers.current.add(question.user_id);
       }
       // fetch answers
-      props.loadAnswer(question.best_answer || question.latest_answer);
+      props.loadAnswer(question.best_answer || question.answers[0]);
     }
   }, [props.questions]);
 
@@ -71,9 +71,9 @@ function Home(props: Props) {
         />
         <AnswerSection
           bestAnswer={question.best_answer}
-          answerExists={question.no_of_answers > 0}
+          answerExists={question.answers.length > 0}
           answer={props.answers.get(
-            question.best_answer as number || question.latest_answer as number
+            question.best_answer || question.answers[0]
           )}
           questionId={question.id}
           questionUserId={question.user_id}

@@ -50,11 +50,11 @@ function QuestionSection(props: Props) {
               {createdAt.toLocaleDateString()}
               <br />
               <span className="text-muted">
-                {!props.question.no_of_answers
+                {!props.question.answers.length
                   ? "No answers yet"
-                  : props.question.no_of_answers === 1
+                  : props.question.answers.length === 1
                   ? "1 answer"
-                  : `${props.question.no_of_answers} answers`}
+                  : `${props.question.answers.length} answers`}
               </span>
             </small>
           </p>
