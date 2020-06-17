@@ -19,6 +19,5 @@ export interface Question {
   content: string;
   created_at: string;
   best_answer: number | null;
-  latest_answer: number | null;
-  no_of_answers: number;
+  answers: number[];
 };
