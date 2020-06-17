@@ -114,11 +114,7 @@ function questionsReducer(state = defaultState, action: any) {
         action.payload.created.question_id
       ) as Question;
       question.no_of_answers += 1;
-      // if question doesn't have best answer
-      // set question latest answer to the new created answer
-      if (!question.best_answer) {
-        question.latest_answer = action.payload.created.id;
-      }
+      question.latest_answer = action.payload.created.id;
       return state;
     }
 
