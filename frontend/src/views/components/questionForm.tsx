@@ -1,10 +1,13 @@
 import React, { useState, FormEvent } from "react";
 import { connect } from "react-redux";
 import { postQuestion } from "../../state/ducks/questions/actions";
+import { Avatar } from "../components";
 
 interface Props {
   postQuestion: any;
   token: string;
+  users: Map<string, any>;
+  currentUser: string;
 }
 function QuestionFrom(props: Props) {
   const [formFocused, setFormFocused] = useState<boolean>(false);
@@ -19,62 +22,66 @@ function QuestionFrom(props: Props) {
     setTextareaVal(evt.currentTarget.value);
   }
   function handleCancel() {
-    if (textareaVal !== "") {
-      const confirm = window.confirm("Discard what you have typed?");
-      if (!confirm) {
-        return;
-      }
-    }
     setTextareaVal("");
+    setFormFocused(false);
   }
   function handleSubmit(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
     props.postQuestion(textareaVal, props.token);
-    setTextareaVal('')
-    handleBlur()
+    setTextareaVal("");
+    handleBlur();
   }
-  const btnStyle = {
-    marginTop: "10px",
-    marginRight: "10px",
-  };
+  const currentUser = props.users.get(props.currentUser);
   return (
-    <form
-      action=""
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onSubmit={handleSubmit}
-    >
-      <div className="form-group" style={{ margin: "30px 7px 0" }}>
-        <textarea
-          placeholder="Your question..."
-          className="form-control"
-          rows={formFocused ? 3 : 1}
-          value={textareaVal}
-          onChange={handleChange}
-        />
+    <>
+      {formFocused && <div className="q-form-backdrop"></div>}
+      <form
+        action=""
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onSubmit={handleSubmit}
+        className={`question-form ${formFocused ? "focus" : ""}`}
+        style={{marginTop: '60px'}}
+      >
+        <div className="backdrop"></div>
+        <div className="group">
+          <Avatar src={currentUser?.picture || ""} />
+          <textarea
+            placeholder="Ask about anything..."
+            rows={3}
+            value={textareaVal}
+            onChange={handleChange}
+          />
+        </div>
         {(formFocused || textareaVal) && (
           <>
-            <button type="submit" className="btn btn-primary" style={btnStyle}>
+            <hr />
+            <button
+              type="submit"
+              className="btn btn-link"
+              disabled={textareaVal === ""}
+            >
               Submit
             </button>
             <button
               type="button"
-              className="btn btn-secondary"
-              style={btnStyle}
+              className="btn btn-link"
               onClick={handleCancel}
             >
               Cancel
             </button>
           </>
         )}
-      </div>
-    </form>
+      </form>
+    </>
   );
 }
 
 function mapStateToProps(state: any) {
   return {
     token: state.auth0.accessToken,
+    currentUser: state.auth0.currentUser,
+    users: state.users.entities,
   };
 }
 
