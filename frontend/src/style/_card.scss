@@ -17,7 +17,7 @@
   &.ask {
     border-radius: 0;
     border-top: $ask-border-weight solid $primary;
-    @include box-shadow($ask-box-shadow);
+    @include box-shadow($soft-box-shadow);
     .card-header {
       padding-top: $card-padding-y - $ask-border-weight;
     }
@@ -28,7 +28,7 @@
 
   &.answer {
     background: $gray-10;
-    @include box-shadow($answer-box-shadow);
+    @include box-shadow($hard-box-shadow);
 
     .card-body {
       line-height: $answer-line-height;
