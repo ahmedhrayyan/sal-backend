@@ -219,7 +219,8 @@ def create_app(test_config=None):
             abort(422)
         return jsonify({
             'success': True,
-            'del_id': int(answer_id)
+            'del_id': int(answer_id),
+            'question_id': question.id # the answer question id
         })
 
     # get users public data
