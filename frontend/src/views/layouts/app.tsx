@@ -6,12 +6,12 @@ import { loadUser } from "../../state/ducks/users/actions";
 import { connect } from "react-redux";
 import { Router, Route } from "react-router-dom";
 import routes from "../../routes";
-import { Header, Spinner } from "../components";
+import { Header, Spinner, Footer } from "../components";
 
 interface Props {
-  initAuth0: any,
-  isLoading: boolean,
-  isAuthenticated: boolean,
+  initAuth0: any;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   currentUser: string;
   loadUser: any;
 }
@@ -31,7 +31,7 @@ function App(props: Props) {
         client_id: config.clientId,
         audience: config.audience,
         redirect_uri: window.location.origin,
-        useRefreshToken: config.useRefreshToken
+        useRefreshToken: config.useRefreshToken,
       },
       handleAuth0Redirect
     );
@@ -39,30 +39,31 @@ function App(props: Props) {
   useEffect(() => {
     // load currentUser
     if (props.isAuthenticated) {
-      props.loadUser(props.currentUser)
+      props.loadUser(props.currentUser);
     }
-  }, [props.isAuthenticated])
+  }, [props.isAuthenticated]);
 
   if (props.isLoading) {
     return (
       <div className="app">
-        <Spinner className="spinner spinner-centered"/>
+        <Spinner className="spinner spinner-centered" />
       </div>
-    )
+    );
   }
 
   return (
     <Router history={history}>
       <Header />
-      {props.isAuthenticated && <div>
-        {routes.map(route => {
-          return (
-            <Route key={route.path} {...route} />
-          )
-        })}
-      </div>}
+      {props.isAuthenticated && (
+        <div>
+          {routes.map((route) => {
+            return <Route key={route.path} {...route} />;
+          })}
+        </div>
+      )}
+      <Footer />
     </Router>
-  )
+  );
 }
 
 function mapStateToProps(state: any) {
@@ -70,12 +71,12 @@ function mapStateToProps(state: any) {
     isLoading: state.auth0.isLoading,
     isAuthenticated: state.auth0.isAuthenticated,
     currentUser: state.auth0.currentUser,
-  }
+  };
 }
 
 const mapDispatchToProps = {
   initAuth0,
-  loadUser
-}
+  loadUser,
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

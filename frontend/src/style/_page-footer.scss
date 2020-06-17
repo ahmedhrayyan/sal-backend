@@ -1,0 +1,21 @@
+.page-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: $footer-height;
+  > .container {
+    margin-top: 50px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+.copyrights {
+  a {
+    color: $secondary;
+    font-weight: 500;
+  }
+}

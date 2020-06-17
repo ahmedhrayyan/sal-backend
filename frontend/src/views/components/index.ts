@@ -6,3 +6,4 @@ export { default as AnswerSection } from "./answerSection";
 export { default as Spinner } from "./spinner";
 export { default as QuestionForm } from "./questionForm";
 export { default as Header } from "./header";
+export { default as Footer } from "./footer";
