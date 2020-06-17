@@ -97,14 +97,12 @@ function questionsReducer(state = defaultState, action: any) {
       const question = state.entities.get(
         action.payload.question_id
       ) as Question;
-      question.no_of_answers -= 1;
+      // remove deleted id from question answers array
+      question.answers = question.answers.filter(
+        (id) => id !== action.payload.del_id
+      );
       if (question.best_answer === action.payload.del_id) {
         question.best_answer = null;
-      }
-      if (question.latest_answer === action.payload.del_id) {
-        // this line of code is bad because the question probably
-        // has more than one answer, but I'll leave it as it is for now
-        question.latest_answer = null;
       }
       return state;
     }
@@ -113,8 +111,8 @@ function questionsReducer(state = defaultState, action: any) {
       const question = state.entities.get(
         action.payload.created.question_id
       ) as Question;
-      question.no_of_answers += 1;
-      question.latest_answer = action.payload.created.id;
+      // add the created id to the first of the question answers array
+      question.answers.unshift(action.payload.created.id);
       return state;
     }
 
