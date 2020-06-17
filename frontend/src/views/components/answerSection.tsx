@@ -14,7 +14,7 @@ interface AnswerProps {
   answer: Answer;
   users: Map<string, User>;
   currentUser: string;
-  bestAnswer: number;
+  bestAnswer: number | null;
   questionUserId: string;
   selectBestAnswer: any;
   deleteAnswer: any;
@@ -114,7 +114,7 @@ interface Props {
   users: Map<string, User>;
   token: string;
   currentUser: string;
-  bestAnswer: number;
+  bestAnswer: number | null;
   answerExists: boolean;
   questionId: number;
   questionUserId: string;

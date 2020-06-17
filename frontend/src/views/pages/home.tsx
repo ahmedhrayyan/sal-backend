@@ -73,7 +73,7 @@ function Home(props: Props) {
           bestAnswer={question.best_answer}
           answerExists={question.no_of_answers > 0}
           answer={props.answers.get(
-            question.best_answer || question.latest_answer
+            question.best_answer as number || question.latest_answer as number
           )}
           questionId={question.id}
           questionUserId={question.user_id}
