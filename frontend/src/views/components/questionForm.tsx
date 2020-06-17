@@ -47,7 +47,7 @@ function QuestionFrom(props: Props) {
         <div className="group">
           <Avatar src={currentUser?.picture || ""} />
           <textarea
-            placeholder="Ask about anything..."
+            placeholder="Sal about anything..."
             rows={3}
             value={textareaVal}
             onChange={handleChange}
