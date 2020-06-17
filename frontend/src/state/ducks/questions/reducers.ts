@@ -92,9 +92,8 @@ function questionsReducer(state = defaultState, action: any) {
 
     // Update questions based on answers types
     case AnswersTypes.A_DELETE_SUCCESS: {
-      // yes I know I shouldn't mutate the state directly,
-      // but it's sometimes fun to break the rules :)
-      const question = state.entities.get(
+      const newEntities = new Map(state.entities)
+      const question = newEntities.get(
         action.payload.question_id
       ) as Question;
       // remove deleted id from question answers array
@@ -104,16 +103,21 @@ function questionsReducer(state = defaultState, action: any) {
       if (question.best_answer === action.payload.del_id) {
         question.best_answer = null;
       }
-      return state;
+      return Object.assign({
+        entities: newEntities
+      })
     }
 
     case AnswersTypes.A_POST_SUCCESS: {
-      const question = state.entities.get(
+      const newEntities = new Map(state.entities)
+      const question = newEntities.get(
         action.payload.created.question_id
       ) as Question;
       // add the created id to the first of the question answers array
       question.answers.unshift(action.payload.created.id);
-      return state;
+      return Object.assign({
+        entities: newEntities
+      })
     }
 
     default:
