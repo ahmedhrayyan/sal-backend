@@ -18,7 +18,7 @@ export interface Question {
   user_id: string;
   content: string;
   created_at: string;
-  best_answer: number;
-  latest_answer: number;
+  best_answer: number | null;
+  latest_answer: number | null;
   no_of_answers: number;
 };

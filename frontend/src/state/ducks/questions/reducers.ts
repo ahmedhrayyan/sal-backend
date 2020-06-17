@@ -1,4 +1,5 @@
 import { Types, Question } from "./types";
+import { Types as AnswersTypes } from "../answers/types";
 const defaultState = {
   isFetching: false,
   isPosting: false,
@@ -79,14 +80,46 @@ function questionsReducer(state = defaultState, action: any) {
       newEntities.set(action.payload.patched.id, action.payload.patched);
       return Object.assign({}, state, {
         isUpdating: false,
-        entities: newEntities
+        entities: newEntities,
       });
     }
     case Types.Q_BA_FAILURE: {
       return Object.assign({}, state, {
         isUpdating: false,
-        errorMessage: action.error
+        errorMessage: action.error,
       });
+    }
+
+    // Update questions based on answers types
+    case AnswersTypes.A_DELETE_SUCCESS: {
+      // yes I know I shouldn't mutate the state directly,
+      // but it's sometimes fun to break the rules :)
+      const question = state.entities.get(
+        action.payload.question_id
+      ) as Question;
+      question.no_of_answers -= 1;
+      if (question.best_answer === action.payload.del_id) {
+        question.best_answer = null;
+      }
+      if (question.latest_answer === action.payload.del_id) {
+        // this line of code is bad because the question probably
+        // has more than one answer, but I'll leave it as it is for now
+        question.latest_answer = null;
+      }
+      return state;
+    }
+
+    case AnswersTypes.A_POST_SUCCESS: {
+      const question = state.entities.get(
+        action.payload.created.question_id
+      ) as Question;
+      question.no_of_answers += 1;
+      // if question doesn't have best answer
+      // set question latest answer to the new created answer
+      if (!question.best_answer) {
+        question.latest_answer = action.payload.created.id;
+      }
+      return state;
     }
 
     default:
