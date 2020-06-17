@@ -63,7 +63,7 @@ class Question(db.Model):
             'content': self.content,
             'created_at': self.created_at,
             'best_answer': self.best_answer,
-            'no_of_answers': len(self.answers)
+            'answers': [answer.id for answer in self.answers]
         }
 
 
