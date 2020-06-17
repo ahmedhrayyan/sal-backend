@@ -14,6 +14,7 @@ import { Answer } from "../../state/ducks/answers/types";
 interface Props {
   loadQuestions: any;
   questions: Map<number, Question>;
+  nextPageUrl: string | null;
   isFetchingQuestions: boolean;
   isPostingQuestion: boolean;
   isUpdatingQuestion: boolean;
@@ -44,6 +45,7 @@ function Home(props: Props) {
         requestedUsers.current.add(question.user_id);
       }
       // fetch answers
+      console.log(question.best_answer || question.answers[0]);
       props.loadAnswer(question.best_answer || question.answers[0]);
     }
   }, [props.questions]);
@@ -59,6 +61,10 @@ function Home(props: Props) {
       }
     }
   }, [props.answers]);
+
+  function handleFetchNewQuestions() {
+    props.loadQuestions();
+  }
 
   let QAComponents: ReactNode[] = [];
   for (const question of props.questions.values()) {
@@ -96,6 +102,14 @@ function Home(props: Props) {
         </div>
       )}
       {QAComponents}
+      {props.nextPageUrl && (
+        <div
+          style={{ textAlign: "center", marginTop: "30px" }}
+          onClick={handleFetchNewQuestions}
+        >
+          <button className="btn btn-link">Load More</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -104,6 +118,7 @@ function mapStateToProps(state: any) {
   return {
     currentUser: state.auth0.currentUser,
     questions: state.questions.entities,
+    nextPageUrl: state.questions.nextPageUrl,
     isFetchingQuestions: state.questions.isFetching,
     isPostingQuestion: state.questions.isPosting,
     isUpdatingQuestion: state.questions.isUpdating,
