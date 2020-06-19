@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, CSSProperties } from "react";
 import { connect } from "react-redux";
 import { postQuestion } from "../../state/ducks/questions/actions";
 import { Avatar } from "../components";
@@ -8,6 +8,7 @@ interface Props {
   token: string;
   users: Map<string, any>;
   currentUser: string;
+  style: CSSProperties
 }
 function QuestionFrom(props: Props) {
   const [formFocused, setFormFocused] = useState<boolean>(false);
@@ -41,7 +42,7 @@ function QuestionFrom(props: Props) {
         onBlur={handleBlur}
         onSubmit={handleSubmit}
         className={`question-form ${formFocused ? "focus" : ""}`}
-        style={{marginTop: '60px'}}
+        style={props.style}
       >
         <div className="backdrop"></div>
         <div className="group">

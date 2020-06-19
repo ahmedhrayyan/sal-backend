@@ -48,8 +48,8 @@ function QuestionPage(props: Props) {
     }
   }
   return (
-    <div className="content-container" style={{ marginBottom: "60px" }}>
-      <QuestionSection style={{ margin: "60px 7px 0" }} question={question} />
+    <div className="content-container" style={{ marginBottom: "50px" }}>
+      <QuestionSection style={{ margin: "50px 7px 0" }} question={question} />
       <AnswerSection
         questionId={question.id}
         questionUserId={question.user_id}
