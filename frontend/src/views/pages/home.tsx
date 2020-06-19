@@ -27,8 +27,11 @@ interface Props {
 
 function Home(props: Props) {
   useEffect(() => {
-    // if there is not question
-    if (!props.questions.size) {
+    // if the first page of questions have not been fetched yet
+
+    // (or it have but the there is no 20 questions in the database
+    // but in that case the loadQuestion logic should handle it)
+    if (props.questions.size < 20) {
       props.loadQuestions();
     }
   }, []);
