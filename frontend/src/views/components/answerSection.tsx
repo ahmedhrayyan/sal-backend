@@ -27,7 +27,7 @@ function AnswerContent(props: AnswerProps) {
     if (!props.isUpdatingQuestion) {
       setRequestBASent(false);
     }
-  }, [props.isUpdatingQuestion])
+  }, [props.isUpdatingQuestion]);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   function handleReporting() {
     alert("Unfortunately, this action is not implemented yet!");
@@ -110,7 +110,6 @@ function AnswerContent(props: AnswerProps) {
   );
 }
 interface Props {
-  answer: Answer | undefined;
   users: Map<string, User>;
   token: string;
   currentUser: string;
@@ -122,6 +121,9 @@ interface Props {
   deleteAnswer: any;
   postAnswer: any;
   isUpdatingQuestion: boolean;
+  // you must include one of the following properties
+  answer?: Answer | undefined;
+  answers?: (Answer | undefined)[];
 }
 function AnswerSection(props: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
@@ -145,27 +147,64 @@ function AnswerSection(props: Props) {
     setTextareaVal("");
     setFormActive(false);
   }
+
+  let answers = null;
+  if (props.answers) {
+    answers = props.answers.map((answer) => {
+      return (
+        <>
+          {!answer && (
+            <div className="spinner-container" style={{ height: "60px" }}>
+              <Spinner className="spinner-sm spinner-centered" />
+            </div>
+          )}
+          {answer && (
+            <AnswerContent
+              answer={answer}
+              users={props.users}
+              currentUser={props.currentUser}
+              bestAnswer={props.bestAnswer}
+              questionUserId={props.questionUserId}
+              selectBestAnswer={props.selectBestAnswer}
+              token={props.token}
+              deleteAnswer={props.deleteAnswer}
+              isUpdatingQuestion={props.isUpdatingQuestion}
+            />
+          )}
+          <hr />
+        </>
+      );
+    });
+  }
+
   return (
     <div className="card answer">
-      {props.answerExists && !props.answer && (
-        <div className="spinner-container" style={{ height: "60px" }}>
-          <Spinner className="spinner-sm spinner-centered" />
-        </div>
+      {/* in case there are multiple answers to include */}
+      {answers && answers}
+      {/* in case there is only one answer to include */}
+      {!answers && props.answerExists && (
+        <>
+          {!props.answer && (
+            <div className="spinner-container" style={{ height: "60px" }}>
+              <Spinner className="spinner-sm spinner-centered" />
+            </div>
+          )}
+          {props.answer && (
+            <AnswerContent
+              answer={props.answer}
+              users={props.users}
+              currentUser={props.currentUser}
+              bestAnswer={props.bestAnswer}
+              questionUserId={props.questionUserId}
+              selectBestAnswer={props.selectBestAnswer}
+              token={props.token}
+              deleteAnswer={props.deleteAnswer}
+              isUpdatingQuestion={props.isUpdatingQuestion}
+            />
+          )}
+          <hr />
+        </>
       )}
-      {props.answer && (
-        <AnswerContent
-          answer={props.answer}
-          users={props.users}
-          currentUser={props.currentUser}
-          bestAnswer={props.bestAnswer}
-          questionUserId={props.questionUserId}
-          selectBestAnswer={props.selectBestAnswer}
-          token={props.token}
-          deleteAnswer={props.deleteAnswer}
-          isUpdatingQuestion={props.isUpdatingQuestion}
-        />
-      )}
-      {props.answerExists && <hr />}
       <div className="answer-cta-section">
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
@@ -176,8 +215,9 @@ function AnswerSection(props: Props) {
           </Link>
         )}
       </div>
-      <hr />
       {formActive && (
+        <>
+        <hr />
         <form action="" className="answer-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <textarea
@@ -206,6 +246,7 @@ function AnswerSection(props: Props) {
             Cancel
           </button>
         </form>
+        </>
       )}
     </div>
   );
