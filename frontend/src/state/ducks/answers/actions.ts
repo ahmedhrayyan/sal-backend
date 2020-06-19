@@ -5,11 +5,7 @@ function fetchAnswer(id: string) {
   return {
     [CALL_API]: {
       endpoint: `/api/answers/${id}`,
-      types: [
-        Types.ANSWER_REQUEST,
-        Types.ANSWER_SUCCESS,
-        Types.ANSWER_FAILURE
-      ],
+      types: [Types.ANSWER_REQUEST, Types.ANSWER_SUCCESS, Types.ANSWER_FAILURE],
     },
   };
 }
@@ -33,32 +29,28 @@ export function deleteAnswer(id: string, token: string) {
       types: [
         Types.A_DELETE_REQUEST,
         Types.A_DELETE_SUCCESS,
-        Types.ANSWER_FAILURE
+        Types.ANSWER_FAILURE,
       ],
       config: {
-        method: 'DELETE'
-      }
+        method: "DELETE",
+      },
     },
   };
 }
 
-export function postAnswer(questionId: number, content: string, token: string,) {
+export function postAnswer(questionId: number, content: string, token: string) {
   return {
     [CALL_API]: {
       endpoint: `/api/questions/${questionId}/answers`,
       token: token,
-      types: [
-        Types.A_POST_REQUEST,
-        Types.A_POST_SUCCESS,
-        Types.A_POST_FAILURE,
-      ],
+      types: [Types.A_POST_REQUEST, Types.A_POST_SUCCESS, Types.A_POST_FAILURE],
       config: {
-        method: 'POST',
-        body: JSON.stringify({content}),
+        method: "POST",
+        body: JSON.stringify({ content }),
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    }
-  }
+          "Content-Type": "application/json",
+        },
+      },
+    },
+  };
 }

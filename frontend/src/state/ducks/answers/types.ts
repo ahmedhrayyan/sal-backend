@@ -5,9 +5,9 @@ export enum Types {
   A_DELETE_REQUEST = "A_DELETE_REQUEST",
   A_DELETE_SUCCESS = "A_DELETE_SUCCESS",
   A_DELETE_FAILURE = "A_DELETE_FAILURE",
-  A_POST_REQUEST = 'A_POST_REQUEST',
-  A_POST_SUCCESS = 'A_POST_SUCCESS',
-  A_POST_FAILURE = 'A_POST_FAILURE',
+  A_POST_REQUEST = "A_POST_REQUEST",
+  A_POST_SUCCESS = "A_POST_SUCCESS",
+  A_POST_FAILURE = "A_POST_FAILURE",
 }
 
 export interface Answer {
@@ -16,4 +16,4 @@ export interface Answer {
   content: string;
   created_at: string;
   question_id: number;
-};
+}

@@ -29,7 +29,7 @@ export function loadQuestions() {
 export function deleteQuestion(id: number, token: string) {
   if (!id) {
     // don't send pointless requests
-    return null
+    return null;
   }
   return {
     [CALL_API]: {
@@ -41,8 +41,8 @@ export function deleteQuestion(id: number, token: string) {
         Types.Q_DELETE_FAILURE,
       ],
       config: {
-        method: 'DELETE'
-      }
+        method: "DELETE",
+      },
     },
   };
 }
@@ -50,41 +50,37 @@ export function deleteQuestion(id: number, token: string) {
 export function postQuestion(content: string, token: string) {
   return {
     [CALL_API]: {
-      endpoint: '/api/questions',
+      endpoint: "/api/questions",
       token: token,
-      types: [
-        Types.Q_POST_REQUEST,
-        Types.Q_POST_SUCCESS,
-        Types.Q_POST_FAILURE,
-      ],
+      types: [Types.Q_POST_REQUEST, Types.Q_POST_SUCCESS, Types.Q_POST_FAILURE],
       config: {
-        method: 'POST',
-        body: JSON.stringify({content}),
+        method: "POST",
+        body: JSON.stringify({ content }),
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    }
-  }
+          "Content-Type": "application/json",
+        },
+      },
+    },
+  };
 }
 
-export function selectBestAnswer(question_id: number, answer_id: number, token: string) {
+export function selectBestAnswer(
+  question_id: number,
+  answer_id: number,
+  token: string
+) {
   return {
     [CALL_API]: {
       endpoint: `/api/questions/${question_id}`,
       token: token,
-      types: [
-        Types.Q_BA_REQUEST,
-        Types.Q_BA_SUCCESS,
-        Types.Q_BA_FAILURE,
-      ],
+      types: [Types.Q_BA_REQUEST, Types.Q_BA_SUCCESS, Types.Q_BA_FAILURE],
       config: {
-        method: 'PATCH',
-        body: JSON.stringify({answer: answer_id}),
+        method: "PATCH",
+        body: JSON.stringify({ answer: answer_id }),
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    }
-  }
+          "Content-Type": "application/json",
+        },
+      },
+    },
+  };
 }

@@ -92,10 +92,8 @@ function questionsReducer(state = defaultState, action: any) {
 
     // Update questions based on answers types
     case AnswersTypes.A_DELETE_SUCCESS: {
-      const newEntities = new Map(state.entities)
-      const question = newEntities.get(
-        action.payload.question_id
-      ) as Question;
+      const newEntities = new Map(state.entities);
+      const question = newEntities.get(action.payload.question_id) as Question;
       // remove deleted id from question answers array
       question.answers = question.answers.filter(
         (id) => id !== action.payload.del_id
@@ -104,20 +102,20 @@ function questionsReducer(state = defaultState, action: any) {
         question.best_answer = null;
       }
       return Object.assign({
-        entities: newEntities
-      })
+        entities: newEntities,
+      });
     }
 
     case AnswersTypes.A_POST_SUCCESS: {
-      const newEntities = new Map(state.entities)
+      const newEntities = new Map(state.entities);
       const question = newEntities.get(
         action.payload.created.question_id
       ) as Question;
       // add the created id to the first of the question answers array
       question.answers.unshift(action.payload.created.id);
       return Object.assign({
-        entities: newEntities
-      })
+        entities: newEntities,
+      });
     }
 
     default:
