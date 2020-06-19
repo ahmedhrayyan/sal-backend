@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { connect } from "react-redux";
 import { loadQuestion } from "../../state/ducks/questions/actions";
 import { Question } from "../../state/ducks/questions/types";
@@ -42,14 +42,17 @@ function QuestionPage(props: Props) {
   for (const answer_id of question.answers) {
     if (answer_id === question.best_answer) {
       // show best answer at the begging of answerSection
-      answers.unshift(props.answers.get(answer_id))
+      answers.unshift(props.answers.get(answer_id));
     } else {
-      answers.push(props.answers.get(answer_id))
+      answers.push(props.answers.get(answer_id));
     }
   }
   return (
     <div className="content-container" style={{ marginBottom: "50px" }}>
-      <QuestionSection style={{ margin: "50px 7px 0" }} question={question} />
+      <Link to="/" className="btn btn-link" style={{ padding: "14px 7px", color: "#323130"}}>
+        &lt;&nbsp; Home
+      </Link>
+      <QuestionSection style={{ margin: "0px 7px 0" }} question={question} />
       <AnswerSection
         questionId={question.id}
         questionUserId={question.user_id}
@@ -66,7 +69,7 @@ function mapStateToProps(state: any) {
   return {
     questions: state.questions.entities,
     isUpdatingQuestion: state.questions.isUpdating,
-    answers: state.answers.entities
+    answers: state.answers.entities,
   };
 }
 
