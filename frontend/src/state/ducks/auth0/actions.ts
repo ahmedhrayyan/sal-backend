@@ -1,5 +1,5 @@
 import Types, { Auth0ActionTypes, SuccessPayload } from "./types";
-import createAuth0Client, { Auth0Client } from "@auth0/auth0-spa-js";
+import createAuth0Client from "@auth0/auth0-spa-js";
 
 function requestInitAuth0(): Auth0ActionTypes {
   return {
