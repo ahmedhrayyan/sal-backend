@@ -1,6 +1,7 @@
 import { Types } from "./types";
 import { CALL_API } from "../../middlewares/apiService";
 
+// load questions by page
 function fetchQuestions(nextPageUrl: string) {
   return {
     [CALL_API]: {
@@ -23,6 +24,27 @@ export function loadQuestions() {
       return;
     }
     return dispatch(fetchQuestions(nextPageUrl));
+  };
+}
+
+// load only one question
+function fetchQuestion(id: string) {
+  return {
+    [CALL_API]: {
+      endpoint: `/api/questions/${id}`,
+      types: [Types.QUESTION_REQUEST, Types.QUESTION_SUCCESS, Types.QUESTION_FAILURE],
+    },
+  };
+}
+
+export function loadQuestion(id: string) {
+  return function (dispatch: any, getState: any) {
+    const answer = getState().questions.entities.get(id);
+    // do not send pointless requests
+    if (answer || !id) {
+      return null;
+    }
+    return dispatch(fetchQuestion(id));
   };
 }
 

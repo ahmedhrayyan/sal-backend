@@ -34,6 +34,24 @@ function questionsReducer(state = defaultState, action: any) {
         errorMessage: action.error,
         isFetching: false,
       });
+    case Types.QUESTION_REQUEST:
+      return Object.assign({}, state, {
+        isFetching: true,
+      });
+    case Types.QUESTION_SUCCESS: {
+      let newEntities = new Map(state.entities); // clone old questions
+      newEntities.set(action.payload.question.id, action.payload.question)
+      return Object.assign({}, state, {
+        isFetching: false,
+        entities: newEntities,
+        lastUpdated: action.receivedAt,
+      });
+    }
+    case Types.QUESTION_FAILURE:
+      return Object.assign({}, state, {
+        errorMessage: action.error,
+        isFetching: false,
+      });
     case Types.Q_DELETE_REQUEST:
       return Object.assign({}, state, {
         isFetching: true,
