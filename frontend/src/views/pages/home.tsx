@@ -92,7 +92,7 @@ function Home(props: Props) {
     (props.isFetchingQuestions && props.questions.size === 0) ||
     props.isPostingQuestion;
   return (
-    <div className="content-container">
+    <div className="content-container" style={{marginBottom: '60px'}}>
       <QuestionForm />
       {/* show spinner on homepage top */}
       {condition && (
