@@ -138,7 +138,7 @@ function AnswerSection(props: Props) {
     if (!props.isPostingAnswer) {
       setPostingAnswer(false);
     }
-  });
+  }, [props.isPostingAnswer]);
   function showForm() {
     setFormActive(true);
   }
