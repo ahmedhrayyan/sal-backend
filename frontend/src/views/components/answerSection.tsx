@@ -80,7 +80,7 @@ function AnswerContent(props: AnswerProps) {
                   ? "loading..."
                   : isBestAnswer
                   ? "Accepted by user"
-                  : "Latest answer"}
+                  : "Most recent"}
               </span>
             </small>
           </p>
