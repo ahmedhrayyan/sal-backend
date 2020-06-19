@@ -171,7 +171,7 @@ function AnswerSection(props: Props) {
           Write an answer
         </button>
         {props.answerExists && (
-          <Link to={`/${props.questionId}` || "/"} className="btn btn-link">
+          <Link to={`/questions/${props.questionId}`} className="btn btn-link">
             View all answers
           </Link>
         )}

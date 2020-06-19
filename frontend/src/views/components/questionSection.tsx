@@ -63,7 +63,7 @@ function QuestionSection(props: Props) {
               <img className="icon" src={downArrow} alt="down-arrow icon" />
             }
           >
-            <Link to={`/${props.question.id}`}>View question</Link>
+            <Link to={`/questions/${props.question.id}`}>View question</Link>
             {!currentUserQuestion && (
               <button onClick={handleReporting}>Report this question</button>
             )}
