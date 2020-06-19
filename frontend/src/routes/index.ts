@@ -9,8 +9,8 @@ const routes = [
   {
     path: "/questions/:questionId",
     component: QuestionPage,
-    exact: true
-  }
+    exact: true,
+  },
 ];
 
 export default routes;

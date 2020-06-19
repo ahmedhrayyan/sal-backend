@@ -32,7 +32,11 @@ function fetchQuestion(id: string) {
   return {
     [CALL_API]: {
       endpoint: `/api/questions/${id}`,
-      types: [Types.QUESTION_REQUEST, Types.QUESTION_SUCCESS, Types.QUESTION_FAILURE],
+      types: [
+        Types.QUESTION_REQUEST,
+        Types.QUESTION_SUCCESS,
+        Types.QUESTION_FAILURE,
+      ],
     },
   };
 }
