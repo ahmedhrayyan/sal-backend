@@ -1,6 +1,7 @@
 import { Types, Answer } from "./types";
 const defaultState = {
   isFetching: false,
+  isPosting: false,
   errorMessage: null,
   entities: new Map<number, Answer>(),
 };
@@ -44,7 +45,7 @@ function answersReducer(state = defaultState, action: any) {
       });
     case Types.A_POST_REQUEST:
       return Object.assign({}, state, {
-        isFetching: true,
+        isPosting: true,
       });
     case Types.A_POST_SUCCESS: {
       const newEntities = new Map([
@@ -52,13 +53,13 @@ function answersReducer(state = defaultState, action: any) {
         ...state.entities,
       ]);
       return Object.assign({}, state, {
-        isFetching: false,
+        isPosting: false,
         entities: newEntities,
       });
     }
     case Types.A_POST_FAILURE:
       return Object.assign({}, state, {
-        isFetching: false,
+        isPosting: false,
         errorMessage: action.error,
       });
     default:
