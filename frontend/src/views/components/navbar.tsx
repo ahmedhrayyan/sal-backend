@@ -15,6 +15,9 @@ interface NavProps {
   goToProfile: () => void;
 }
 function Nav(props: NavProps) {
+  function handleAlertClick() {
+    window.alert('Alerts not implemented yet, Stay tuned!')
+  }
   let currentUser,
     userName = "loading...";
   if (props.user) {
@@ -28,7 +31,7 @@ function Nav(props: NavProps) {
   return (
     <ul className="navbar-nav">
       <li className="nav-item">
-        <button className="nav-btn btn">
+        <button className="nav-btn btn" onClick={handleAlertClick}>
           <img src={alert} alt="alert-icon" className="icon" />
         </button>
       </li>
