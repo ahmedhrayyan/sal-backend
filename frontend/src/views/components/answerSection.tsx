@@ -153,6 +153,7 @@ function AnswerSection(props: Props) {
     answers = props.answers.map((answer) => {
       return (
         <>
+          <hr />
           {!answer && (
             <div className="spinner-container" style={{ height: "60px" }}>
               <Spinner className="spinner-sm spinner-centered" />
@@ -171,7 +172,6 @@ function AnswerSection(props: Props) {
               isUpdatingQuestion={props.isUpdatingQuestion}
             />
           )}
-          <hr />
         </>
       );
     });
@@ -179,8 +179,6 @@ function AnswerSection(props: Props) {
 
   return (
     <div className="card answer">
-      {/* in case there are multiple answers to include */}
-      {answers && answers}
       {/* in case there is only one answer to include */}
       {!answers && props.answerExists && (
         <>
@@ -209,7 +207,7 @@ function AnswerSection(props: Props) {
         <button className="btn btn-link" onClick={showForm}>
           Write an answer
         </button>
-        {props.answerExists && (
+        {props.answerExists && !answers && (
           <Link to={`/questions/${props.questionId}`} className="btn btn-link">
             View all answers
           </Link>
@@ -248,6 +246,8 @@ function AnswerSection(props: Props) {
         </form>
         </>
       )}
+      {/* in case there are multiple answers to include */}
+      {answers && answers}
     </div>
   );
 }
