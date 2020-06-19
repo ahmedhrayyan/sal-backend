@@ -45,7 +45,6 @@ function Home(props: Props) {
         requestedUsers.current.add(question.user_id);
       }
       // fetch answers
-      console.log(question.best_answer || question.answers[0]);
       props.loadAnswer(question.best_answer || question.answers[0]);
     }
   }, [props.questions]);
