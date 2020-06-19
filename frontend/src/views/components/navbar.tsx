@@ -7,6 +7,7 @@ import Dropdown from "./dropdown";
 import { connect } from "react-redux";
 import { Auth0Client } from "@auth0/auth0-spa-js";
 import { User } from "../../state/ducks/users/types";
+import { Link } from "react-router-dom";
 
 interface NavProps {
   user: User | null;
@@ -76,7 +77,7 @@ function Navbar(props: Props) {
 
   return (
     <nav className="navbar navbar-primary navbar-dark">
-      <a className="navbar-brand logo" href="#">
+      <Link to="/" className="navbar-brand logo">
         <img
           className="logo-img"
           src={logo}
@@ -86,7 +87,7 @@ function Navbar(props: Props) {
           loading="lazy"
         />
         <span className="logo-slogan">any question...</span>
-      </a>
+      </Link>
       <form className="form-inline navbar-search">
         <input
           className="form-control mr-sm-2"
