@@ -22,6 +22,8 @@ interface AnswerProps {
   isUpdatingQuestion: boolean;
 }
 function AnswerContent(props: AnswerProps) {
+  // handle showing the loading logic in the way below
+  // is just to only show the loading behavior in only one instance
   const [requestBASent, setRequestBASent] = useState<boolean>(false);
   useEffect(() => {
     if (!props.isUpdatingQuestion) {
@@ -121,6 +123,7 @@ interface Props {
   deleteAnswer: any;
   postAnswer: any;
   isUpdatingQuestion: boolean;
+  isPostingAnswer: boolean;
   // you must include one of the following properties
   answer?: Answer | undefined;
   answers?: (Answer | undefined)[];
@@ -128,6 +131,14 @@ interface Props {
 function AnswerSection(props: Props) {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [textareaVal, setTextareaVal] = useState<string>("");
+  // handle showing the loading logic in the way below
+  // is just to only show the loading behavior in only one instance
+  const [postingAnswer, setPostingAnswer] = useState<boolean>(false);
+  useEffect(() => {
+    if (!props.isPostingAnswer) {
+      setPostingAnswer(false);
+    }
+  });
   function showForm() {
     setFormActive(true);
   }
@@ -146,6 +157,7 @@ function AnswerSection(props: Props) {
     props.postAnswer(props.questionId, textareaVal, props.token);
     setTextareaVal("");
     setFormActive(false);
+    setPostingAnswer(true);
   }
 
   let answers = null;
@@ -180,13 +192,14 @@ function AnswerSection(props: Props) {
   return (
     <div className="card answer">
       {/* in case there is only one answer to include */}
-      {!answers && props.answerExists && (
+      {!answers && (
         <>
-          {!props.answer && (
-            <div className="spinner-container" style={{ height: "60px" }}>
-              <Spinner className="spinner-sm spinner-centered" />
-            </div>
-          )}
+          {!props.answer && props.answerExists ||
+            (postingAnswer && (
+              <div className="spinner-container" style={{ height: "60px" }}>
+                <Spinner className="spinner-sm spinner-centered" />
+              </div>
+            ))}
           {props.answer && (
             <AnswerContent
               answer={props.answer}
@@ -200,7 +213,7 @@ function AnswerSection(props: Props) {
               isUpdatingQuestion={props.isUpdatingQuestion}
             />
           )}
-          <hr />
+          {props.answerExists && <hr />}
         </>
       )}
       <div className="answer-cta-section">
@@ -215,39 +228,48 @@ function AnswerSection(props: Props) {
       </div>
       {formActive && (
         <>
-        <hr />
-        <form action="" className="answer-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <textarea
-              name=""
-              id=""
-              rows={3}
-              className="form-control"
-              value={textareaVal}
-              onChange={(evt) => {
-                setTextareaVal(evt.currentTarget.value);
-              }}
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={textareaVal === ""}
-          >
-            Submit
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={hideForm}
-          >
-            Cancel
-          </button>
-        </form>
+          <hr />
+          <form action="" className="answer-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <textarea
+                name=""
+                id=""
+                rows={3}
+                className="form-control"
+                value={textareaVal}
+                onChange={(evt) => {
+                  setTextareaVal(evt.currentTarget.value);
+                }}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={textareaVal === ""}
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={hideForm}
+            >
+              Cancel
+            </button>
+          </form>
         </>
       )}
       {/* in case there are multiple answers to include */}
-      {answers && answers}
+      {answers && (
+        <>
+          {postingAnswer && (
+            <div className="spinner-container" style={{ height: "60px" }}>
+              <Spinner className="spinner-sm spinner-centered" />
+            </div>
+          )}
+          {answers}
+        </>
+      )}
     </div>
   );
 }
@@ -257,6 +279,7 @@ function mapStateToProps(state: any) {
     token: state.auth0.accessToken,
     currentUser: state.auth0.currentUser,
     users: state.users.entities,
+    isPostingAnswer: state.answers.isPosting,
   };
 }
 const mapDispatchToProps = {
