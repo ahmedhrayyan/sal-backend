@@ -9,7 +9,6 @@ import { selectBestAnswer } from "../../state/ducks/questions/actions";
 import { deleteAnswer, postAnswer } from "../../state/ducks/answers/actions";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
-import { isMainThread } from "worker_threads";
 
 interface AnswerProps {
   answer: Answer;

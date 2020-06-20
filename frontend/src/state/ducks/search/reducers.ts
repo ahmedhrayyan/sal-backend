@@ -1,5 +1,4 @@
 import { Types, Question } from "./types";
-import { Types as AnswersTypes } from "../answers/types";
 const defaultState = {
   isFetching: false,
   errorMessage: null,

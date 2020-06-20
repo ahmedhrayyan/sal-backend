@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, Link, useHistory } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import { loadQuestion } from "../../state/ducks/questions/actions";
 import { Question } from "../../state/ducks/questions/types";

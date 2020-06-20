@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { useLocation, Link } from "react-router-dom";
-import { Spinner, QuestionSection, AnswerSection } from "../components";
+import { Spinner, QuestionSection } from "../components";
 import { loadSearch } from "../../state/ducks/search/actions";
 import { loadUser } from "../../state/ducks/users/actions";
 
@@ -14,7 +14,6 @@ interface Props {
   currentUser: string;
 }
 function SearchPage(props: Props) {
-  const previousSearchTerm = useRef<string>("");
   const { search } = useLocation();
   const params = new URLSearchParams(search);
   useEffect(() => {
