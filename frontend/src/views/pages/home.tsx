@@ -34,7 +34,7 @@ function Home(props: Props) {
     if (props.questions.size < 20) {
       props.loadQuestions();
     }
-    document.title = "Sal, the best QA engine?";
+    document.title = "Sal - The best QA engine?";
   }, []);
   const requestedUsers = useRef<Set<string>>(new Set());
   useEffect(() => {
