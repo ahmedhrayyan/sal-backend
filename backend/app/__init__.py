@@ -57,7 +57,8 @@ def create_app(test_config=None):
             'success': True,
             'questions': formated_questions,
             'no_of_questions': len(all_questions),
-            'next_path': next_path
+            'next_path': next_path,
+            'search_term': data['search']
         })
 
     @app.route('/api/questions', methods=['GET'])
