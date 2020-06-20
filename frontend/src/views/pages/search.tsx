@@ -20,6 +20,7 @@ function SearchPage(props: Props) {
   useEffect(() => {
     if (params.get("term")) {
       props.loadSearch(params.get("term"));
+      document.title = "Sal, search for " + params.get("term")
     }
   }, [search]);
 

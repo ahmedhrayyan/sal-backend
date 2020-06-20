@@ -27,6 +27,7 @@ function QuestionPage(props: Props) {
       for (const answer_id of question.answers) {
         props.loadAnswer(answer_id);
       }
+      document.title = "Sal, " + question.content.slice(0, 20) + "...";
     }
   }, [props.questions]);
 

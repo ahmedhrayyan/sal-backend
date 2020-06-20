@@ -34,6 +34,7 @@ function Home(props: Props) {
     if (props.questions.size < 20) {
       props.loadQuestions();
     }
+    document.title = "Sal, the best QA engine?";
   }, []);
   const requestedUsers = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -95,8 +96,8 @@ function Home(props: Props) {
     (props.isFetchingQuestions && props.questions.size === 0) ||
     props.isPostingQuestion;
   return (
-    <div className="content-container" style={{marginBottom: '50px'}}>
-      <QuestionForm style={{marginTop: '50px'}} />
+    <div className="content-container" style={{ marginBottom: "50px" }}>
+      <QuestionForm style={{ marginTop: "50px" }} />
       {/* show spinner on homepage top */}
       {condition && (
         <div className="spinner-container" style={{ height: "180px" }}>
