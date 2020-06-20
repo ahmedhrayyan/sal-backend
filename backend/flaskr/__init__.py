@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort, _request_ctx_stack
+from flask import Flask, jsonify, request, abort, _request_ctx_stack, render_template, redirect, url_for
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
 from auth import (init_auth0, Auth0Error, AuthError,
@@ -27,12 +27,18 @@ def get_formated_questions(questions):
 
 def create_app(test_config=None):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True,
+        static_folder="../../frontend/build/static",
+        template_folder="../../frontend/build")
     if test_config is None:
         # load config file if it exists
         app.config.from_pyfile('config.py', silent=True)
     setup_db(app)
     auth0 = init_auth0()
+
+    @app.route("/")
+    def index():
+        return render_template("index.html")
 
     @app.route('/api/search', methods=['POST'])
     def search():
@@ -217,7 +223,7 @@ def create_app(test_config=None):
 
     # get users public data
     @app.route('/api/users/<user_id>')
-    def index(user_id):
+    def get_public_user(user_id):
         # response is a dict object
         public_fields = ['user_id', 'name', 'picture', 'user_metadata']
         response = auth0.get_user(user_id, public_fields)
@@ -232,11 +238,17 @@ def create_app(test_config=None):
     # handling errors
     @app.errorhandler(404)
     def not_found(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 404
-        }), 404
+        # Invalid called to an api
+        if request.path.startswith('/api') or request.method != 'GET':
+            return jsonify({
+                'success': False,
+                'message': error.description,
+                'error': 404
+            }), 404
+
+        # otherwise, Make react router handle 404
+        return render_template("index.html")
+
 
     @app.errorhandler(400)
     def bad_request(error):
