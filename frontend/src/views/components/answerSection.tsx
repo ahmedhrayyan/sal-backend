@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect, Fragment } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
@@ -9,6 +9,7 @@ import { selectBestAnswer } from "../../state/ducks/questions/actions";
 import { deleteAnswer, postAnswer } from "../../state/ducks/answers/actions";
 import { Answer } from "../../state/ducks/answers/types";
 import { User } from "../../state/ducks/users/types";
+import { isMainThread } from "worker_threads";
 
 interface AnswerProps {
   answer: Answer;
@@ -164,7 +165,7 @@ function AnswerSection(props: Props) {
   if (props.answers) {
     answers = props.answers.map((answer) => {
       return (
-        <>
+        <Fragment key={Math.random().toString(16).slice(2)}>
           <hr />
           {!answer && (
             <div className="spinner-container" style={{ height: "60px" }}>
@@ -184,7 +185,7 @@ function AnswerSection(props: Props) {
               isUpdatingQuestion={props.isUpdatingQuestion}
             />
           )}
-        </>
+        </Fragment>
       );
     });
   }
