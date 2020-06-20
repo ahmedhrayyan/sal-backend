@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import { loadQuestion } from "../../state/ducks/questions/actions";
 import { Question } from "../../state/ducks/questions/types";
@@ -15,6 +15,7 @@ interface Props {
   isUpdatingQuestion: boolean;
 }
 function QuestionPage(props: Props) {
+  const history = useHistory();
   const { questionId } = useParams();
   useEffect(() => {
     props.loadQuestion(parseInt(questionId));
@@ -49,9 +50,13 @@ function QuestionPage(props: Props) {
   }
   return (
     <div className="content-container" style={{ marginBottom: "50px" }}>
-      <Link to="/" className="btn btn-link" style={{ padding: "14px 7px", color: "#323130"}}>
-        &lt;&nbsp; Home
-      </Link>
+      <button
+        className="btn btn-link"
+        style={{ padding: "14px 7px", color: "#323130" }}
+        onClick={() => history.goBack()}
+      >
+        &lt;&nbsp; Back
+      </button>
       <QuestionSection style={{ margin: "0px 7px 0" }} question={question} />
       <AnswerSection
         questionId={question.id}
