@@ -1,5 +1,6 @@
 import { Home } from "../views/pages";
 import { QuestionPage } from "../views/pages";
+import { SearchPage } from "../views/pages";
 const routes = [
   {
     path: "/",
@@ -11,6 +12,11 @@ const routes = [
     component: QuestionPage,
     exact: true,
   },
+  {
+    path: "/search",
+    component: SearchPage,
+    exact: true
+  }
 ];
 
 export default routes;
