@@ -1,25 +1,44 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { useLocation, Link } from "react-router-dom";
 import { Spinner, QuestionSection, AnswerSection } from "../components";
 import { loadSearch } from "../../state/ducks/search/actions";
+import { loadUser } from "../../state/ducks/users/actions";
 
 interface Props {
   questions: Map<number, any>;
   isFetchingQuestions: boolean;
   nextPageUrl: string;
   loadSearch: any;
+  loadUser: any;
+  currentUser: string;
 }
 function SearchPage(props: Props) {
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
+  const previousSearchTerm = useRef<string>("");
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
   useEffect(() => {
-    if (params.get('term') && !props.questions.size) {
-      props.loadSearch(params.get('term'))
+    if (params.get("term")) {
+      props.loadSearch(params.get("term"));
     }
-  }, [params])
+  }, [search]);
 
-  if (!params.get('term')) {
+  const requestedUsers = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const question of props.questions.values()) {
+      // do not make multiple requests with the same id
+      // we've requested the current user in in App component
+      if (
+        !requestedUsers.current.has(question.user_id) &&
+        question.user_id !== props.currentUser
+      ) {
+        props.loadUser(question.user_id);
+        requestedUsers.current.add(question.user_id);
+      }
+    }
+  }, [props.questions]);
+
+  if (!params.get("term")) {
     return (
       <div className="content-container">
         <h1>You've searched for nothing!</h1>
@@ -28,7 +47,7 @@ function SearchPage(props: Props) {
   }
 
   function handleFetchNewQuestions() {
-    props.loadSearch(params.get('term'))
+    props.loadSearch(params.get("term"));
   }
 
   let QComponents: ReactNode[] = [];
@@ -42,7 +61,9 @@ function SearchPage(props: Props) {
         />
         <div className="card answer">
           <div className="answer-cta-section">
-            <Link to={`/questions/${question.id}`} className="btn btn-link">View Question</Link>
+            <Link to={`/questions/${question.id}`} className="btn btn-link">
+              View Question
+            </Link>
           </div>
         </div>
       </div>
@@ -73,12 +94,14 @@ function SearchPage(props: Props) {
 
 function mapStateToProps(state: any) {
   return {
+    currentUser: state.auth0.currentUser,
     questions: state.search.entities,
     isFetchingQuestions: state.search.isFetching,
     nextPageUrl: state.search.nextPageUrl,
   };
 }
 const mapDispatchToProps = {
-  loadSearch
+  loadSearch,
+  loadUser,
 };
 export default connect(mapStateToProps, mapDispatchToProps)(SearchPage);
