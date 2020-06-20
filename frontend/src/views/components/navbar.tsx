@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, FormEvent } from "react";
 import logo from "../../images/logo.svg";
 import alert from "../../images/icons/alert.svg";
 import questionMark from "../../images/icons/question-mark.svg";
@@ -7,7 +7,7 @@ import Dropdown from "./dropdown";
 import { connect } from "react-redux";
 import { Auth0Client } from "@auth0/auth0-spa-js";
 import { User } from "../../state/ducks/users/types";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 interface NavProps {
   user: User | null;
@@ -16,7 +16,7 @@ interface NavProps {
 }
 function Nav(props: NavProps) {
   function handleAlertClick() {
-    window.alert('Alerts not implemented yet, Stay tuned!')
+    window.alert("Alerts not implemented yet, Stay tuned!");
   }
   let currentUser,
     userName = "loading...";
@@ -66,6 +66,8 @@ interface Props {
   users: Map<string, User>;
 }
 function Navbar(props: Props) {
+  const history = useHistory();
+  const [inputVal, setInputVal] = useState<string>("");
   function login() {
     props.auth0.loginWithRedirect({});
   }
@@ -76,6 +78,18 @@ function Navbar(props: Props) {
 
   function goToProfile() {
     window.alert("Users profile page is not here yet, Stay tuned!");
+  }
+
+  function handleSearch(evt: any) {
+    evt.preventDefault();
+    if (!inputVal) {
+      return null;
+    }
+    history.push(`/search?term=${inputVal}`)
+  }
+
+  function handleChange(evt: FormEvent<HTMLInputElement>) {
+    setInputVal(evt.currentTarget.value);
   }
 
   return (
@@ -91,12 +105,14 @@ function Navbar(props: Props) {
         />
         <span className="logo-slogan">any question...</span>
       </Link>
-      <form className="form-inline navbar-search">
+      <form className="form-inline navbar-search" onSubmit={handleSearch}>
         <input
           className="form-control mr-sm-2"
           type="search"
           placeholder="Search"
           aria-label="Search"
+          value={inputVal}
+          onChange={handleChange}
         />
       </form>
       {!props.isAuthenticated && (
