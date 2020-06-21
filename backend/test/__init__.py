@@ -10,7 +10,7 @@ class SalTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_uri = SQLALCHEMY_DATABASE_URI + '_test'
+        self.database_uri = 'postgresql://admin:secret@localhost:5432/sal_test'
         setup_db(self.app, self.database_uri, True)
         # dummy data
         self.question = Question('test', 'Is sal the best QA engine')
