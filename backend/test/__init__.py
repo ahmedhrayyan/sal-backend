@@ -3,7 +3,6 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from flaskr import create_app
 from database import setup_db, Answer, Question, db
-from instance.config import SQLALCHEMY_DATABASE_URI
 
 
 class SalTestCase(unittest.TestCase):
