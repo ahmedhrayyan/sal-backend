@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort, _request_ctx_stack, render_template, redirect, url_for
+from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from database import setup_db, Answer, Question
 from auth import (init_auth0, Auth0Error, AuthError,
@@ -28,7 +28,8 @@ def get_formated_questions(questions):
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True,
-        template_folder="../../frontend/build")
+        static_folder='../../frontend/build',
+        static_url_path='/')
     if test_config is None:
         # load config file if it exists
         app.config.from_pyfile('config.py', silent=True)
@@ -37,7 +38,7 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        return app.send_static_file("index.html")
 
     @app.route('/api/search', methods=['POST'])
     def search():
@@ -247,7 +248,7 @@ def create_app(test_config=None):
             }), 404
 
         # otherwise, Make react router handle 404
-        return render_template("index.html")
+        return app.send_static_file('index.html')
 
 
     @app.errorhandler(400)
