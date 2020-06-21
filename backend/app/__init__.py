@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
-from database import setup_db, Answer, Question
-from auth import (init_auth0, Auth0Error, AuthError,
+from backend.database import setup_db, Answer, Question
+from backend.auth import (init_auth0, Auth0Error, AuthError,
                   requires_auth, requires_permission)
 
 
