@@ -12,9 +12,16 @@ def setup_db(app, database_uri=None, test_env=False):
     setup_db(app)
         binds a flask application and a SQLAlchemy service
     '''
-    # I have put database uri in the config file for privacy reasons
+
     if database_uri:
         app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+    else:
+        try:
+            DATABASE_URL = os.environ['DATABASE_URL']
+            app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+        except:
+            raise ValueError('DATABASE_URL expected in environ')
+
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
