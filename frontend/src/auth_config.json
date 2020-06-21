@@ -1,6 +1,6 @@
 {
-  "domain": "dev22.auth0.com",
-  "clientId": "GdmuAOAoJd34wt6lptBjoPE2usuVOAoe",
-  "audience": "https://sal/api",
+  "domain": "sal22.eu.auth0.com",
+  "clientId": "nFhh6O8C5uKDIzRnaIFXK3NaeiEkZHhT",
+  "audience": "https://sal.com/",
   "useRefreshToken": true
 }
