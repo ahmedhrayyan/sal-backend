@@ -1,8 +1,8 @@
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
-from flaskr import create_app
-from database import setup_db, Answer, Question, db
+from backend.app import create_app
+from backend.database import setup_db, Answer, Question, db
 
 
 class SalTestCase(unittest.TestCase):
