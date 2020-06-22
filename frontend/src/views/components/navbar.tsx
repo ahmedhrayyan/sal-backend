@@ -40,7 +40,7 @@ function Nav(props: NavProps) {
           <img src={questionMark} alt="question-mark-icon" className="icon" />
         </button>
       </li>
-      <li className="nav-item" style={{marginRight: '-7px'}}>
+      <li className="nav-item" style={{ marginRight: "-7px" }}>
         <Dropdown
           btnContent={<Avatar src={currentUser?.picture || ""} size="sm" />}
           btnClass="avatar-btn"
@@ -85,7 +85,7 @@ function Navbar(props: Props) {
     if (!inputVal) {
       return null;
     }
-    history.push(`/search?term=${inputVal}`)
+    history.push(`/search?term=${inputVal}`);
   }
 
   function handleChange(evt: FormEvent<HTMLInputElement>) {
@@ -116,7 +116,15 @@ function Navbar(props: Props) {
         />
       </form>
       {!props.isAuthenticated && (
-        <button className="btn btn-link-light" onClick={login} style={{marginRight: '-15px'}}>
+        <button
+          className="btn btn-link-light"
+          onClick={login}
+          style={{
+            paddingRight: "10px",
+            paddingLeft: "10px",
+            marginRight: "-10px",
+          }}
+        >
           Sign In
         </button>
       )}
