@@ -40,7 +40,7 @@ function Nav(props: NavProps) {
           <img src={questionMark} alt="question-mark-icon" className="icon" />
         </button>
       </li>
-      <li className="nav-item">
+      <li className="nav-item" style={{marginRight: '-7px'}}>
         <Dropdown
           btnContent={<Avatar src={currentUser?.picture || ""} size="sm" />}
           btnClass="avatar-btn"
@@ -116,7 +116,7 @@ function Navbar(props: Props) {
         />
       </form>
       {!props.isAuthenticated && (
-        <button className="btn btn-link-light" onClick={login}>
+        <button className="btn btn-link-light" onClick={login} style={{marginRight: '-15px'}}>
           Sign In
         </button>
       )}
