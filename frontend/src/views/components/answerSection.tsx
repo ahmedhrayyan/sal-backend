@@ -194,12 +194,11 @@ function AnswerSection(props: Props) {
       {/* in case there is only one answer to include */}
       {!answers && (
         <>
-          {(!props.answer && props.answerExists) ||
-            (postingAnswer && (
-              <div className="spinner-container" style={{ height: "60px" }}>
-                <Spinner className="spinner-sm spinner-centered" />
-              </div>
-            ))}
+          {((!props.answer && props.answerExists) || postingAnswer) && (
+            <div className="spinner-container" style={{ height: "60px" }}>
+              <Spinner className="spinner-sm spinner-centered" />
+            </div>
+          )}
           {props.answer && (
             <AnswerContent
               answer={props.answer}
