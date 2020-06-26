@@ -6,10 +6,8 @@ from jose import jwt
 from .auth0 import Auth0, Auth0Error
 from flask import request, _request_ctx_stack
 
-if ('AUTH0_DOMAIN') not in environ or 'API_AUDIENCE' not in environ:
-    raise ValueError('AUTH0_DOMAIN and API_AUDIENCE expected in environ')
-domain = environ['AUTH0_DOMAIN']
-api_audience = environ['API_AUDIENCE']
+domain = 'sal22.eu.auth0.com'
+api_audience = 'https://sal.com/'
 algorithms = ["RS256"]
 
 # Auth0 management api (manipulate auth0 data)
@@ -18,7 +16,7 @@ algorithms = ["RS256"]
 def init_auth0():
     if ('CLIENT_ID' not in environ or 'CLIENT_SECRET' not in environ):
         raise ValueError(
-            'AUTH0_DOMAIN, CLIENT_ID and CLIENT_SECRET expected in environ')
+            'CLIENT_ID and CLIENT_SECRET expected in environ')
     client_id = environ['CLIENT_ID']
     client_secret = environ['CLIENT_SECRET']
     auth0 = Auth0(domain, client_id, client_secret)
