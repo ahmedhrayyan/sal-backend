@@ -7,7 +7,7 @@ from backend.database import setup_db, Answer, Question, db
 
 class SalTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
+        self.app = create_app(True)
         self.client = self.app.test_client
         self.database_uri = 'postgresql://admin:secret@localhost:5432/sal_test'
         setup_db(self.app, self.database_uri, True)
