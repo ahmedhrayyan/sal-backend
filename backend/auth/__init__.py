@@ -7,12 +7,10 @@ from .auth0 import Auth0, Auth0Error
 from flask import request, _request_ctx_stack
 
 domain = 'sal22.eu.auth0.com'
-api_audience = 'https://sal.com/'
+api_audience = 'https://sal/api'
 algorithms = ["RS256"]
 
 # Auth0 management api (manipulate auth0 data)
-
-
 def init_auth0():
     if ('CLIENT_ID' not in environ or 'CLIENT_SECRET' not in environ):
         raise ValueError(
