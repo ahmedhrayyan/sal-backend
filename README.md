@@ -12,9 +12,6 @@ Please forgive me for any un clarity or bugs in the code as I designed and devel
 
 By the way, CONTRIBUTIONS ARE REALLY WELCOMED
 
-## Screenshot
-image
-
 ## Tech Stack
 The app tech stack includes:
 
@@ -31,7 +28,7 @@ The app tech stack includes:
 I have also used **Figma** (it was the first time I do but I’m really surprised how really powerful it is) and **Microsoft fluent design language** for the web to design Sal
 
 ## Project Structure
-  ```sh
+  ```
   ├── README.md
   ├── .editorconfig
   ├── .gitignore
