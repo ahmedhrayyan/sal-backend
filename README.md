@@ -58,5 +58,8 @@ I have also used **Figma** (it was the first time I do but I’m really surprise
 * `database` -- contains database models and setup
 * `app` -- The most important folder which contains flask app (all routes and http serving logic defined within it)
 
+## Issues
+The project have a lot of known issues and they exist in [issues](https://github.com/ahmedhrayyan/sal/issues) tab categorized by priority. If you have an issue that is not there, please open a new one and I will respond ASAP.
+
 ## Documentation
 Please check [wiki](https://github.com/ahmedhrayyan/sal/wiki) for Details about Getting Started, Deployment and API Reference
