@@ -20,6 +20,7 @@ The app tech stack includes:
 * **SQLAlchemy ORM** to be our ORM library of choice.
 * **Python3** and **Flask** as our server language and server framework.
 * **Flask-Migrate** for creating and running schema migrations.
+* **TypeScript** as our client side language
 * **Redux** as our frontend container for the app state.
 * **ReactJS**, **React Router** and **React Redux** as our frontend Framework (yes, I think all of these three libraries combined to be forming kind of a framework).
 * **HTML**, **SCSS**, and **bootstrap 4**
