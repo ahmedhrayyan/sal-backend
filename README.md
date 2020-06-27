@@ -1,7 +1,7 @@
 # Sal
 Sal (taken from Arabic word سل which means Ask) is QA Engine based on PostgreSQL database system, Python Flask micro framework and ReactJS library.
 
-Sal live version is [here](https://sal22.herokuapp.com/).
+### Sal live version is [here](https://sal22.herokuapp.com/).
 
 ## Motivation
 The project was started as a final project for Udacity Full Stack Nanodegree program but after investing a lot of time and energy in the project to make it a complete fully function app, I decided to make the project as a guide to create a full stack web app using python and react, though really understanding the project will help you with any other tech stack.
