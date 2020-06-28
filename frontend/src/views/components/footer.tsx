@@ -6,11 +6,18 @@ function Footer(props: Props) {
     <footer className="page-footer">
       <div className="container">
         <p className="copyrights">
-          Designed & Developed by <a href="https://www.linkedin.com/in/ahmedhrayyan/">Ahmed Hamed</a>
+          Designed & Developed by&nbsp;
+          <a
+            href="https://www.linkedin.com/in/ahmedhrayyan/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ahmed Hamed
+          </a>
         </p>
       </div>
     </footer>
-  )
+  );
 }
 
 export default Footer;
