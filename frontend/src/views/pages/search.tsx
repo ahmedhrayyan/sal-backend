@@ -56,7 +56,7 @@ function SearchPage(props: Props) {
       <div key={question.id}>
         <QuestionSection
           key={question.id}
-          style={{ margin: "50px 7px 0" }}
+          style={{ margin: "50px 5px 0" }}
           question={question}
         />
         <div className="card answer">

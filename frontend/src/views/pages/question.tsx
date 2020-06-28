@@ -53,12 +53,12 @@ function QuestionPage(props: Props) {
     <div className="content-container" style={{ marginBottom: "50px" }}>
       <button
         className="btn btn-link"
-        style={{ padding: "14px 7px", color: "#323130" }}
+        style={{ padding: "14px 5px", color: "#323130" }}
         onClick={() => history.goBack()}
       >
         &lt;&nbsp; Back
       </button>
-      <QuestionSection style={{ margin: "0px 7px 0" }} question={question} />
+      <QuestionSection style={{ margin: "0px 5px 0" }} question={question} />
       <AnswerSection
         questionId={question.id}
         questionUserId={question.user_id}
