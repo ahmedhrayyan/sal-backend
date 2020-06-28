@@ -36,9 +36,15 @@ function Nav(props: NavProps) {
         </button>
       </li>
       <li className="nav-item">
-        <button className="nav-btn btn">
-          <img src={questionMark} alt="question-mark-icon" className="icon" />
-        </button>
+        <a
+          className="nav-btn btn"
+          href="https://github.com/ahmedhrayyan/sal"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="About"
+        >
+          <img src={questionMark} alt="about-icon" className="icon" />
+        </a>
       </li>
       <li className="nav-item" style={{ marginRight: "-7px" }}>
         <Dropdown
