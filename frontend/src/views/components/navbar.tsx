@@ -31,7 +31,11 @@ function Nav(props: NavProps) {
   return (
     <ul className="navbar-nav">
       <li className="nav-item">
-        <button className="nav-btn btn" onClick={handleAlertClick}>
+        <button
+          className="nav-btn btn"
+          onClick={handleAlertClick}
+          title="Notifications"
+        >
           <img src={alert} alt="alert-icon" className="icon" />
         </button>
       </li>
