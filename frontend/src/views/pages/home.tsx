@@ -26,47 +26,36 @@ interface Props {
 }
 
 function Home(props: Props) {
-  useEffect(() => {
-    // if the first page of questions have not been fetched yet
-
-    // (or it have but the there is no 20 questions in the database
-    // but in that case the loadQuestion logic should handle it)
-    if (props.questions.size < 20) {
-      props.loadQuestions();
-    }
-    document.title = "Sal - The best QA engine?";
-  }, []);
   const requestedUsers = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    for (const question of props.questions.values()) {
-      // do not make multiple requests with the same id
-      // we've requested the current user in in App component
-      if (
-        !requestedUsers.current.has(question.user_id) &&
-        question.user_id !== props.currentUser
-      ) {
+  function onAnswerSuccess(response: any) {
+    if (!requestedUsers.current.has(response.answer.user_id)) {
+      props.loadUser(response.answer.user_id);
+      requestedUsers.current.add(response.answer.user_id);
+    }
+  }
+  function onQuestionsSuccess(response: any) {
+    for (const question of response.questions) {
+      if (!requestedUsers.current.has(question.user_id)) {
         props.loadUser(question.user_id);
         requestedUsers.current.add(question.user_id);
       }
-      // fetch answers
-      props.loadAnswer(question.best_answer || question.answers[0]);
+      props.loadAnswer(
+        question.best_answer || question.answers[0],
+        onAnswerSuccess
+      );
     }
-  }, [props.questions]);
+  }
 
   useEffect(() => {
-    for (const answer of props.answers.values()) {
-      if (
-        !requestedUsers.current.has(answer.user_id) &&
-        answer.user_id !== props.currentUser
-      ) {
-        props.loadUser(answer.user_id);
-        requestedUsers.current.add(answer.user_id);
-      }
+    // if the first page of questions have not been fetched yet
+    if (props.questions.size < 10) {
+      props.loadQuestions(onQuestionsSuccess);
     }
-  }, [props.answers]);
+    document.title = "Sal - The best QA engine?";
+  }, []);
 
   function handleFetchNewQuestions() {
-    props.loadQuestions();
+    props.loadQuestions(onQuestionsSuccess)
   }
 
   let QAComponents: ReactNode[] = [];

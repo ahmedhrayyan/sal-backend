@@ -1,23 +1,33 @@
 import { Types } from "./types";
 import { CALL_API } from "../../middlewares/apiService";
 
-function fetchAnswer(id: string) {
+function fetchAnswer(
+  id: string,
+  onSuccess: Function | null,
+  onFailure: Function | null
+) {
   return {
     [CALL_API]: {
       endpoint: `/api/answers/${id}`,
+      onSuccess,
+      onFailure,
       types: [Types.ANSWER_REQUEST, Types.ANSWER_SUCCESS, Types.ANSWER_FAILURE],
     },
   };
 }
 
-export function loadAnswer(id: string) {
+export function loadAnswer(
+  id: string,
+  onSuccess: Function | null = null,
+  onFailure: Function | null = null
+) {
   return function (dispatch: any, getState: any) {
     const answer = getState().answers.entities.get(id);
     // do not send pointless requests
     if (answer || !id) {
       return null;
     }
-    return dispatch(fetchAnswer(id));
+    return dispatch(fetchAnswer(id, onSuccess, onFailure));
   };
 }
 

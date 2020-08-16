@@ -38,7 +38,7 @@ const apiService = () => (next: any) => (action: any) => {
     return next(action);
   }
 
-  let { endpoint, token, types, config = {} } = call;
+  let { endpoint, token, types, config = {}, onSuccess, onFailure } = call;
   const [requestType, successType, errorType] = types;
   // dispatching the request
   next({
@@ -47,6 +47,9 @@ const apiService = () => (next: any) => (action: any) => {
 
   return callApi(endpoint, config, token)
     .then((response) => {
+      if (typeof onSuccess === 'function') {
+        onSuccess(response)
+      }
       return next({
         receivedAt: Date.now(),
         payload: response,
@@ -54,6 +57,9 @@ const apiService = () => (next: any) => (action: any) => {
       });
     })
     .catch((error) => {
+      if (typeof onFailure === 'function') {
+        onFailure(error)
+      }
       return next({
         error: error.message,
         type: errorType,

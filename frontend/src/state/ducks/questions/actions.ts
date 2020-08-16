@@ -2,10 +2,16 @@ import { Types } from "./types";
 import { CALL_API } from "../../middlewares/apiService";
 
 // load questions by page
-function fetchQuestions(nextPageUrl: string) {
+function fetchQuestions(
+  nextPageUrl: string,
+  onSuccess: Function | null,
+  onFailure: Function | null
+) {
   return {
     [CALL_API]: {
       endpoint: nextPageUrl,
+      onSuccess,
+      onFailure,
       types: [
         Types.QUESTIONS_REQUEST,
         Types.QUESTIONS_SUCCESS,
@@ -15,7 +21,10 @@ function fetchQuestions(nextPageUrl: string) {
   };
 }
 
-export function loadQuestions() {
+export function loadQuestions(
+  onSuccess: Function | null = null,
+  onFailure: Function | null = null
+) {
   return function (dispatch: any, getState: any) {
     const { nextPageUrl = "/api/questions", pageCount = 0 } =
       getState().questions || {};
@@ -23,7 +32,7 @@ export function loadQuestions() {
     if (pageCount > 0 && !nextPageUrl) {
       return;
     }
-    return dispatch(fetchQuestions(nextPageUrl));
+    return dispatch(fetchQuestions(nextPageUrl, onSuccess, onFailure));
   };
 }
 
