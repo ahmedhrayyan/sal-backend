@@ -5,7 +5,7 @@ from backend.auth import (init_auth0, Auth0Error, AuthError,
                   requires_auth, requires_permission)
 
 
-def get_paginated_items(req, items, items_per_page=20):
+def get_paginated_items(req, items, items_per_page=10):
     page = req.args.get('page', 1, int)
     start_index = (page - 1) * items_per_page
     end_index = start_index + items_per_page
