@@ -93,7 +93,7 @@ class User(db.Model, BaseModel):
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     job = Column(VARCHAR(50), nullable=True)
     profile = Column(String, nullable=False, default="test")  # profile picture
-    role = Column(Integer, ForeignKey('roles.id'), nullable=False)
+    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
     def __init__(self, first_name, last_name, email, username, password, job, profile=None, phone=None):
