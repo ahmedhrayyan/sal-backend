@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
-from backend.database import setup_db, Answer, Question
+from backend.database import setup_db
+from backend.database.models import Answer, Question
 from backend.auth import (init_auth0, Auth0Error, AuthError,
-                  requires_auth, requires_permission)
+                          requires_auth, requires_permission)
 
 
 def get_paginated_items(req, items, items_per_page=20):
@@ -28,8 +29,8 @@ def get_formated_questions(questions):
 def create_app(test_env=False):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True,
-        static_folder='../../frontend/build',
-        static_url_path='/')
+                static_folder='../../frontend/build',
+                static_url_path='/')
     if test_env is False:
         # load config file if it exists
         app.config.from_pyfile('config.py', silent=True)
@@ -219,7 +220,7 @@ def create_app(test_env=False):
         return jsonify({
             'success': True,
             'del_id': int(answer_id),
-            'question_id': question.id # the answer question id
+            'question_id': question.id  # the answer question id
         })
 
     # get users public data
@@ -249,7 +250,6 @@ def create_app(test_env=False):
 
         # otherwise, Make react router handle 404
         return app.send_static_file('index.html')
-
 
     @app.errorhandler(400)
     def bad_request(error):
