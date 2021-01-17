@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from backend.database import setup_db
-from backend.database.models import Answer, Question
-from backend.auth import (init_auth0, Auth0Error, AuthError,
-                          requires_auth, requires_permission)
+from backend.database.models import Answer, Question, User, Role
+import jwt
+from datetime import timedelta, datetime
+from backend.auth import AuthError, SECRET_KEY, requires_auth, requires_permission
 
 
 def get_paginated_items(req, items, items_per_page=20):
@@ -35,11 +36,38 @@ def create_app(test_env=False):
         # load config file if it exists
         app.config.from_pyfile('config.py', silent=True)
         setup_db(app)
-        auth0 = init_auth0()
 
     @app.route("/")
     def index():
-        return app.send_static_file("index.html")
+        return app.render_template("index.html")
+
+    @app.route('/api/login', methods=['POST'])
+    def login():
+        data = request.get_json() or {}
+        if 'username' not in data or 'password' not in data:
+            abort(422, 'username and password expected in request body')
+
+        username = data['username']
+        password = data['password']
+        user = User.query.filter_by(username=username).one_or_none()
+        if not user:
+            abort(422, 'username or password is not correct')
+
+        if not user.checkpw(str(password)):
+            abort(422, 'username or password is not correct')
+
+        permissions = Role.query.get(user.role_id).permissions
+        payload = {
+            'sub': username,
+            'exp': datetime.now() + timedelta(days=30),
+            'permissions': [permission.name for permission in permissions]
+        }
+        print(payload, SECRET_KEY)
+        token = jwt.encode(payload, SECRET_KEY, 'HS256')
+        return jsonify({
+            'success': True,
+            'token': str(token),
+        })
 
     @app.route('/api/search', methods=['POST'])
     def search():
@@ -226,15 +254,8 @@ def create_app(test_env=False):
     # get users public data
     @app.route('/api/users/<user_id>')
     def get_public_user(user_id):
-        # response is a dict object
-        public_fields = ['user_id', 'name', 'picture', 'user_metadata']
-        response = auth0.get_user(user_id, public_fields)
-        # check for errors
-        if response.get('error') is not None:
-            abort(response['statusCode'], response['message'])
         return jsonify({
             'success': True,
-            'user': response
         })
 
     # handling errors
@@ -276,14 +297,6 @@ def create_app(test_env=False):
         }), 405
 
     @app.errorhandler(AuthError)
-    def handle_auth_error(error):
-        return jsonify({
-            'success': False,
-            'message': error.message,
-            'error': error.status_code
-        }), error.status_code
-
-    @app.errorhandler(Auth0Error)
     def handle_auth_error(error):
         return jsonify({
             'success': False,
