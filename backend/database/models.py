@@ -124,10 +124,25 @@ class User(db.Model, BaseModel):
         }
 
 
+roles_permissions = db.Table('roles_permissions',
+                             Column('role_id', Integer,
+                                    ForeignKey('roles.id')),
+                             Column('permission_id', Integer, ForeignKey('permissions.id')))
+
+
 class Role(db.Model, BaseModel):
     __tablename__ = 'roles'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(20), nullable=False, unique=True)
+    permissions = db.relationship(
+        'Permission', secondary=roles_permissions, backref='roles', lazy=True)
+
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'permissions': [permission.id for permission in self.permissions]
+        }
 
 
 class Permission(db.Model, BaseModel):
@@ -140,13 +155,3 @@ class Permission(db.Model, BaseModel):
             'id': self.id,
             'name': self.name
         }
-
-
-# roles_permissions = db.Table('roles_permissions',
-#                              Column('role_id', Integer,
-#                                     ForeignKey('roles.id')),
-#                              Column('permission_id', Integer, ForeignKey('permission.id')))
-
-
-# Role.permissions = db.relationship(
-#     'Permission', secondary=roles_permissions, backref='roles', lazy=True)
