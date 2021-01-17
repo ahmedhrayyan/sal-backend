@@ -28,6 +28,7 @@ class BaseModel:
             db.session.rollback()
             raise exc.SQLAlchemyError(e)
 
+
 class Question(db.Model, BaseModel):
     __tablename__ = 'questions'
     id = Column(Integer, primary_key=True)
@@ -121,3 +122,31 @@ class User(db.Model, BaseModel):
             'profile': self.profile,
             'created_at': self.created_at
         }
+
+
+class Role(db.Model, BaseModel):
+    __tablename__ = 'roles'
+    id = Column(Integer, primary_key=True)
+    name = Column(VARCHAR(20), nullable=False, unique=True)
+
+
+class Permission(db.Model, BaseModel):
+    __tablename__ = 'permissions'
+    id = Column(Integer, primary_key=True)
+    name = Column(VARCHAR(40), nullable=False, unique=True)
+
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+
+# roles_permissions = db.Table('roles_permissions',
+#                              Column('role_id', Integer,
+#                                     ForeignKey('roles.id')),
+#                              Column('permission_id', Integer, ForeignKey('permission.id')))
+
+
+# Role.permissions = db.relationship(
+#     'Permission', secondary=roles_permissions, backref='roles', lazy=True)
