@@ -96,15 +96,16 @@ class User(db.Model, BaseModel):
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    def __init__(self, first_name, last_name, email, username, password, job, profile=None, phone=None):
+    def __init__(self, first_name, last_name, email, username, password, job, role_id, profile=None, phone=None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.username = username
         self.password = bcrypt.hashpw(
             bytes(password, 'utf-8'), bcrypt.gensalt(12))
-        self.phone = phone
         self.job = job
+        self.role_id = role_id
+        self.phone = phone
         if profile:
             self.profile = profile
 
@@ -138,6 +139,9 @@ class Role(db.Model, BaseModel):
     permissions = db.relationship(
         'Permission', secondary=roles_permissions, backref='roles', lazy=True)
 
+    def __init__(self, name):
+        self.name = name
+
     def format(self):
         return {
             'id': self.id,
@@ -150,6 +154,9 @@ class Permission(db.Model, BaseModel):
     __tablename__ = 'permissions'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(40), nullable=False, unique=True)
+
+    def __init__(self, name):
+        self.name = name
 
     def format(self):
         return {
