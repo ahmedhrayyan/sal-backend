@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, abort, _request_ctx_stack
 from flask_cors import CORS, cross_origin
 from backend.database import setup_db
 from backend.database.models import Answer, Question, User, Role
-import jwt
+from jose import jwt
 from datetime import timedelta, datetime
 from backend.auth import AuthError, SECRET_KEY, requires_auth, requires_permission
 
@@ -29,12 +29,10 @@ def get_formated_questions(questions):
 
 def create_app(test_env=False):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True,
+    app = Flask(__name__,
                 static_folder='../../frontend/build',
                 static_url_path='/')
     if test_env is False:
-        # load config file if it exists
-        app.config.from_pyfile('config.py', silent=True)
         setup_db(app)
 
     @app.route("/")
@@ -62,7 +60,6 @@ def create_app(test_env=False):
             'exp': datetime.now() + timedelta(days=30),
             'permissions': [permission.name for permission in permissions]
         }
-        print(payload, SECRET_KEY)
         token = jwt.encode(payload, SECRET_KEY, 'HS256')
         return jsonify({
             'success': True,

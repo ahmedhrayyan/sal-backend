@@ -1,7 +1,7 @@
 from os import environ
 from functools import wraps
 from flask import request, _request_ctx_stack
-import jwt
+from jose import jwt
 try:
     SECRET_KEY = environ['SECRET_KEY']
 except KeyError:
@@ -39,7 +39,7 @@ def requires_auth(f):
         token = get_token_auth_header()
         try:
             payload = jwt.decode(token, SECRET_KEY, 'HS256')
-        except (jwt.DecodeError, jwt.ExpiredSignatureError):
+        except (jwt.JWTClaimsError, jwt.ExpiredSignatureError):
             raise AuthError('Token is invalid', 401)
 
         _request_ctx_stack.top.curr_user = payload
