@@ -352,12 +352,4 @@ def create_app(test_env=False):
             'error': error.code
         }), error.code
 
-    @app.errorhandler(500)
-    def handle_auth_error(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 500
-        }), 500
-
     return app
