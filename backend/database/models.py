@@ -1,3 +1,4 @@
+from flask.globals import session
 from backend.database import db
 from sqlalchemy import Column, String, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc
 from datetime import datetime
@@ -90,13 +91,13 @@ class User(db.Model, BaseModel):
     email = Column(VARCHAR(60), nullable=False, unique=True)
     username = Column(VARCHAR(20), nullable=False, unique=True)
     password = Column(Binary, nullable=False)
-    phone = Column(VARCHAR(50), nullable=True, unique=True)
-    job = Column(VARCHAR(50), nullable=True)
-    profile = Column(String, nullable=False, default="test")  # profile picture
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
+    job = Column(VARCHAR(50), nullable=True)
+    phone = Column(VARCHAR(50), nullable=True, unique=True)
+    avatar = Column(String, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    def __init__(self, first_name, last_name, email, username, password, job, role_id, profile=None, phone=None):
+    def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -106,8 +107,7 @@ class User(db.Model, BaseModel):
         self.job = job
         self.role_id = role_id
         self.phone = phone
-        if profile:
-            self.profile = profile
+        self.avatar = avatar
 
     def checkpw(self, password):
         return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
