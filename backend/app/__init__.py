@@ -1,6 +1,5 @@
 from os import path, mkdir
 from uuid import uuid4
-import uuid
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
 from flask.helpers import send_from_directory
 from flask_cors import CORS, cross_origin
@@ -9,7 +8,6 @@ from backend.database.models import Answer, Question, User, Role
 from jose import jwt
 from datetime import timedelta, datetime
 from backend.auth import AuthError, requires_auth, requires_permission
-from werkzeug.utils import secure_filename
 import imghdr
 
 
@@ -66,7 +64,7 @@ def create_app(test_env=False):
         file_ext = file.filename.rsplit('.', 1)[1].lower()
         if file_ext not in app.config['ALLOWED_EXTENSIONS'] or \
                 file_ext != validate_image(file.stream):
-            abort(400, 'You can only upload PNG and JPG file formats')
+            abort(422, 'You can only upload PNG and JPG file formats')
 
         # generate unique filename
         filename = uuid4().hex + "." + file_ext
