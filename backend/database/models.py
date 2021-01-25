@@ -1,6 +1,6 @@
 from sqlalchemy.sql.sqltypes import Boolean
 from backend.database import db
-from sqlalchemy import Column, String, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc
+from sqlalchemy import Column, String, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc, Text
 from datetime import datetime
 import bcrypt
 
@@ -97,6 +97,10 @@ class User(db.Model, BaseModel):
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     avatar = Column(String, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    alerts = db.relationship('Alert',
+                             order_by='desc(Alert.created_at)',
+                             lazy=True,
+                             cascade="all")
 
     def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
         self.first_name = first_name
@@ -167,4 +171,23 @@ class Permission(db.Model, BaseModel):
         return {
             'id': self.id,
             'name': self.name
+        }
+
+
+class Alert(db.Model, BaseModel):
+    __tablename__ = 'alerts'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    body = Column(Text, nullable=False)
+    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+
+    def __init__(self, user_id, body):
+        self.user_id = user_id
+        self.body = body
+
+    def format(self):
+        return {
+            'id': self.id,
+            'body': self.body,
+            'created_at': self.created_at
         }
