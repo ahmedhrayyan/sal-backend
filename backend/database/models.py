@@ -1,4 +1,4 @@
-from flask.globals import session
+from sqlalchemy.sql.sqltypes import Boolean
 from backend.database import db
 from sqlalchemy import Column, String, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc
 from datetime import datetime
@@ -92,6 +92,7 @@ class User(db.Model, BaseModel):
     username = Column(VARCHAR(20), nullable=False, unique=True)
     password = Column(Binary, nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
+    email_confirmed = Column(Boolean, default=False, nullable=False)
     job = Column(VARCHAR(50), nullable=True)
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     avatar = Column(String, nullable=True)
