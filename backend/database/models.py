@@ -112,6 +112,10 @@ class User(db.Model, BaseModel):
     def checkpw(self, password):
         return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
 
+    def change_pw(self, password):
+        self.password = bcrypt.hashpw(
+            bytes(password, 'utf-8'), bcrypt.gensalt(12))
+
     def format(self):
         return {
             'id': self.id,
