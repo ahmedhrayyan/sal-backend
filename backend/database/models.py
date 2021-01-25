@@ -1,6 +1,6 @@
 from sqlalchemy.sql.sqltypes import Boolean
 from backend.database import db
-from sqlalchemy import Column, String, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc, Text
+from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc, Text
 from datetime import datetime
 import bcrypt
 
@@ -34,7 +34,7 @@ class Question(db.Model, BaseModel):
     __tablename__ = 'questions'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(String(), nullable=False)
+    content = Column(Text, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
     answers = db.relationship('Answer',
                               backref='question',
@@ -63,7 +63,7 @@ class Answer(db.Model, BaseModel):
     __tablename__ = 'answers'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(String(), nullable=False)
+    content = Column(Text, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
@@ -95,12 +95,12 @@ class User(db.Model, BaseModel):
     email_confirmed = Column(Boolean, default=False, nullable=False)
     job = Column(VARCHAR(50), nullable=True)
     phone = Column(VARCHAR(50), nullable=True, unique=True)
-    avatar = Column(String, nullable=True)
+    avatar = Column(Text, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    alerts = db.relationship('Alert',
-                             order_by='desc(Alert.created_at)',
-                             lazy=True,
-                             cascade="all")
+    notifications = db.relationship('Notification',
+                                    order_by='desc(Notification.created_at)',
+                                    lazy=True,
+                                    cascade="all")
 
     def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
         self.first_name = first_name
@@ -174,11 +174,12 @@ class Permission(db.Model, BaseModel):
         }
 
 
-class Alert(db.Model, BaseModel):
-    __tablename__ = 'alerts'
+class Notification(db.Model, BaseModel):
+    __tablename__ = 'notifications'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    body = Column(Text, nullable=False)
+    content = Column(Text, nullable=False)
+    read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
     def __init__(self, user_id, body):
