@@ -1,10 +1,25 @@
-from flask import Flask, jsonify, request, abort, _request_ctx_stack
+from os import path, mkdir
+from uuid import uuid4
+import uuid
+from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
+from flask.helpers import send_from_directory
 from flask_cors import CORS, cross_origin
 from backend.database import setup_db
 from backend.database.models import Answer, Question, User, Role
 from jose import jwt
 from datetime import timedelta, datetime
 from backend.auth import AuthError, requires_auth, requires_permission
+from werkzeug.utils import secure_filename
+import imghdr
+
+
+def validate_image(stream):
+    # check file format
+    header = stream.read(512)
+    stream.seek(0)
+    format = imghdr.what(None, header)
+    # jpeg normally uses jpg file extension
+    return format if format != "jpeg" else "jpg"
 
 
 def get_paginated_items(req, items, items_per_page=20):
@@ -40,6 +55,40 @@ def create_app(test_env=False):
     @app.route("/")
     def index():
         return app.render_template("index.html")
+
+    @app.route("/api/upload", methods=['POST'])
+    def upload():
+        if 'file' not in request.files:
+            abort(400, "No file founded")
+        file = request.files['file']
+        if file.filename == '':
+            abort(400, 'No selected file')
+        file_ext = file.filename.rsplit('.', 1)[1].lower()
+        if file_ext not in app.config['ALLOWED_EXTENSIONS'] or \
+                file_ext != validate_image(file.stream):
+            abort(400, 'You can only upload PNG and JPG file formats')
+
+        # generate unique filename
+        filename = uuid4().hex + "." + file_ext
+
+        # Create upload folder if is doesnot exist
+        if not path.isdir(app.config['UPLOAD_FOLDER']):
+            mkdir(app.config['UPLOAD_FOLDER'])
+
+        file.save(path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        return jsonify({
+            'success': True,
+            'path': filename
+        })
+
+    @app.route("/uploads/<filename>")
+    def uploaded_file(filename):
+        # check if the file exists
+        if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], filename)):
+            abort(404, "File not found!")
+
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     @app.route('/api/login', methods=['POST'])
     def login():
@@ -260,7 +309,8 @@ def create_app(test_env=False):
     @app.errorhandler(404)
     def not_found(error):
         # Invalid called to an api
-        if request.path.startswith('/api') or request.method != 'GET':
+        if request.path.startswith('/api') or request.path.startswith("/uploads") \
+                or request.method != 'GET':
             return jsonify({
                 'success': False,
                 'message': error.description,
