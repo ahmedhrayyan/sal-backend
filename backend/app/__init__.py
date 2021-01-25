@@ -4,7 +4,7 @@ from backend.database import setup_db
 from backend.database.models import Answer, Question, User, Role
 from jose import jwt
 from datetime import timedelta, datetime
-from backend.auth import AuthError, SECRET_KEY, requires_auth, requires_permission
+from backend.auth import AuthError, requires_auth, requires_permission
 
 
 def get_paginated_items(req, items, items_per_page=20):
@@ -29,10 +29,12 @@ def get_formated_questions(questions):
 
 def create_app(test_env=False):
     # create and configure the app
-    app = Flask(__name__,
+    app = Flask(__name__, instance_relative_config=True,
                 static_folder='../../frontend/build',
                 static_url_path='/')
+
     if test_env is False:
+        app.config.from_pyfile('flask.cfg')
         setup_db(app)
 
     @app.route("/")
@@ -60,7 +62,7 @@ def create_app(test_env=False):
             'exp': datetime.now() + timedelta(days=30),
             'permissions': [permission.name for permission in permissions]
         }
-        token = jwt.encode(payload, SECRET_KEY, 'HS256')
+        token = jwt.encode(payload, app.config['SECRET_KEY'], 'HS256')
         return jsonify({
             'success': True,
             'token': str(token),
@@ -100,7 +102,6 @@ def create_app(test_env=False):
             'questions': formated_questions,
             'no_of_questions': len(all_questions),
             'next_path': next_path
-
         })
 
     @app.route('/api/questions/<question_id>', methods=['GET'])
@@ -114,7 +115,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>', methods=['PATCH'])
-    @requires_auth
+    @requires_auth(app.config['SECRET_KEY'])
     def select_best_answer(question_id):
         data = request.get_json() or []
         if 'answer' not in data:
@@ -141,7 +142,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions', methods=['POST'])
-    @requires_auth
+    @requires_auth(app.config['SECRET_KEY'])
     def post_question():
         data = request.get_json() or []
         if 'content' not in data:
@@ -158,7 +159,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>', methods=['DELETE'])
-    @requires_auth
+    @requires_auth(app.config['SECRET_KEY'])
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -203,7 +204,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>/answers', methods=['POST'])
-    @requires_auth
+    @requires_auth(app.config['SECRET_KEY'])
     def post_answer(question_id):
         data = request.get_json() or []
         if 'content' not in data:
@@ -223,7 +224,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/answers/<answer_id>', methods=['DELETE'])
-    @requires_auth
+    @requires_auth(app.config['SECRET_KEY'])
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -298,8 +299,8 @@ def create_app(test_env=False):
         return jsonify({
             'success': False,
             'message': error.message,
-            'error': error.status_code
-        }), error.status_code
+            'error': error.code
+        }), error.code
 
     @app.errorhandler(500)
     def handle_auth_error(error):

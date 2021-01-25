@@ -1,11 +1,6 @@
-from os import environ
 from functools import wraps
 from flask import request, _request_ctx_stack
 from jose import jwt
-try:
-    SECRET_KEY = environ['SECRET_KEY']
-except KeyError:
-    raise KeyError('SECRET_KEY expected in environ')
 
 
 class AuthError(Exception):
@@ -14,7 +9,7 @@ class AuthError(Exception):
         self.code = code
 
 
-def get_token_auth_header():
+def get_token_auth_header() -> str:
     auth = request.headers.get("Authorization", None)
     if not auth:
         raise AuthError(
@@ -33,20 +28,22 @@ def get_token_auth_header():
     return token
 
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = get_token_auth_header()
-        try:
-            payload = jwt.decode(token, SECRET_KEY, 'HS256')
-        except (jwt.JWTClaimsError, jwt.ExpiredSignatureError):
-            raise AuthError('Token is invalid', 401)
+def requires_auth(secret_key):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = get_token_auth_header()
+            try:
+                payload = jwt.decode(token, secret_key, 'HS256')
+            except (jwt.JWTClaimsError, jwt.ExpiredSignatureError):
+                raise AuthError('Token is invalid', 401)
 
-        _request_ctx_stack.top.curr_user = payload
-        return f(*args, **kwargs)
-    return decorated
+            _request_ctx_stack.top.curr_user = payload
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
 
 
-def requires_permission(required_permission):
+def requires_permission(required_permission) -> bool:
     permissions = _request_ctx_stack.top.curr_user['permissions']
     return required_permission in permissions
