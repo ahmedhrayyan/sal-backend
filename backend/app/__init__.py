@@ -8,7 +8,9 @@ from backend.database.models import Answer, Question, User, Role
 from jose import jwt
 from datetime import timedelta, datetime
 from backend.auth import AuthError, requires_auth, requires_permission
+from sqlalchemy.exc import IntegrityError
 import imghdr
+import re
 
 
 def validate_image(stream):
@@ -69,7 +71,7 @@ def create_app(test_env=False):
         # generate unique filename
         filename = uuid4().hex + "." + file_ext
 
-        # Create upload folder if is doesnot exist
+        # Create upload folder if it doesnot exist
         if not path.isdir(app.config['UPLOAD_FOLDER']):
             mkdir(app.config['UPLOAD_FOLDER'])
 
@@ -87,6 +89,58 @@ def create_app(test_env=False):
             abort(404, "File not found!")
 
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+    @app.route("/api/register", methods=['POST'])
+    def register():
+        data = request.get_json() or {}
+        required_fields = ['first_name', 'last_name',
+                           'email', 'username', 'password']
+        # abort if any required field doesnot exist in request body
+        for field in required_fields:
+            if field not in data:
+                abort(422, '%s is required' % field)
+
+        first_name = str(data['first_name']).lower().strip()
+        last_name = str(data['last_name']).lower().strip()
+        email = str(data['email']).lower().strip()
+        username = str(data['username']).lower().strip()
+        password = str(data['password']).lower()
+        phone = data.get('phone', None)
+        job = data.get('job', None)
+
+        # validating data
+        if re.match(app.config['EMAIL_PATTERN'], email) is None:
+            abort(422, 'Email is not valid')
+        if len(password) < 8:
+            abort(422, 'Password have to be at least 8 characters in length')
+        if phone and re.match(app.config['PHONE_PATTERN'], phone) is None:
+            abort(422, 'Phone is not valid')
+        if len(username) < 4:
+            abort(422, 'Username have to be at least 4 characters in length')
+        if job:
+            str(job).lower().strip()
+
+        default_role = Role.query.filter_by(name="general").one_or_none().id
+
+        new_user = User(first_name, last_name, email,
+                        username, password, default_role, job, phone)
+
+        try:
+            new_user.insert()
+        except IntegrityError:
+            # Integrity error means a unique value already exist in a different record
+            if User.query.filter_by(email=data['email']).one_or_none():
+                msg = 'Email is allready in use'
+            elif User.query.filter_by(username=data['username']).one_or_none():
+                msg = "Username is allready in use"
+            else:
+                msg = "Phone is allready in use"
+            abort(422, msg)
+
+        return jsonify({
+            'success': True,
+            'user': new_user.format()
+        })
 
     @app.route('/api/login', methods=['POST'])
     def login():

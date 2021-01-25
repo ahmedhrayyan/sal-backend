@@ -11,7 +11,7 @@ class BaseModel:
             db.session.commit()
         except exc.SQLAlchemyError as e:
             db.session.rollback()
-            raise exc.SQLAlchemyError(e)
+            raise e
 
     def delete(self):
         try:
@@ -19,7 +19,7 @@ class BaseModel:
             db.session.commit()
         except exc.SQLAlchemyError as e:
             db.session.rollback()
-            raise exc.SQLAlchemyError(e)
+            raise e
 
     def insert(self):
         try:
@@ -27,7 +27,7 @@ class BaseModel:
             db.session.commit()
         except exc.SQLAlchemyError as e:
             db.session.rollback()
-            raise exc.SQLAlchemyError(e)
+            raise e
 
 
 class Question(db.Model, BaseModel):
@@ -112,7 +112,7 @@ class User(db.Model, BaseModel):
     def checkpw(self, password):
         return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
 
-    def change_pw(self, password):
+    def set_pw(self, password):
         self.password = bcrypt.hashpw(
             bytes(password, 'utf-8'), bcrypt.gensalt(12))
 
@@ -125,7 +125,7 @@ class User(db.Model, BaseModel):
             'username': self.username,
             'phone': self.phone,
             'job': self.job,
-            'profile': self.profile,
+            'avatar': self.avatar,
             'created_at': self.created_at
         }
 
