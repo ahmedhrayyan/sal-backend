@@ -171,27 +171,6 @@ def create_app(test_env=False):
             'token': str(token),
         })
 
-    @app.route('/api/search', methods=['POST'])
-    def search():
-        data = request.get_json() or []
-        if 'search' not in data:
-            abort(400, 'search expected in request body')
-        search_term = '%' + data['search'] + '%'
-        all_questions = Question.query.filter(
-            Question.content.ilike(search_term)
-        ).order_by(Question.created_at.desc()).all()
-        questions, next_path = get_paginated_items(request, all_questions)
-        formated_questions = get_formated_questions(questions)
-        if len(questions) == 0:
-            abort(404)
-        return jsonify({
-            'success': True,
-            'questions': formated_questions,
-            'no_of_questions': len(all_questions),
-            'next_path': next_path,
-            'search_term': data['search']
-        })
-
     @app.route('/api/questions', methods=['GET'])
     def get_questions():
         all_questions = Question.query.order_by(
@@ -250,6 +229,7 @@ def create_app(test_env=False):
         data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
+
         # sanitize input
         content = bleach.clean(data['content'])
         # supporting markdown
