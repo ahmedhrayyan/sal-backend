@@ -11,6 +11,8 @@ from backend.auth import AuthError, requires_auth, requires_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
+from markdown import markdown
+import bleach
 
 
 def validate_image(stream):
@@ -248,12 +250,17 @@ def create_app(test_env=False):
         data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
+        # sanitize input
+        content = bleach.clean(data['content'])
+        # supporting markdown
+        content = markdown(content)
         user_id = _request_ctx_stack.top.current_user['sub']
-        new_question = Question(user_id, data['content'])
+        new_question = Question(user_id, content)
         try:
             new_question.insert()
         except Exception:
             abort(422)
+
         return jsonify({
             'success': True,
             'created': new_question.format()
@@ -313,8 +320,12 @@ def create_app(test_env=False):
         question = Question.query.get(question_id)
         if question == None:
             abort(404, 'question not found')
+        # sanitize input
+        content = bleach.clean(data['content'])
+        # supporting markdown
+        content = markdown(content)
         user_id = _request_ctx_stack.top.current_user['sub']
-        new_answer = Answer(user_id, data['content'], question_id)
+        new_answer = Answer(user_id, content, question_id)
         try:
             new_answer.insert()
         except Exception:
