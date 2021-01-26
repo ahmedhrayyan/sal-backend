@@ -3,8 +3,8 @@ from uuid import uuid4
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
 from flask.helpers import send_from_directory
 from flask_cors import CORS, cross_origin
-from backend.database import setup_db
-from backend.database.models import Answer, Question, User, Role
+from backend.db import setup_db
+from backend.db.models import Answer, Question, User, Role
 from jose import jwt
 from datetime import timedelta, datetime
 from backend.auth import AuthError, requires_auth, requires_permission

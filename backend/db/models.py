@@ -1,5 +1,5 @@
 from sqlalchemy.sql.sqltypes import Boolean
-from backend.database import db
+from backend.db import db
 from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc, Text
 from datetime import datetime
 import bcrypt
@@ -42,7 +42,7 @@ class Question(db.Model, BaseModel):
                               lazy=True,
                               foreign_keys='Answer.question_id',
                               cascade="all")
-    best_answer = db.Column(Integer, nullable=True)
+    accepted_answer = Column(Integer, ForeignKey('answers.id'), nullable=True)
 
     def __init__(self, user_id, content):
         self.user_id = user_id
@@ -55,7 +55,6 @@ class Question(db.Model, BaseModel):
             'content': self.content,
             'created_at': self.created_at,
             'best_answer': self.best_answer,
-            'answers': [answer.id for answer in self.answers]
         }
 
 
@@ -155,7 +154,6 @@ class Role(db.Model, BaseModel):
         return {
             'id': self.id,
             'name': self.name,
-            'permissions': [permission.id for permission in self.permissions]
         }
 
 
