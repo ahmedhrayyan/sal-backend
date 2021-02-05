@@ -67,6 +67,7 @@ def create_app(test_config=None):
         return app.render_template("index.html")
 
     @app.route("/api/upload", methods=['POST'])
+    @requires_auth(SECRET_KEY)
     def upload():
         if 'file' not in request.files:
             abort(400, "No file founded")
@@ -150,7 +151,6 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'token': gen_token(SECRET_KEY, new_user),
-            'user': new_user.format()
         })
 
     @app.route('/api/login', methods=['POST'])
@@ -165,14 +165,9 @@ def create_app(test_config=None):
         if not user or not user.checkpw(str(password)):
             abort(422, 'username or password is not correct')
 
-        unread_notifications = Notification.query.filter(
-            User.id == user.id, Notification.read == False).count()
-
         return jsonify({
             'success': True,
             'token': gen_token(SECRET_KEY, user),
-            'user': user.format(),
-            'unread_notifications': unread_notifications
         })
 
     @app.route('/api/questions', methods=['GET'])
@@ -347,6 +342,20 @@ def create_app(test_config=None):
             'question_id': question.id  # the answer question id
         })
 
+    @app.route('/api/load-own-data')
+    @requires_auth(SECRET_KEY)
+    def load_own_data():
+        sub = _request_ctx_stack.top.curr_user['sub']
+        user = User.query.filter_by(username=sub).one()
+        unread_notifications = Notification.query.filter_by(
+            user_id=user.id, read=False).count()
+
+        return jsonify({
+            'success': True,
+            'data': user.format(),
+            'unread_notifications': unread_notifications
+        })
+
     @app.route('/api/users/<user_id>')
     def show_user(user_id):
         try:
@@ -362,6 +371,7 @@ def create_app(test_config=None):
             'success': True,
             'data': user.format()
         })
+
 
     @app.route('/api/users/<user_id>/notifications')
     def get_user_notifications(user_id):
