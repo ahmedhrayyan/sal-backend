@@ -48,15 +48,19 @@ def get_formated_questions(questions):
     return formated_questions
 
 
-def create_app(test_env=False):
+def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True,
                 static_folder='../../frontend/build',
                 static_url_path='/')
 
-    if test_env is False:
+    if test_config is None:
         app.config.from_pyfile('flask.cfg')
-        setup_db(app)
+    else:
+        app.config.from_mapping(**test_config)
+
+    setup_db(app, bool(test_config))
+    SECRET_KEY = app.config['SECRET_KEY']
 
     @app.route("/")
     def index():
@@ -145,7 +149,7 @@ def create_app(test_env=False):
 
         return jsonify({
             'success': True,
-            'token': gen_token(app.config['SECRET_KEY'], new_user),
+            'token': gen_token(SECRET_KEY, new_user),
             'user': new_user.format()
         })
 
@@ -166,7 +170,7 @@ def create_app(test_env=False):
 
         return jsonify({
             'success': True,
-            'token': gen_token(app.config['SECRET_KEY'], user),
+            'token': gen_token(SECRET_KEY, user),
             'user': user.format(),
             'unread_notifications': unread_notifications
         })
@@ -197,7 +201,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>/accepted_answer', methods=['PATCH'])
-    @requires_auth(app.config['SECRET_KEY'])
+    @requires_auth(SECRET_KEY)
     def alter_accepted_answer(question_id):
         data = request.get_json() or []
         if 'answer' not in data:
@@ -226,7 +230,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions', methods=['POST'])
-    @requires_auth(app.config['SECRET_KEY'])
+    @requires_auth(SECRET_KEY)
     def post_question():
         data = request.get_json() or []
         if 'content' not in data:
@@ -249,7 +253,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>', methods=['DELETE'])
-    @requires_auth(app.config['SECRET_KEY'])
+    @requires_auth(SECRET_KEY)
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -294,7 +298,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/questions/<question_id>/answers', methods=['POST'])
-    @requires_auth(app.config['SECRET_KEY'])
+    @requires_auth(SECRET_KEY)
     def post_answer(question_id):
         data = request.get_json() or []
         if 'content' not in data:
@@ -318,7 +322,7 @@ def create_app(test_env=False):
         })
 
     @app.route('/api/answers/<answer_id>', methods=['DELETE'])
-    @requires_auth(app.config['SECRET_KEY'])
+    @requires_auth(SECRET_KEY)
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
