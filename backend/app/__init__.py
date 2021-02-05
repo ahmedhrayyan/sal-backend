@@ -4,10 +4,9 @@ from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_
 from flask.helpers import send_from_directory
 from flask_cors import CORS, cross_origin
 from backend.db import setup_db
-from backend.db.models import Answer, Question, User, Role
+from backend.db.models import Answer, Notification, Question, User, Role
 from jose import jwt
-from datetime import timedelta, datetime
-from backend.auth import AuthError, requires_auth, requires_permission
+from backend.auth import AuthError, gen_token, requires_auth, requires_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
@@ -22,6 +21,11 @@ def validate_image(stream):
     format = imghdr.what(None, header)
     # jpeg normally uses jpg file extension
     return format if format != "jpeg" else "jpg"
+
+
+def paginate(query, page=1, page_size=20):
+    offset = (page - 1) * page_size
+    return query.limit(page_size).offset(offset)
 
 
 def get_paginated_items(req, items, items_per_page=20):
@@ -141,6 +145,7 @@ def create_app(test_env=False):
 
         return jsonify({
             'success': True,
+            'token': gen_token(app.config['SECRET_KEY'], new_user),
             'user': new_user.format()
         })
 
@@ -153,22 +158,17 @@ def create_app(test_env=False):
         username = data['username']
         password = data['password']
         user = User.query.filter_by(username=username).one_or_none()
-        if not user:
+        if not user or not user.checkpw(str(password)):
             abort(422, 'username or password is not correct')
 
-        if not user.checkpw(str(password)):
-            abort(422, 'username or password is not correct')
+        unread_notifications = Notification.query.filter(
+            User.id == user.id, Notification.read == False).count()
 
-        permissions = Role.query.get(user.role_id).permissions
-        payload = {
-            'sub': username,
-            'exp': datetime.now() + timedelta(days=30),
-            'permissions': [permission.name for permission in permissions]
-        }
-        token = jwt.encode(payload, app.config['SECRET_KEY'], 'HS256')
         return jsonify({
             'success': True,
-            'token': str(token),
+            'token': gen_token(app.config['SECRET_KEY'], user),
+            'user': user.format(),
+            'unread_notifications': unread_notifications
         })
 
     @app.route('/api/questions', methods=['GET'])
@@ -196,9 +196,9 @@ def create_app(test_env=False):
             'question': question.format()
         })
 
-    @app.route('/api/questions/<question_id>', methods=['PATCH'])
+    @app.route('/api/questions/<question_id>/accepted_answer', methods=['PATCH'])
     @requires_auth(app.config['SECRET_KEY'])
-    def select_best_answer(question_id):
+    def alter_accepted_answer(question_id):
         data = request.get_json() or []
         if 'answer' not in data:
             abort(400, 'answer expected in request body')
@@ -213,11 +213,13 @@ def create_app(test_env=False):
         answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
-        question.best_answer = answer_id
+        question.accepted_answer = answer_id
+
         try:
             question.update()
         except Exception:
             abort(422)
+
         return jsonify({
             'success': True,
             'patched': question.format()
@@ -341,11 +343,66 @@ def create_app(test_env=False):
             'question_id': question.id  # the answer question id
         })
 
-    # get users public data
     @app.route('/api/users/<user_id>')
-    def get_public_user(user_id):
+    def show_user(user_id):
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            abort(422, 'User id must be a number')
+
+        user = User.query.get(user_id)
+        if not user:
+            abort(404, 'User not found')
+
         return jsonify({
             'success': True,
+            'data': user.format()
+        })
+
+    @app.route('/api/users/<user_id>/notifications')
+    def get_user_notifications(user_id):
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            abort(422, 'User id must be a number')
+
+        user = User.query.get(user_id)
+        if not user:
+            abort(404, 'User not found')
+
+        page = request.args.get('page', 1, int)
+        query = Notification.query.filter_by(user_id=user_id)
+        total = query.count()
+        notifications = paginate(query, page).all()
+
+        return jsonify({
+            'success': True,
+            'data': [notification.format() for notification in notifications],
+            'page': page,
+            'total': total
+        })
+
+    @app.route('/api/users/<user_id>/questions')
+    def get_user_questions(user_id):
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            abort(422, 'User id must be a number')
+
+        user = User.query.get(user_id)
+        if not user:
+            abort(404, 'User not found')
+
+        page = request.args.get('page', 1, int)
+        query = Question.query.filter_by(user_id=user_id)
+        total = query.count()
+        questions = paginate(query, page).all()
+
+        return jsonify({
+            'success': True,
+            'data': [questions.format() for questions in questions],
+            'page': page,
+            'total': total
         })
 
     # handling errors

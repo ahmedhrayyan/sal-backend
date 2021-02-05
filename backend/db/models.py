@@ -36,12 +36,6 @@ class Question(db.Model, BaseModel):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    answers = db.relationship('Answer',
-                              backref='question',
-                              order_by='desc(Answer.created_at)',
-                              lazy=True,
-                              foreign_keys='Answer.question_id',
-                              cascade="all")
     accepted_answer = Column(Integer, ForeignKey('answers.id'), nullable=True)
 
     def __init__(self, user_id, content):
@@ -54,7 +48,7 @@ class Question(db.Model, BaseModel):
             'user_id': self.user_id,
             'content': self.content,
             'created_at': self.created_at,
-            'best_answer': self.best_answer,
+            'accepted_answer': self.accepted_answer,
         }
 
 
@@ -96,10 +90,6 @@ class User(db.Model, BaseModel):
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     avatar = Column(Text, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    notifications = db.relationship('Notification',
-                                    order_by='desc(Notification.created_at)',
-                                    lazy=True,
-                                    cascade="all")
 
     def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
         self.first_name = first_name
@@ -180,13 +170,13 @@ class Notification(db.Model, BaseModel):
     read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    def __init__(self, user_id, body):
+    def __init__(self, user_id, content):
         self.user_id = user_id
-        self.body = body
+        self.content = content
 
     def format(self):
         return {
             'id': self.id,
-            'body': self.body,
+            'content': self.content,
             'created_at': self.created_at
         }

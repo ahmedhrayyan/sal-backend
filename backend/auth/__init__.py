@@ -1,7 +1,8 @@
 from functools import wraps
 from flask import request, _request_ctx_stack
 from jose import jwt
-
+from datetime import datetime, timedelta
+from backend.db.models import Role
 
 class AuthError(Exception):
     def __init__(self, message: str, code: int):
@@ -47,3 +48,14 @@ def requires_auth(secret_key):
 def requires_permission(required_permission) -> bool:
     permissions = _request_ctx_stack.top.curr_user['permissions']
     return required_permission in permissions
+
+
+def gen_token(secret_key, user) -> str:
+    permissions = Role.query.get(user.role_id).permissions
+    payload = {
+        'sub': user.username,
+        'exp': datetime.now() + timedelta(days=30),
+        'permissions': [permission.name for permission in permissions]
+    }
+    token = jwt.encode(payload, secret_key, 'HS256')
+    return str(token)
