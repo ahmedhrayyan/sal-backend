@@ -12,7 +12,7 @@ class Config(object):
     PHONE_PATTERN = "^\+(?:[0-9]){6,14}[0-9]$"
 
     UPLOAD_FOLDER = "uploads"
-    ALLOWED_EXTENSIONS = ['png', 'jpg']
+    ALLOWED_EXTENSIONS = { 'png', 'jpg' }
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
 

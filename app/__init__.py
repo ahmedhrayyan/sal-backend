@@ -449,6 +449,14 @@ def create_app(config=ProductionConfig):
             'error': 405
         }), 405
 
+    @app.errorhandler(413)
+    def too_large(error):
+        return jsonify({
+            'success': False,
+            'message': error.description,
+            'error': 413
+        }), 413
+
     @app.errorhandler(AuthError)
     def handle_auth_error(error):
         return jsonify({
