@@ -93,11 +93,10 @@ def create_app(config=ProductionConfig):
 
     @app.get("/uploads/<filename>")
     def uploaded_file(filename):
-        # check if the file exists
-        if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], filename)):
-            abort(404, "File not found!")
-
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        try:
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        except Exception:
+            abort(404, "File not found")
 
     @app.post("/api/register")
     def register():
