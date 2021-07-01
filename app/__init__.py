@@ -64,7 +64,7 @@ def create_app(config=ProductionConfig):
             "message": "Hello World!"
         })
 
-    @app.route("/api/upload", methods=['POST'])
+    @app.post("/api/upload")
     @requires_auth(SECRET_KEY)
     def upload():
         if 'file' not in request.files:
@@ -91,7 +91,7 @@ def create_app(config=ProductionConfig):
             'path': filename
         })
 
-    @app.route("/uploads/<filename>")
+    @app.get("/uploads/<filename>")
     def uploaded_file(filename):
         # check if the file exists
         if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], filename)):
@@ -99,7 +99,7 @@ def create_app(config=ProductionConfig):
 
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-    @app.route("/api/register", methods=['POST'])
+    @app.post("/api/register")
     def register():
         data = request.get_json() or {}
         required_fields = ['first_name', 'last_name',
@@ -151,7 +151,7 @@ def create_app(config=ProductionConfig):
             'token': gen_token(SECRET_KEY, new_user),
         })
 
-    @app.route('/api/login', methods=['POST'])
+    @app.post('/api/login')
     def login():
         data = request.get_json() or {}
         if 'username' not in data or 'password' not in data:
@@ -168,7 +168,7 @@ def create_app(config=ProductionConfig):
             'token': gen_token(SECRET_KEY, user),
         })
 
-    @app.route('/api/questions', methods=['GET'])
+    @app.get('/api/questions')
     def get_questions():
         all_questions = Question.query.order_by(
             Question.created_at.desc()).all()
@@ -183,7 +183,7 @@ def create_app(config=ProductionConfig):
             'next_path': next_path
         })
 
-    @app.route('/api/questions/<question_id>', methods=['GET'])
+    @app.get('/api/questions/<question_id>')
     def get_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -193,7 +193,7 @@ def create_app(config=ProductionConfig):
             'question': question.format()
         })
 
-    @app.route('/api/questions/<question_id>/accepted_answer', methods=['PATCH'])
+    @app.patch('/api/questions/<question_id>/accepted_answer')
     @requires_auth(SECRET_KEY)
     def alter_accepted_answer(question_id):
         data = request.get_json() or []
@@ -222,7 +222,7 @@ def create_app(config=ProductionConfig):
             'patched': question.format()
         })
 
-    @app.route('/api/questions', methods=['POST'])
+    @app.post('/api/questions')
     @requires_auth(SECRET_KEY)
     def post_question():
         data = request.get_json() or []
@@ -245,7 +245,7 @@ def create_app(config=ProductionConfig):
             'created': new_question.format()
         })
 
-    @app.route('/api/questions/<question_id>', methods=['DELETE'])
+    @app.delete('/api/questions/<question_id>')
     @requires_auth(SECRET_KEY)
     def delete_question(question_id):
         question = Question.query.get(question_id)
@@ -264,7 +264,7 @@ def create_app(config=ProductionConfig):
             'del_id': int(question_id)
         })
 
-    @app.route('/api/questions/<question_id>/answers', methods=['GET'])
+    @app.get('/api/questions/<question_id>/answers')
     def get_answers(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -280,7 +280,7 @@ def create_app(config=ProductionConfig):
             'next_path': next_path
         })
 
-    @app.route('/api/answers/<answer_id>', methods=['GET'])
+    @app.get('/api/answers/<answer_id>')
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -290,7 +290,7 @@ def create_app(config=ProductionConfig):
             'answer': answer.format()
         })
 
-    @app.route('/api/questions/<question_id>/answers', methods=['POST'])
+    @app.post('/api/questions/<question_id>/answers')
     @requires_auth(SECRET_KEY)
     def post_answer(question_id):
         data = request.get_json() or []
@@ -314,7 +314,7 @@ def create_app(config=ProductionConfig):
             'created': new_answer.format()
         })
 
-    @app.route('/api/answers/<answer_id>', methods=['DELETE'])
+    @app.delete('/api/answers/<answer_id>')
     @requires_auth(SECRET_KEY)
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
@@ -340,7 +340,7 @@ def create_app(config=ProductionConfig):
             'question_id': question.id  # the answer question id
         })
 
-    @app.route('/api/load-own-data')
+    @app.get('/api/load-own-data')
     @requires_auth(SECRET_KEY)
     def load_own_data():
         sub = _request_ctx_stack.top.curr_user['sub']
@@ -354,7 +354,7 @@ def create_app(config=ProductionConfig):
             'unread_notifications': unread_notifications
         })
 
-    @app.route('/api/users/<user_id>')
+    @app.get('/api/users/<user_id>')
     def show_user(user_id):
         try:
             user_id = int(user_id)
@@ -370,7 +370,7 @@ def create_app(config=ProductionConfig):
             'data': user.format()
         })
 
-    @app.route('/api/users/<user_id>/notifications')
+    @app.get('/api/users/<user_id>/notifications')
     def get_user_notifications(user_id):
         try:
             user_id = int(user_id)
@@ -393,7 +393,7 @@ def create_app(config=ProductionConfig):
             'total': total
         })
 
-    @app.route('/api/users/<user_id>/questions')
+    @app.get('/api/users/<user_id>/questions')
     def get_user_questions(user_id):
         try:
             user_id = int(user_id)
