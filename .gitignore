@@ -3,7 +3,6 @@
 
 ### Flask ###
 instance/*
-!instance/flask.cfg.example
 .webassets-cache
 .env
 
@@ -24,3 +23,6 @@ venv/
 
 # database
 app.db
+
+# upload folder
+uploads/
