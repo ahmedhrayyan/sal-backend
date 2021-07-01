@@ -5,6 +5,7 @@
 instance/*
 !instance/flask.cfg.example
 .webassets-cache
+.env
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
@@ -20,3 +21,6 @@ venv/
 
 # visual studio code
 .vscode/
+
+# database
+app.db

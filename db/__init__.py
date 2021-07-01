@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 db = SQLAlchemy()
 
 
-def setup_db(app, test_env=False):
+def setup_db(app):
     '''
     setup_db(app)
         binds a flask application and a SQLAlchemy service
@@ -15,7 +15,7 @@ def setup_db(app, test_env=False):
     db.init_app(app)
 
     # do not use migrations in test environment
-    if test_env is True:
+    if app.config['TESTING'] is True:
         db.create_all()
     else:
         Migrate(app, db)

@@ -12,6 +12,7 @@ import imghdr
 import re
 from markdown import markdown
 import bleach
+from config import ProductionConfig
 
 
 def validate_image(stream):
@@ -48,16 +49,12 @@ def get_formated_questions(questions):
     return formated_questions
 
 
-def create_app(test_config=None):
+def create_app(config=ProductionConfig):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    app.config.from_object(config)
 
-    if test_config is None:
-        app.config.from_pyfile('flask.cfg')
-    else:
-        app.config.from_mapping(**test_config)
-
-    setup_db(app, bool(test_config))
+    setup_db(app)
     SECRET_KEY = app.config['SECRET_KEY']
 
     @app.route("/")

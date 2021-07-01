@@ -1,6 +1,6 @@
 from sqlalchemy.sql.sqltypes import Boolean
 from db import db
-from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, Binary, exc, Text
+from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text
 from datetime import datetime
 import bcrypt
 
@@ -83,7 +83,7 @@ class User(db.Model, BaseModel):
     last_name = Column(VARCHAR(20), nullable=False)
     email = Column(VARCHAR(60), nullable=False, unique=True)
     username = Column(VARCHAR(20), nullable=False, unique=True)
-    password = Column(Binary, nullable=False)
+    password = Column(LargeBinary, nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     email_confirmed = Column(Boolean, default=False, nullable=False)
     job = Column(VARCHAR(50), nullable=True)
