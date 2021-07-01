@@ -4,7 +4,10 @@ from jose import jwt
 from datetime import datetime, timedelta
 from db.models import Role
 
+
 class AuthError(Exception):
+    ''' Generic authentication error '''
+
     def __init__(self, message: str, code: int):
         self.message = message
         self.code = code
@@ -30,13 +33,15 @@ def get_token_auth_header() -> str:
 
 
 def requires_auth(secret_key):
+    ''' Decorator to validate jwt on requests '''
+
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             token = get_token_auth_header()
             try:
                 payload = jwt.decode(token, secret_key, 'HS256')
-            except (jwt.JWTClaimsError, jwt.ExpiredSignatureError):
+            except (jwt.JWTClaimsError, jwt.ExpiredSignatureError, jwt.JWSError):
                 raise AuthError('Token is invalid', 401)
 
             _request_ctx_stack.top.curr_user = payload
