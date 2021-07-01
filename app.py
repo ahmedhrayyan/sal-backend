@@ -2,10 +2,9 @@ from os import path, mkdir
 from uuid import uuid4
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
 from flask.helpers import send_from_directory
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from db import setup_db
 from db.models import Answer, Notification, Question, User, Role
-from jose import jwt
 from auth import AuthError, gen_token, requires_auth, requires_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
@@ -53,6 +52,7 @@ def create_app(config=ProductionConfig):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
+    CORS(app)
 
     setup_db(app)
     SECRET_KEY = app.config['SECRET_KEY']
