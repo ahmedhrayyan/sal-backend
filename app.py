@@ -1,11 +1,10 @@
 from os import path, mkdir
 from uuid import uuid4
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
-from flask.helpers import send_from_directory
 from flask_cors import CORS
 from db import setup_db
 from db.models import Answer, Notification, Question, User, Role
-from auth import AuthError, gen_token, requires_auth, check_permission
+from auth import AuthError, gen_token, requires_auth, requires_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
@@ -23,21 +22,16 @@ def validate_image(stream):
     return format if format != "jpeg" else "jpg"
 
 
-def paginate(query, page=1, page_size=20):
-    offset = (page - 1) * page_size
-    return query.limit(page_size).offset(offset)
-
-
-def get_paginated_items(req, items, items_per_page=20):
-    page = req.args.get('page', 1, int)
-    start_index = (page - 1) * items_per_page
-    end_index = start_index + items_per_page
-    # include next_path in paginated items
-    if len(items) - page * items_per_page > 0:
-        next_path = request.path + f'?page={page+1}'
-    else:
-        next_path = None
-    return [items[start_index:end_index], next_path]
+def paginate(items: list, page: int = 1, per_page: int = 20):
+    ''' return a list of paginated items and a dict contains meta data '''
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+    meta = {
+        'total': len(items),
+        'current_page': page,
+        'per_page': per_page
+    }
+    return items[start_index:end_index], meta
 
 
 def create_app(config=ProductionConfig):
@@ -52,6 +46,7 @@ def create_app(config=ProductionConfig):
     @app.route("/")
     def index():
         return jsonify({
+            "success": True,
             "name": "Sal backend",
             "message": "Hello World!"
         })
@@ -140,6 +135,7 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'token': gen_token(SECRET_KEY, new_user),
+            'data': new_user.format(),
         })
 
     @app.post('/api/login')
@@ -157,22 +153,40 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'token': gen_token(SECRET_KEY, user),
+            'data': user.format(),
+        })
+
+    @app.get('/api/notifications')
+    @requires_auth(SECRET_KEY)
+    def get_user_notifications():
+        username = _request_ctx_stack.top.curr_user['sub']
+        user = User.query.filter_by(username=username).one_or_none()
+        notifications, meta = paginate(
+            user.notifications, request.args.get('page', 1, int))
+        unread_count = Notification.query.filter_by(
+            user_id=user.id, read=False).count()
+
+        return jsonify({
+            'success': True,
+            'data': [notification.format() for notification in notifications],
+            'unread_count': unread_count,
+            'meta': meta
         })
 
     @app.get('/api/questions')
     def get_questions():
         all_questions = Question.query.order_by(
             Question.created_at.desc()).all()
-        questions, next_path = get_paginated_items(request, all_questions)
+        questions, meta = paginate(
+            all_questions, request.args.get('page', 1, int))
         return jsonify({
             'success': True,
-            'questions': [question.format() for question in questions],
-            'no_of_questions': len(all_questions),
-            'next_path': next_path
+            'data': [question.format() for question in questions],
+            'meta': meta
         })
 
-    @app.get('/api/questions/<question_id>')
-    def get_question(question_id):
+    @app.get('/api/questions/<int:question_id>')
+    def show_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
             abort(404)
@@ -182,10 +196,10 @@ def create_app(config=ProductionConfig):
         question.update(answers=answers)
         return jsonify({
             'success': True,
-            'question': question
+            'data': question
         })
 
-    @app.patch('/api/questions/<question_id>/accepted_answer')
+    @app.patch('/api/questions/<int:question_id>/accepted-answer')
     @requires_auth(SECRET_KEY)
     def alter_accepted_answer(question_id):
         data = request.get_json() or []
@@ -195,9 +209,13 @@ def create_app(config=ProductionConfig):
         question = Question.query.get(question_id)
         if question == None:
             abort(404, 'question not found')
-        if _request_ctx_stack.top.current_user['sub'] != question.user_id:
-            raise AuthError('You don\'t have '
-                            'the authority to update other users answers', 403)
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
+        # check if current user owns the target question
+        if user_id != question.user_id:
+            raise AuthError('You can\'t update others questions', 403)
         answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
@@ -210,7 +228,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'patched': question.format()
+            'data': question.format()
         })
 
     @app.post('/api/questions')
@@ -224,7 +242,10 @@ def create_app(config=ProductionConfig):
         content = bleach.clean(data['content'])
         # supporting markdown
         content = markdown(content)
-        user_id = _request_ctx_stack.top.current_user['sub']
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
         new_question = Question(user_id, content)
         try:
             new_question.insert()
@@ -233,17 +254,22 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'created': new_question.format()
+            'data': new_question.format()
         })
 
-    @app.delete('/api/questions/<question_id>')
+    @app.delete('/api/questions/<int:question_id>')
     @requires_auth(SECRET_KEY)
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
             abort(404)
-        if _request_ctx_stack.top.current_user['sub'] != question.user_id:
-            if not check_permission('delete:questions'):
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
+        # check if the current user owns the target question
+        if user_id != question.user_id:
+            if not requires_permission('delete:questions'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users questions', 403)
         try:
@@ -252,33 +278,17 @@ def create_app(config=ProductionConfig):
             abort(422)
         return jsonify({
             'success': True,
-            'del_id': int(question_id)
+            'deleted_id': int(question_id)
         })
 
-    @app.get('/api/questions/<question_id>/answers')
-    def get_answers(question_id):
-        question = Question.query.get(question_id)
-        if question == None:
-            abort(404)
-        all_answers = question.answers
-        answers, next_path = get_paginated_items(request, all_answers)
-        if len(answers) == 0:
-            abort(404)
-        return jsonify({
-            'success': True,
-            'answers': [answer.format() for answer in answers],
-            'no_of_answers': len(all_answers),
-            'next_path': next_path
-        })
-
-    @app.get('/api/answers/<answer_id>')
+    @app.get('/api/answers/<int:answer_id>')
     def get_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
             abort(404)
         return jsonify({
             'success': True,
-            'answer': answer.format()
+            'data': answer.format()
         })
 
     @app.post('/api/answers')
@@ -296,7 +306,10 @@ def create_app(config=ProductionConfig):
         content = bleach.clean(data['content'])
         # supporting markdown
         content = markdown(content)
-        user_id = _request_ctx_stack.top.current_user['sub']
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
         new_answer = Answer(user_id, question.id, content)
         try:
             new_answer.insert()
@@ -304,56 +317,34 @@ def create_app(config=ProductionConfig):
             abort(422)
         return jsonify({
             'success': True,
-            'created': new_answer.format()
+            'data': new_answer.format()
         })
 
-    @app.delete('/api/answers/<answer_id>')
+    @app.delete('/api/answers/<int:answer_id>')
     @requires_auth(SECRET_KEY)
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
             abort(404)
-        if _request_ctx_stack.top.current_user['sub'] != answer.user_id:
-            if not check_permission('delete:answers'):
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        user_id = _request_ctx_stack.top.curr_user['sub']
+        username = _request_ctx_stack.top.curr_user['sub']
+        # check if the current user owns the target answer
+        if user_id != answer.user_id:
+            if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
-
-        question = Question.query.get(answer.question_id)
         try:
             answer.delete()
-            # unset question best_answer if it was the deleted answer
-            if question.best_answer == answer.id:
-                question.best_answer = None
-                question.update()
         except Exception:
             abort(422)
         return jsonify({
             'success': True,
-            'del_id': int(answer_id),
-            'question_id': question.id  # the answer question id
+            'deleted_id': int(answer_id)
         })
 
-    @app.get('/api/load-own-data')
-    @requires_auth(SECRET_KEY)
-    def load_own_data():
-        sub = _request_ctx_stack.top.curr_user['sub']
-        user = User.query.filter_by(username=sub).one()
-        unread_notifications = Notification.query.filter_by(
-            user_id=user.id, read=False).count()
-
-        return jsonify({
-            'success': True,
-            'data': user.format(),
-            'unread_notifications': unread_notifications
-        })
-
-    @app.get('/api/users/<user_id>')
+    @app.get('/api/users/<int:user_id>')
     def show_user(user_id):
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            abort(422, 'User id must be a number')
-
         user = User.query.get(user_id)
         if not user:
             abort(404, 'User not found')
@@ -363,50 +354,19 @@ def create_app(config=ProductionConfig):
             'data': user.format()
         })
 
-    @app.get('/api/users/<user_id>/notifications')
-    def get_user_notifications(user_id):
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            abort(422, 'User id must be a number')
-
-        user = User.query.get(user_id)
-        if not user:
-            abort(404, 'User not found')
-
-        page = request.args.get('page', 1, int)
-        query = Notification.query.filter_by(user_id=user_id)
-        total = query.count()
-        notifications = paginate(query, page).all()
-
-        return jsonify({
-            'success': True,
-            'data': [notification.format() for notification in notifications],
-            'page': page,
-            'total': total
-        })
-
-    @app.get('/api/users/<user_id>/questions')
+    @app.get('/api/users/<int:user_id>/questions')
     def get_user_questions(user_id):
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            abort(422, 'User id must be a number')
-
         user = User.query.get(user_id)
         if not user:
             abort(404, 'User not found')
 
-        page = request.args.get('page', 1, int)
-        query = Question.query.filter_by(user_id=user_id)
-        total = query.count()
-        questions = paginate(query, page).all()
+        questions, meta = paginate(
+            user.questions, request.args.get('page', 1, int))
 
         return jsonify({
             'success': True,
             'data': [questions.format() for questions in questions],
-            'page': page,
-            'total': total
+            'meta': meta
         })
 
     # handling errors

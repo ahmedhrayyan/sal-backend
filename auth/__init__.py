@@ -33,8 +33,7 @@ def get_token_auth_header() -> str:
 
 
 def requires_auth(secret_key):
-    ''' Decorator to validate jwt on requests '''
-
+    ''' Decorator to validate jwt on requests and to the validated payload to _request_ctx_stack '''
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
@@ -50,7 +49,7 @@ def requires_auth(secret_key):
     return decorator
 
 
-def check_permission(required_permission) -> bool:
+def requires_permission(required_permission: str) -> bool:
     ''' check if specific permission exists in the current user '''
     permissions = _request_ctx_stack.top.curr_user['permissions']
     return required_permission in permissions
