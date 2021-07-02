@@ -1,6 +1,5 @@
-from sqlalchemy.sql.sqltypes import Boolean
 from db import db
-from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text
+from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text, Boolean
 from datetime import datetime
 import bcrypt
 
@@ -37,18 +36,30 @@ class Question(db.Model, BaseModel):
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
     accepted_answer = Column(Integer, ForeignKey('answers.id'), nullable=True)
+    answers = db.relationship('Answer', backref='question',
+                              order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
 
     def __init__(self, user_id, content):
         self.user_id = user_id
         self.content = content
 
     def format(self):
+        # query showing list of question's answers
+        query = Answer.query.filter_by(question_id=self.id)
+        # prime answer will be either the either the accepted or the latest answer
+        if (self.accepted_answer):
+            prime_answer = Answer.query.get(self.accepted_answer)
+        else:
+            prime_answer = query.order_by(Answer.created_at.desc()).first()
+
         return {
             'id': self.id,
-            'user_id': self.user_id,
+            'user': self.user.format(),
             'content': self.content,
             'created_at': self.created_at,
             'accepted_answer': self.accepted_answer,
+            'answers_count': query.count(),
+            'prime_answer': prime_answer and prime_answer.format()
         }
 
 
@@ -61,7 +72,7 @@ class Answer(db.Model, BaseModel):
 
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
 
-    def __init__(self, user_id, content, question_id):
+    def __init__(self, user_id: int, question_id: int, content: str):
         self.user_id = user_id
         self.content = content
         self.question_id = question_id
@@ -69,9 +80,9 @@ class Answer(db.Model, BaseModel):
     def format(self):
         return {
             'id': self.id,
-            'user_id': self.user_id,
-            'content': self.content,
+            'user': self.user.format(),
             'question_id': self.question_id,
+            'content': self.content,
             'created_at': self.created_at
         }
 
@@ -90,6 +101,12 @@ class User(db.Model, BaseModel):
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     avatar = Column(Text, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    questions = db.relationship(
+        'Question', backref='user', order_by='desc(Question.created_at)', lazy=True, cascade='all')
+    answers = db.relationship(
+        'Answer', backref='user', order_by='desc(Answer.created_at)', lazy=True, cascade='all')
+    notifications = db.relationship(
+        'Notification', order_by='desc(Notification.created_at)', lazy=True, cascade='all')
 
     def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
         self.first_name = first_name

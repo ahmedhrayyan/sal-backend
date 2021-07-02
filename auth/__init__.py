@@ -2,7 +2,7 @@ from functools import wraps
 from flask import request, _request_ctx_stack
 from jose import jwt
 from datetime import datetime, timedelta
-from db.models import Role
+from db.models import Role, User
 
 
 class AuthError(Exception):
@@ -50,12 +50,14 @@ def requires_auth(secret_key):
     return decorator
 
 
-def requires_permission(required_permission) -> bool:
+def check_permission(required_permission) -> bool:
+    ''' check if specific permission exists in the current user '''
     permissions = _request_ctx_stack.top.curr_user['permissions']
     return required_permission in permissions
 
 
-def gen_token(secret_key, user) -> str:
+def gen_token(secret_key: str, user: User) -> str:
+    ''' Generate JWT token '''
     permissions = Role.query.get(user.role_id).permissions
     payload = {
         'sub': user.username,

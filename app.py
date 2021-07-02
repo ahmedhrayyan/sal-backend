@@ -5,7 +5,7 @@ from flask.helpers import send_from_directory
 from flask_cors import CORS
 from db import setup_db
 from db.models import Answer, Notification, Question, User, Role
-from auth import AuthError, gen_token, requires_auth, requires_permission
+from auth import AuthError, gen_token, requires_auth, check_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
@@ -38,14 +38,6 @@ def get_paginated_items(req, items, items_per_page=20):
     else:
         next_path = None
     return [items[start_index:end_index], next_path]
-
-
-def get_formated_questions(questions):
-    formated_questions = []
-    for question in questions:
-        formated = question.format()
-        formated_questions.append(formated)
-    return formated_questions
 
 
 def create_app(config=ProductionConfig):
@@ -172,12 +164,9 @@ def create_app(config=ProductionConfig):
         all_questions = Question.query.order_by(
             Question.created_at.desc()).all()
         questions, next_path = get_paginated_items(request, all_questions)
-        formated_questions = get_formated_questions(questions)
-        if len(questions) == 0:
-            abort(404)
         return jsonify({
             'success': True,
-            'questions': formated_questions,
+            'questions': [question.format() for question in questions],
             'no_of_questions': len(all_questions),
             'next_path': next_path
         })
@@ -187,9 +176,13 @@ def create_app(config=ProductionConfig):
         question = Question.query.get(question_id)
         if question == None:
             abort(404)
+        # add list of the question answers to the question dict
+        answers = [answer.format() for answer in question.answers]
+        question = question.format()
+        question.update(answers=answers)
         return jsonify({
             'success': True,
-            'question': question.format()
+            'question': question
         })
 
     @app.patch('/api/questions/<question_id>/accepted_answer')
@@ -203,9 +196,8 @@ def create_app(config=ProductionConfig):
         if question == None:
             abort(404, 'question not found')
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
-            if requires_permission('update:questions'):
-                raise AuthError('You don\'t have '
-                                'the authority to delete other users answers', 403)
+            raise AuthError('You don\'t have '
+                            'the authority to update other users answers', 403)
         answer = Answer.query.get(answer_id)
         if answer not in question.answers:
             abort(400, 'the provided answer is not valid')
@@ -251,7 +243,7 @@ def create_app(config=ProductionConfig):
         if question == None:
             abort(404)
         if _request_ctx_stack.top.current_user['sub'] != question.user_id:
-            if not requires_permission('delete:questions'):
+            if not check_permission('delete:questions'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users questions', 403)
         try:
@@ -289,13 +281,15 @@ def create_app(config=ProductionConfig):
             'answer': answer.format()
         })
 
-    @app.post('/api/questions/<question_id>/answers')
+    @app.post('/api/answers')
     @requires_auth(SECRET_KEY)
-    def post_answer(question_id):
+    def post_answer():
         data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
-        question = Question.query.get(question_id)
+        if 'question_id' not in data:
+            abort(400, 'question_id expected in request body')
+        question = Question.query.get(data['question_id'])
         if question == None:
             abort(404, 'question not found')
         # sanitize input
@@ -303,7 +297,7 @@ def create_app(config=ProductionConfig):
         # supporting markdown
         content = markdown(content)
         user_id = _request_ctx_stack.top.current_user['sub']
-        new_answer = Answer(user_id, content, question_id)
+        new_answer = Answer(user_id, question.id, content)
         try:
             new_answer.insert()
         except Exception:
@@ -320,7 +314,7 @@ def create_app(config=ProductionConfig):
         if answer == None:
             abort(404)
         if _request_ctx_stack.top.current_user['sub'] != answer.user_id:
-            if not requires_permission('delete:answers'):
+            if not check_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
 
