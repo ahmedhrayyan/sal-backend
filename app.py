@@ -343,9 +343,9 @@ def create_app(config=ProductionConfig):
             'deleted_id': int(answer_id)
         })
 
-    @app.get('/api/users/<int:user_id>')
-    def show_user(user_id):
-        user = User.query.get(user_id)
+    @app.get('/api/users/<username>')
+    def show_user(username):
+        user = User.query.filter_by(username=username).one_or_none()
         if not user:
             abort(404, 'User not found')
 
@@ -354,9 +354,9 @@ def create_app(config=ProductionConfig):
             'data': user.format()
         })
 
-    @app.get('/api/users/<int:user_id>/questions')
-    def get_user_questions(user_id):
-        user = User.query.get(user_id)
+    @app.get('/api/users/<username>/questions')
+    def get_user_questions(username):
+        user = User.query.filter_by(username=username).one_or_none()
         if not user:
             abort(404, 'User not found')
 
