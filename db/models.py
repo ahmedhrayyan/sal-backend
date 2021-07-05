@@ -1,4 +1,5 @@
 from db import db
+from flask import request
 from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text, Boolean
 from datetime import datetime
 import bcrypt
@@ -120,14 +121,23 @@ class User(db.Model, BaseModel):
         self.phone = phone
         self.avatar = avatar
 
-    def checkpw(self, password):
+    def checkpw(self, password: str):
         return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
 
-    def set_pw(self, password):
+    def set_pw(self, password: str):
         self.password = bcrypt.hashpw(
             bytes(password, 'utf-8'), bcrypt.gensalt(12))
 
     def format(self):
+        # prepend uploads endpoint to self.avatar
+        avatar = self.avatar
+        if (avatar):
+            try:
+                # will fail if called outside an endpoint
+                avatar = request.root_url + 'uploads/' + avatar
+            except RuntimeError:
+                pass
+
         return {
             'id': self.id,
             'first_name': self.first_name,
@@ -136,7 +146,7 @@ class User(db.Model, BaseModel):
             'username': self.username,
             'phone': self.phone,
             'job': self.job,
-            'avatar': self.avatar,
+            'avatar': avatar,
             'created_at': self.created_at
         }
 

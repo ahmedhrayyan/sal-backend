@@ -100,8 +100,8 @@ def create_app(config=ProductionConfig):
         email = str(data['email']).lower().strip()
         username = str(data['username']).lower().strip()
         password = str(data['password']).lower()
-        phone = data.get('phone', None)
-        job = data.get('job', None)
+        job = str(data['job']).lower().strip() if data.get('job') else None
+        phone = data.get('phone')
 
         # validating data
         if re.match(app.config['EMAIL_PATTERN'], email) is None:
@@ -112,8 +112,6 @@ def create_app(config=ProductionConfig):
             abort(422, 'Phone is not valid')
         if len(username) < 4:
             abort(422, 'Username have to be at least 4 characters in length')
-        if job:
-            str(job).lower().strip()
 
         default_role = Role.query.filter_by(name="general").one_or_none().id
 
@@ -124,18 +122,76 @@ def create_app(config=ProductionConfig):
             new_user.insert()
         except IntegrityError:
             # Integrity error means a unique value already exist in a different record
-            if User.query.filter_by(email=data['email']).one_or_none():
-                msg = 'Email is allready in use'
-            elif User.query.filter_by(username=data['username']).one_or_none():
-                msg = "Username is allready in use"
+            if User.query.filter_by(email=email).one_or_none():
+                msg = 'Email is already in use'
+            elif User.query.filter_by(username=username).one_or_none():
+                msg = "Username is already in use"
             else:
-                msg = "Phone is allready in use"
+                msg = "Phone is already in use"
             abort(422, msg)
 
         return jsonify({
             'success': True,
             'token': gen_token(SECRET_KEY, new_user),
             'data': new_user.format(),
+        })
+
+    @app.patch("/api/user")
+    @requires_auth(SECRET_KEY)
+    def patch_user():
+        data = request.get_json() or {}
+        username = _request_ctx_stack.top.curr_user['sub']
+        user = User.query.filter_by(username=username).one_or_none()
+        # updating user data
+        if 'first_name' in data:
+            user.first_name = str(data['first_name']).lower().strip()
+        if 'last_name' in data:
+            user.last_name = str(data['last_name']).lower().strip()
+        if 'email' in data:
+            email = str(data['email']).lower().strip()
+            if re.match(app.config['EMAIL_PATTERN'], email) is None:
+                abort(422, 'Email is not valid')
+            user.email = email
+        if 'username' in data:
+            username = str(data['username']).lower().strip()
+            if len(username) < 4:
+                abort(422, 'Username have to be at least 4 characters in length')
+            user.username = username
+        if 'password' in data:
+            password = str(data['password']).lower().strip()
+            if len(password) < 8:
+                abort(422, 'Password have to be at least 8 characters in length')
+            # passwords have to be hashed first
+            user.set_pw(password)
+        if 'phone' in data:
+            phone = data['phone']
+            if phone and re.match(app.config['PHONE_PATTERN'], phone) is None:
+                abort(422, 'Phone is not valid')
+            user.phone = phone
+        if 'job' in data:
+            user.job = str(data['job']).lower().strip()
+        if 'avatar' in data:
+            if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], data['avatar'])):
+                abort(422, "Avatar is not valid")
+            user.avatar = data['avatar']
+
+        try:
+            user.update()
+        except IntegrityError:
+            # Integrity error means a unique value already exist in a different record
+            if User.query.filter_by(email=data.get('email')).one_or_none():
+                msg = 'Email is already in use'
+            elif User.query.filter_by(username=data.get('username')).one_or_none():
+                msg = "Username is already in use"
+            else:
+                msg = "Phone is already in use"
+            abort(422, msg)
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': user.format(),
         })
 
     @app.post('/api/login')
@@ -199,38 +255,6 @@ def create_app(config=ProductionConfig):
             'data': question
         })
 
-    @app.patch('/api/questions/<int:question_id>/accepted-answer')
-    @requires_auth(SECRET_KEY)
-    def alter_accepted_answer(question_id):
-        data = request.get_json() or []
-        if 'answer' not in data:
-            abort(400, 'answer expected in request body')
-        answer_id = data.get('answer')
-        question = Question.query.get(question_id)
-        if question == None:
-            abort(404, 'question not found')
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
-        # check if current user owns the target question
-        if user_id != question.user_id:
-            raise AuthError('You can\'t update others questions', 403)
-        answer = Answer.query.get(answer_id)
-        if answer not in question.answers:
-            abort(400, 'the provided answer is not valid')
-        question.accepted_answer = answer_id
-
-        try:
-            question.update()
-        except Exception:
-            abort(422)
-
-        return jsonify({
-            'success': True,
-            'data': question.format()
-        })
-
     @app.post('/api/questions')
     @requires_auth(SECRET_KEY)
     def post_question():
@@ -255,6 +279,44 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'data': new_question.format()
+        })
+
+    @app.patch('/api/questions/<int:question_id>')
+    @requires_auth(SECRET_KEY)
+    def patch_question(question_id):
+        data = request.get_json() or []
+        question = Question.query.get(question_id)
+        if question == None:
+            abort(404, 'question not found')
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
+        # check if current user owns the target question
+        if user_id != question.user_id:
+            raise AuthError('You can\'t update others questions', 403)
+
+        # update accepted answer
+        if 'accepted_answer' in data:
+            answer = Answer.query.get(data['accepted_answer'])
+            if not answer or answer.question_id != question_id:
+                abort(400, 'the provided answer is not valid')
+            question.accepted_answer = data['accepted_answer']
+        # update question content
+        if 'content' in data:
+            # sanitize input
+            content = bleach.clean(data['content'])
+            # supporting markdown
+            question.content = markdown(content)
+
+        try:
+            question.update()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': question.format()
         })
 
     @app.delete('/api/questions/<int:question_id>')
@@ -320,6 +382,38 @@ def create_app(config=ProductionConfig):
             'data': new_answer.format()
         })
 
+    @app.patch('/api/answers/<int:answer_id>')
+    @requires_auth(SECRET_KEY)
+    def patch_answer(answer_id):
+        data = request.get_json() or []
+        answer = Answer.query.get(answer_id)
+        if not answer:
+            abort("404", "answer not found!")
+        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
+        username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
+        # check if current user owns the target answer
+        if user_id != answer.user_id:
+            raise AuthError('You can\'t update others answers', 403)
+
+        # update content
+        if 'content' in data:
+            # sanitize input
+            content = bleach.clean(data['content'])
+            # supporting markdown
+            answer.content = markdown(content)
+
+        try:
+            answer.update()
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': answer.format()
+        })
+
     @app.delete('/api/answers/<int:answer_id>')
     @requires_auth(SECRET_KEY)
     def delete_answer(answer_id):
@@ -327,8 +421,9 @@ def create_app(config=ProductionConfig):
         if answer == None:
             abort(404)
         # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        user_id = _request_ctx_stack.top.curr_user['sub']
         username = _request_ctx_stack.top.curr_user['sub']
+        user_id = User.query.filter_by(
+            username=username).with_entities(User.id).one().id
         # check if the current user owns the target answer
         if user_id != answer.user_id:
             if not requires_permission('delete:answers'):
