@@ -12,13 +12,21 @@ class Config(object):
     PHONE_PATTERN = "^\+(?:[0-9]){6,14}[0-9]$"
 
     UPLOAD_FOLDER = "uploads"
-    ALLOWED_EXTENSIONS = { 'png', 'jpg' }
+    ALLOWED_EXTENSIONS = {'png', 'jpg'}
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
 
 class ProductionConfig(Config):
     SECRET_KEY = os.environ['SECRET_KEY']
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+
+    MAIL_SERVER = 'smtp.sal22.tech'
+    MAIL_PORT = 25
+    MAIL_USERNAME = os.environ['MAIL_USERNAME']
+    MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
 
 
 class TestingConfig(Config):

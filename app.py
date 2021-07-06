@@ -2,6 +2,7 @@ from os import path, mkdir
 from uuid import uuid4
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
 from flask_cors import CORS
+from flask_mail import Mail, Message
 from db import setup_db
 from db.models import Answer, Notification, Question, User, Role
 from auth import AuthError, gen_token, requires_auth, requires_permission
@@ -39,6 +40,7 @@ def create_app(config=ProductionConfig):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
     CORS(app)
+    mail = Mail(app)
 
     setup_db(app)
     SECRET_KEY = app.config['SECRET_KEY']
@@ -462,6 +464,55 @@ def create_app(config=ProductionConfig):
             'success': True,
             'data': [questions.format() for questions in questions],
             'meta': meta
+        })
+
+    @app.post('/api/report/question')
+    @requires_auth(SECRET_KEY)
+    def report_question():
+        username = _request_ctx_stack.top.curr_user['sub']
+        question_id = request.get_json().get('answer')
+        if question_id is None:
+            abort(400, 'question_id expted in request body')
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'question not found!')
+
+        msg = Message('Reporting question')
+        # email admin (my self)
+        msg.add_recipient(app.config['MAIL_USERNAME'])
+        msg.body = 'user "%s" has reported question "%i"' % (
+            username, question_id)
+        msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
+            username, question_id)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            abort(422, e)
+        return jsonify({
+            'success': True
+        })
+
+    @app.post('/api/report/answer')
+    @requires_auth(SECRET_KEY)
+    def report_answer():
+        username = _request_ctx_stack.top.curr_user['sub']
+        answer_id = request.get_json().get('answer_id')
+        if answer_id is None:
+            abort(400, 'answer_id expted in request body')
+        answer = Answer.query.get(answer_id)
+        if answer is None:
+            abort(404, 'answer not found!')
+
+        msg = Message('Reporting answer')
+        # email admin (my self)
+        msg.add_recipient(app.config['MAIL_USERNAME'])
+        msg.body = 'user "%s" has reported answer "%i"' % (
+            username, answer_id)
+        msg.html = 'user <code>"%s"</code> has reported answer <code>"%i"</code>' % (
+            username, answer_id)
+        mail.send(msg)
+        return jsonify({
+            'success': True
         })
 
     # handling errors
