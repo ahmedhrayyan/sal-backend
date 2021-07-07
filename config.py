@@ -32,4 +32,4 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SECRET_KEY = 'test'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
