@@ -21,8 +21,5 @@ venv/
 # visual studio code
 .vscode/
 
-# database
-app.db
-
 # upload folder
 uploads/

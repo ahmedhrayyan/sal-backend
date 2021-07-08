@@ -62,9 +62,10 @@ def create_app(config=ProductionConfig):
         if file.filename == '':
             abort(400, 'No selected file')
         file_ext = file.filename.rsplit('.', 1)[1].lower()
-        if file_ext not in app.config['ALLOWED_EXTENSIONS'] or \
-                file_ext != validate_image(file.stream):
-            abort(422, 'You can only upload PNG and JPG file formats')
+        if file_ext not in app.config['ALLOWED_EXTENSIONS']:
+            abort(422, 'You cannot upload %s files' % file_ext)
+        if file_ext != validate_image(file.stream):
+            abort(422, 'Fake data was uploaded')
 
         # generate unique filename
         filename = uuid4().hex + "." + file_ext
@@ -95,7 +96,7 @@ def create_app(config=ProductionConfig):
         # abort if any required field doesnot exist in request body
         for field in required_fields:
             if field not in data:
-                abort(422, '%s is required' % field)
+                abort(400, '%s is required' % field)
 
         first_name = str(data['first_name']).lower().strip()
         last_name = str(data['last_name']).lower().strip()
@@ -200,7 +201,7 @@ def create_app(config=ProductionConfig):
     def login():
         data = request.get_json() or {}
         if 'username' not in data or 'password' not in data:
-            abort(422, 'username and password expected in request body')
+            abort(400, 'username and password expected in request body')
 
         username = data['username']
         password = data['password']
@@ -346,7 +347,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/answers/<int:answer_id>')
-    def get_answer(answer_id):
+    def show_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
             abort(404)
@@ -470,7 +471,7 @@ def create_app(config=ProductionConfig):
     @requires_auth(SECRET_KEY)
     def report_question():
         username = _request_ctx_stack.top.curr_user['sub']
-        question_id = request.get_json().get('answer')
+        question_id = request.get_json().get('question_id')
         if question_id is None:
             abort(400, 'question_id expted in request body')
         question = Question.query.get(question_id)
@@ -479,7 +480,7 @@ def create_app(config=ProductionConfig):
 
         msg = Message('Reporting question')
         # email admin (my self)
-        msg.add_recipient(app.config['MAIL_USERNAME'])
+        msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
         msg.body = 'user "%s" has reported question "%i"' % (
             username, question_id)
         msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
@@ -505,7 +506,7 @@ def create_app(config=ProductionConfig):
 
         msg = Message('Reporting answer')
         # email admin (my self)
-        msg.add_recipient(app.config['MAIL_USERNAME'])
+        msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
         msg.body = 'user "%s" has reported answer "%i"' % (
             username, answer_id)
         msg.html = 'user <code>"%s"</code> has reported answer <code>"%i"</code>' % (
