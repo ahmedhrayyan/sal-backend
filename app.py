@@ -182,9 +182,9 @@ def create_app(config=ProductionConfig):
             user.update()
         except IntegrityError:
             # Integrity error means a unique value already exist in a different record
-            if User.query.filter_by(email=data.get('email')).one_or_none():
+            if 'email' in data and User.query.filter_by(email=data['email']).one_or_none():
                 msg = 'Email is already in use'
-            elif User.query.filter_by(username=data.get('username')).one_or_none():
+            elif 'username' in data and User.query.filter_by(username=data['username']).one_or_none():
                 msg = "Username is already in use"
             else:
                 msg = "Phone is already in use"
