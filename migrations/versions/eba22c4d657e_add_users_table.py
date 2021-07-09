@@ -25,7 +25,7 @@ def upgrade():
     sa.Column('last_name', sa.VARCHAR(length=20), nullable=False),
     sa.Column('email', sa.VARCHAR(length=60), nullable=False),
     sa.Column('username', sa.VARCHAR(length=20), nullable=False),
-    sa.Column('password', sa.Binary(), nullable=False),
+    sa.Column('password', sa.LargeBinary(), nullable=False),
     sa.Column('phone', sa.VARCHAR(length=50), nullable=True),
     sa.Column('job', sa.VARCHAR(length=50), nullable=True),
     sa.Column('profile', sa.String(), nullable=False),
