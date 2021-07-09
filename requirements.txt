@@ -1,12 +1,15 @@
 alembic==1.6.5
+autopep8==1.5.7
 bcrypt==3.2.0
 bleach==3.3.0
+blinker==1.4
 cffi==1.14.5
 click==8.0.1
 colorama==0.4.4
 ecdsa==0.17.0
 Flask==2.0.1
 Flask-Cors==3.0.10
+Flask-Mail==0.9.1
 Flask-Migrate==3.0.1
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.0
@@ -19,6 +22,7 @@ MarkupSafe==2.0.1
 packaging==20.9
 psycopg2-binary==2.9.1
 pyasn1==0.4.8
+pycodestyle==2.7.0
 pycparser==2.20
 pyparsing==2.4.7
 python-dateutil==2.8.1
@@ -28,5 +32,6 @@ python-jose==3.3.0
 rsa==4.7.2
 six==1.16.0
 SQLAlchemy==1.4.20
+toml==0.10.2
 webencodings==0.5.1
 Werkzeug==2.0.1
