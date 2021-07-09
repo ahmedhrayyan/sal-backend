@@ -1,3 +1,28 @@
-__pycache__/
-.vscode/
+# Created by https://www.gitignore.io/api/flask,python
+# Edit at https://www.gitignore.io/?templates=flask,python
+
+### Flask ###
+instance/*
+.webassets-cache
 .env
+
+### Flask.Python Stack ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# virtualenv
+venv/
+
+# visual studio code
+.vscode/
+
+# upload folder
+uploads/
+
+# ignore tests database
+tests/test.db
