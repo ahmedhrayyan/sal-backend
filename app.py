@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from db import setup_db
-from db.models import Answer, Notification, Question, User, Role
+from db.models import Answer, Notification, Permission, Question, User, Role
 from auth import AuthError, gen_token, requires_auth, requires_permission
 from sqlalchemy.exc import IntegrityError
 import imghdr
@@ -564,5 +564,24 @@ def create_app(config=ProductionConfig):
             'message': error.message,
             'error': error.code
         }), error.code
+
+    # COMMANDS
+    @app.cli.command('db_seed')
+    def db_seed():
+        # permission
+        delete_users = Permission('delete:users')
+        delete_answers = Permission('delete:answers')
+        delete_questions = Permission('delete:questions')
+        delete_users.insert()
+        delete_answers.insert()
+        delete_questions.insert()
+        # roles
+        general = Role('general')
+        superamdin = Role('superadmin')
+        superamdin.permissions.append(delete_users)
+        superamdin.permissions.append(delete_answers)
+        superamdin.permissions.append(delete_questions)
+        general.insert()
+        superamdin.insert()
 
     return app
