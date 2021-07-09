@@ -23,3 +23,6 @@ venv/
 
 # upload folder
 uploads/
+
+# ignore tests database
+tests/test.db
