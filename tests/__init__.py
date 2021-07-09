@@ -5,6 +5,7 @@ from app import create_app
 from db.models import Question, Answer, User, Role
 from config import TestingConfig
 from io import BytesIO
+from db import db
 
 
 class SalTestCase(unittest.TestCase):
@@ -24,11 +25,7 @@ class SalTestCase(unittest.TestCase):
         self.token = gen_token(self.app.config['SECRET_KEY'], self.user)
 
     def tearDown(self):
-        # remove genrated test db
-        try:
-            remove('test.db')
-        except OSError:
-            pass
+        db.drop_all()
 
     def test_422_upload(self):
         res = self.client().post('api/upload',

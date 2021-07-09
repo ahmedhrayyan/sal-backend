@@ -36,7 +36,8 @@ class Question(db.Model, BaseModel):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    accepted_answer = Column(Integer, ForeignKey('answers.id'), nullable=True)
+    accepted_answer = Column(Integer, ForeignKey(
+        'answers.id', use_alter=True), nullable=True)
     answers = db.relationship('Answer', backref='question',
                               order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
 

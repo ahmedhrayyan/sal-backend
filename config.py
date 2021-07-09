@@ -32,7 +32,7 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SECRET_KEY = 'test'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'tests/test.db')
 
     # Dummy data, emails will not be sent as long as TESTING is True
     MAIL_DEFAULT_SENDER = 'any'
