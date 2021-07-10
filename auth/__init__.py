@@ -6,14 +6,17 @@ from db.models import Role, User
 
 
 class AuthError(Exception):
-    ''' Generic authentication error '''
+    ''' Base class for all auth excpetions '''
 
     def __init__(self, message: str, code: int):
+        ''' Base class for all auth excpetions '''
         self.message = message
         self.code = code
 
 
 def get_token_auth_header() -> str:
+    ''' get token from current request Authorization header '''
+
     auth = request.headers.get("Authorization", None)
     if not auth:
         raise AuthError(

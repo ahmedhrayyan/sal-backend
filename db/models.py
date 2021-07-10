@@ -6,7 +6,14 @@ import bcrypt
 
 
 class BaseModel:
+    ''' Helper class witch add basic methods to sub models '''
+
+    def __init__(self):
+        ''' Generate new orm object '''
+        pass
+
     def update(self):
+        ''' updating element in db  '''
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
@@ -14,6 +21,7 @@ class BaseModel:
             raise e
 
     def delete(self):
+        ''' delete item from db '''
         try:
             db.session.delete(self)
             db.session.commit()
@@ -22,12 +30,17 @@ class BaseModel:
             raise e
 
     def insert(self):
+        ''' insert item into db '''
         try:
             db.session.add(self)
             db.session.commit()
         except exc.SQLAlchemyError as e:
             db.session.rollback()
             raise e
+
+    def format(self):
+        ''' return data as a dict witch can be seralized '''
+        pass
 
 
 class Question(db.Model, BaseModel):
@@ -41,7 +54,7 @@ class Question(db.Model, BaseModel):
     answers = db.relationship('Answer', backref='question',
                               order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
 
-    def __init__(self, user_id, content):
+    def __init__(self, user_id: int, content: str):
         self.user_id = user_id
         self.content = content
 
@@ -110,7 +123,7 @@ class User(db.Model, BaseModel):
     notifications = db.relationship(
         'Notification', order_by='desc(Notification.created_at)', lazy=True, cascade='all')
 
-    def __init__(self, first_name, last_name, email, username, password, role_id, job=None, phone=None, avatar=None):
+    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int, job: str = None, phone: str = None, avatar: str = None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -123,9 +136,15 @@ class User(db.Model, BaseModel):
         self.avatar = avatar
 
     def checkpw(self, password: str):
+        ''' Check if the provided password is equal to user password '''
         return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
 
     def set_pw(self, password: str):
+        '''
+        Set current user passowed.
+
+        password is hashed first before getting assigned to user
+        '''
         self.password = bcrypt.hashpw(
             bytes(password, 'utf-8'), bcrypt.gensalt(12))
 
@@ -165,7 +184,7 @@ class Role(db.Model, BaseModel):
     permissions = db.relationship(
         'Permission', secondary=roles_permissions, backref='roles', lazy=True)
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def format(self):
@@ -180,7 +199,7 @@ class Permission(db.Model, BaseModel):
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(40), nullable=False, unique=True)
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def format(self):
@@ -198,7 +217,7 @@ class Notification(db.Model, BaseModel):
     read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    def __init__(self, user_id, content):
+    def __init__(self, user_id: int, content: str):
         self.user_id = user_id
         self.content = content
 

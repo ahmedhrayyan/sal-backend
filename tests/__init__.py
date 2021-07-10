@@ -1,5 +1,4 @@
 from auth import gen_token
-from os import remove
 import unittest
 from app import create_app
 from db.models import Question, Answer, User, Role
@@ -9,7 +8,10 @@ from db import db
 
 
 class SalTestCase(unittest.TestCase):
+    ''' This class represents Sal test case '''
+
     def setUp(self):
+        ''' Executes before each test. Inti the app and define test variables '''
         self.app = create_app(TestingConfig)
         self.client = self.app.test_client
         # seed data
@@ -25,6 +27,7 @@ class SalTestCase(unittest.TestCase):
         self.token = gen_token(self.app.config['SECRET_KEY'], self.user)
 
     def tearDown(self):
+        ''' Executes after each test '''
         db.drop_all()
 
     def test_422_upload(self):
@@ -32,7 +35,7 @@ class SalTestCase(unittest.TestCase):
                                  headers={
                                      'Authorization': 'Bearer %s' % self.token
                                  },
-                                 data={'file': (BytesIO(b'IMAGE DATA'), 'file.jpg')}) # fake data
+                                 data={'file': (BytesIO(b'IMAGE DATA'), 'file.jpg')})  # fake data
         json_data = res.get_json()
         self.assertEqual(res.status_code, 422)
         self.assertFalse(json_data['success'])

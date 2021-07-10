@@ -1,4 +1,5 @@
 from os import path, mkdir
+from typing import BinaryIO
 from uuid import uuid4
 from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory, render_template
 from flask_cors import CORS
@@ -14,7 +15,8 @@ import bleach
 from config import ProductionConfig
 
 
-def validate_image(stream):
+def validate_image(stream: BinaryIO):
+    ''' Return correct image extension '''
     # check file format
     header = stream.read(512)
     stream.seek(0)
@@ -24,7 +26,7 @@ def validate_image(stream):
 
 
 def paginate(items: list, page: int = 1, per_page: int = 20):
-    ''' return a list of paginated items and a dict contains meta data '''
+    ''' Return a list of paginated items and a dict contains meta data '''
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
     meta = {
@@ -36,13 +38,15 @@ def paginate(items: list, page: int = 1, per_page: int = 20):
 
 
 def create_app(config=ProductionConfig):
-    # create and configure the app
+    ''' create and configure the app '''
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
     CORS(app)
     mail = Mail(app)
 
     setup_db(app)
+
+    ### ENDPOINTS ###
 
     @app.route("/")
     def index():
@@ -511,7 +515,8 @@ def create_app(config=ProductionConfig):
             'success': True
         })
 
-    # handling errors
+    ### HANDLING ERRORS ###
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -560,10 +565,11 @@ def create_app(config=ProductionConfig):
             'error': error.code
         }), error.code
 
-    # COMMANDS
+    ### COMMANDS ###
+
     @app.cli.command('db_seed')
     def db_seed():
-        # permission
+        # permissions
         delete_users = Permission('delete:users')
         delete_answers = Permission('delete:answers')
         delete_questions = Permission('delete:questions')

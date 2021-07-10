@@ -6,6 +6,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 
 class Config(object):
+    ''' Base configurations class '''
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     EMAIL_PATTERN = "^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$"
@@ -17,8 +18,9 @@ class Config(object):
 
 
 class ProductionConfig(Config):
+    ''' Extend base config with production config '''
     SECRET_KEY = os.environ['SECRET_KEY']
-    # replace url starting by postgres with postgresql as SQLALCHEMY has dropped support for postgres (for heroku)
+    # replace url prefix "postgres" with "postgresql" as SQLALCHEMY has dropped support for "postgres" (for heroku)
     # see https://stackoverflow.com/a/64698899/10272966
     # see https://stackoverflow.com/a/66787229/10272966
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL'].replace(
@@ -34,6 +36,7 @@ class ProductionConfig(Config):
 
 
 class TestingConfig(Config):
+    ''' Extend base config with testing config '''
     TESTING = True
     SECRET_KEY = 'test'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
