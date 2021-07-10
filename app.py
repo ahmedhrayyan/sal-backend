@@ -1,6 +1,6 @@
 from os import path, mkdir
 from uuid import uuid4
-from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory
+from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory, render_template
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from db import setup_db
@@ -47,11 +47,7 @@ def create_app(config=ProductionConfig):
 
     @app.route("/")
     def index():
-        return jsonify({
-            "success": True,
-            "name": "Sal backend",
-            "message": "Hello World!"
-        })
+        return render_template('index.html')
 
     @app.post("/api/upload")
     @requires_auth(SECRET_KEY)
