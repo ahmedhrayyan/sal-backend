@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack, current_app
 from jose import jwt
 from datetime import datetime, timedelta
 from db.models import Role, User
@@ -32,21 +32,20 @@ def get_token_auth_header() -> str:
     return token
 
 
-def requires_auth(secret_key):
-    ''' Decorator to validate jwt on requests and to the validated payload to _request_ctx_stack '''
-    def decorator(f):
-        @wraps(f)
-        def decorated(*args, **kwargs):
-            token = get_token_auth_header()
-            try:
-                payload = jwt.decode(token, secret_key, 'HS256')
-            except (jwt.JWTClaimsError, jwt.ExpiredSignatureError, jwt.JWSError):
-                raise AuthError('Token is invalid', 401)
+def requires_auth(f):
+    ''' Decorator to validate jwt on requests and to add the validated payload to _request_ctx_stack '''
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token_auth_header()
+        secret_key = current_app.config['SECRET_KEY']
+        try:
+            payload = jwt.decode(token, secret_key, 'HS256')
+        except (jwt.JWTClaimsError, jwt.ExpiredSignatureError, jwt.JWSError):
+            raise AuthError('Token is invalid', 401)
 
-            _request_ctx_stack.top.curr_user = payload
-            return f(*args, **kwargs)
-        return decorated
-    return decorator
+        _request_ctx_stack.top.curr_user = payload
+        return f(*args, **kwargs)
+    return decorated
 
 
 def requires_permission(required_permission: str) -> bool:

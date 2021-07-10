@@ -43,14 +43,13 @@ def create_app(config=ProductionConfig):
     mail = Mail(app)
 
     setup_db(app)
-    SECRET_KEY = app.config['SECRET_KEY']
 
     @app.route("/")
     def index():
         return render_template('index.html')
 
     @app.post("/api/upload")
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def upload():
         if 'file' not in request.files:
             abort(400, "No file founded")
@@ -131,12 +130,12 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'token': gen_token(SECRET_KEY, new_user),
+            'token': gen_token(app.config['SECRET_KEY'], new_user),
             'data': new_user.format(),
         })
 
     @app.patch("/api/user")
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def patch_user():
         data = request.get_json() or {}
         username = _request_ctx_stack.top.curr_user['sub']
@@ -207,12 +206,12 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'token': gen_token(SECRET_KEY, user),
+            'token': gen_token(app.config['SECRET_KEY'], user),
             'data': user.format(),
         })
 
     @app.get('/api/notifications')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def get_user_notifications():
         username = _request_ctx_stack.top.curr_user['sub']
         user = User.query.filter_by(username=username).one_or_none()
@@ -255,7 +254,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/questions')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def post_question():
         data = request.get_json() or []
         if 'content' not in data:
@@ -281,7 +280,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/questions/<int:question_id>')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def patch_question(question_id):
         data = request.get_json() or []
         question = Question.query.get(question_id)
@@ -319,7 +318,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/questions/<int:question_id>')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
@@ -353,7 +352,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/answers')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def post_answer():
         data = request.get_json() or []
         if 'content' not in data:
@@ -382,7 +381,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/answers/<int:answer_id>')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def patch_answer(answer_id):
         data = request.get_json() or []
         answer = Answer.query.get(answer_id)
@@ -414,7 +413,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/answers/<int:answer_id>')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
@@ -464,7 +463,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/question')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def report_question():
         username = _request_ctx_stack.top.curr_user['sub']
         question_id = request.get_json().get('question_id')
@@ -490,7 +489,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/answer')
-    @requires_auth(SECRET_KEY)
+    @requires_auth
     def report_answer():
         username = _request_ctx_stack.top.curr_user['sub']
         answer_id = request.get_json().get('answer_id')
