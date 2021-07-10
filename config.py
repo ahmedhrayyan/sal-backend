@@ -18,7 +18,11 @@ class Config(object):
 
 class ProductionConfig(Config):
     SECRET_KEY = os.environ['SECRET_KEY']
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    # replace url starting by postgres with postgresql as SQLALCHEMY has dropped support for postgres (for heroku)
+    # see https://stackoverflow.com/a/64698899/10272966
+    # see https://stackoverflow.com/a/66787229/10272966
+    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL'].replace(
+        '://', 'ql://', 1) if os.environ['DATABASE_URL'].startswith('postgres://') else os.environ['DATABASE_URL']
 
     MAIL_SERVER = 'smtp.sal22.tech'
     MAIL_PORT = 25
@@ -32,7 +36,8 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SECRET_KEY = 'test'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'tests/test.db')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
+        os.path.join(basedir, 'tests/test.db')
 
     # Dummy data, emails will not be sent as long as TESTING is True
     MAIL_DEFAULT_SENDER = 'any'
