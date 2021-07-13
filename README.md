@@ -2,9 +2,9 @@
 
 Sal (taken from Arabic word سل which means Ask) is QA Engine based on PostgreSQL database system, Python Flask micro framework and ReactJS library.
 
-This repo contains Sal backend only, Sal frontend repo lives [here]('fd')
+This repo contains Sal backend only, Sal frontend repo lives [here](https://github.com/ahmedhrayyan/sal-frontend)
 
-### Sal live version is [here](https://sal22.herokuapp.com/).
+### Sal live version is [here](https://sal22.tech/).
 
 ## Motivation
 
