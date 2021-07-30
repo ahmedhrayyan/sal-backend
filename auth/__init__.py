@@ -2,6 +2,8 @@ from functools import wraps
 from flask import request, _request_ctx_stack, current_app
 from jose import jwt
 from datetime import datetime, timedelta
+
+from jose.exceptions import JWTClaimsError
 from db.models import Role, User
 
 
@@ -43,7 +45,7 @@ def requires_auth(f):
         secret_key = current_app.config['SECRET_KEY']
         try:
             payload = jwt.decode(token, secret_key, 'HS256')
-        except (jwt.JWTClaimsError, jwt.ExpiredSignatureError, jwt.JWSError):
+        except (jwt.JWTClaimsError, jwt.JWTError):
             raise AuthError('Token is invalid', 401)
 
         _request_ctx_stack.top.curr_user = payload
