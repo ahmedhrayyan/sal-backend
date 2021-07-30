@@ -264,15 +264,12 @@ def create_app(config=ProductionConfig):
         if 'content' not in data:
             abort(400, 'content expected in request body')
 
-        # sanitize input
-        content = bleach.clean(data['content'])
-        # supporting markdown
-        content = markdown(content)
         # retrive user_id using username (which is stored in the stack by requires_auth decorator)
         username = _request_ctx_stack.top.curr_user['sub']
         user_id = User.query.filter_by(
             username=username).with_entities(User.id).one().id
-        new_question = Question(user_id, content)
+
+        new_question = Question(user_id, data['content'])
         try:
             new_question.insert()
         except Exception:
@@ -306,10 +303,7 @@ def create_app(config=ProductionConfig):
             question.accepted_answer = data['accepted_answer']
         # update question content
         if 'content' in data:
-            # sanitize input
-            content = bleach.clean(data['content'])
-            # supporting markdown
-            question.content = markdown(content)
+            question.content = data['content']
 
         try:
             question.update()
