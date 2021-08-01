@@ -1,6 +1,8 @@
+from auth import get_jwt_sub
+from sqlalchemy.orm import backref
 from db import db
 from flask import request
-from sqlalchemy import Column, Integer,  ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text, Boolean
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text, Boolean
 from datetime import datetime
 import bcrypt
 
@@ -43,63 +45,16 @@ class BaseModel:
         pass
 
 
-class Question(db.Model, BaseModel):
-    __tablename__ = 'questions'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(Text, nullable=False)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    accepted_answer = Column(Integer, ForeignKey(
-        'answers.id', use_alter=True, ondelete="SET NULL"), nullable=True)
-    answers = db.relationship('Answer', backref='question',
-                              order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
+class QuestionVote(db.Model):
+    __tablename__ = "questions_votes"
+    question_id = Column(Integer, ForeignKey('questions.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    vote = Column(Boolean, nullable=False)
 
-    def __init__(self, user_id: int, content: str):
-        self.user_id = user_id
-        self.content = content
-
-    def format(self):
-        # query showing list of question's answers
-        query = Answer.query.filter_by(question_id=self.id)
-        # prime answer will be either the either the accepted or the latest answer
-        if (self.accepted_answer):
-            prime_answer = Answer.query.get(self.accepted_answer)
-        else:
-            prime_answer = query.order_by(Answer.created_at.desc()).first()
-
-        return {
-            'id': self.id,
-            'user': self.user.format(),
-            'content': self.content,
-            'created_at': self.created_at,
-            'accepted_answer': self.accepted_answer,
-            'answers_count': query.count(),
-            'prime_answer': prime_answer and prime_answer.format()
-        }
-
-
-class Answer(db.Model, BaseModel):
-    __tablename__ = 'answers'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(Text, nullable=False)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-
-    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
-
-    def __init__(self, user_id: int, question_id: int, content: str):
-        self.user_id = user_id
-        self.content = content
-        self.question_id = question_id
-
-    def format(self):
-        return {
-            'id': self.id,
-            'user': self.user.format(),
-            'question_id': self.question_id,
-            'content': self.content,
-            'created_at': self.created_at
-        }
+    question = db.relationship('Question', backref=backref(
+        "votes", cascade="all, delete-orphan", lazy="dynamic"))
+    user = db.relationship('User', backref=backref(
+        "questions_votes", cascade="all, delete-orphan", lazy="dynamic"))
 
 
 class User(db.Model, BaseModel):
@@ -167,6 +122,101 @@ class User(db.Model, BaseModel):
             'phone': self.phone,
             'job': self.job,
             'avatar': avatar,
+            'created_at': self.created_at
+        }
+
+
+class Question(db.Model, BaseModel):
+    __tablename__ = 'questions'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    accepted_answer = Column(Integer, ForeignKey(
+        'answers.id', use_alter=True, ondelete="SET NULL"), nullable=True)
+    answers = db.relationship('Answer', backref='question',
+                              order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
+
+    def __init__(self, user_id: int, content: str):
+        self.user_id = user_id
+        self.content = content
+
+    def vote(self, user: User, vote: bool):
+        ''' upvote or downvote a question '''
+        if self.hasvoted(user):
+            # update the vote itself if the user has already voted
+            vote_obj = self.votes.filter_by(user=user).first()
+            vote_obj.vote = vote
+        else:
+            # working with the association pattern as detailed in the docs
+            # ref: https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html
+            vote = QuestionVote(vote=vote)
+            vote.user = user
+            self.votes.append(vote)
+        # update in either cases
+        self.update()
+
+    def unvote(self, user: User):
+        ''' remove specific user vote '''
+        self.votes.filter_by(user=user).delete()
+        self.update()
+
+    def get_user_vote(self, user: User):
+        ''' Returns user vote for the question. None if the user has not voted'''
+        if self.hasvoted(user):
+            return self.votes.filter_by(user=user).first().vote
+        else:
+            return None
+
+    def hasvoted(self, user: User) -> bool:
+        ''' Check wether a specific user has voted the question '''
+        return self.votes.filter_by(user=user).first() is not None
+
+    def format(self):
+        # query showing list of question's answers
+        query = Answer.query.filter_by(question_id=self.id)
+        # prime answer will be either the either the accepted or the latest answer
+        if (self.accepted_answer):
+            prime_answer = Answer.query.get(self.accepted_answer)
+        else:
+            prime_answer = query.order_by(Answer.created_at.desc()).first()
+
+        curr_user = User.query.filter_by(username=get_jwt_sub()).first()
+        return {
+            'id': self.id,
+            'user': self.user.format(),
+            'content': self.content,
+            'created_at': self.created_at,
+            'accepted_answer': self.accepted_answer,
+            'answers_count': query.count(),
+            'prime_answer': prime_answer and prime_answer.format(),
+            'upvotes': self.votes.filter_by(vote=True).count(),
+            'downvotes': self.votes.filter_by(vote=False).count(),
+            # viewer vote will be True if upvote, False if downvote and None if the viewer has not voted
+            'viewer_vote': self.get_user_vote(curr_user) if curr_user else None
+        }
+
+
+class Answer(db.Model, BaseModel):
+    __tablename__ = 'answers'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+
+    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
+
+    def __init__(self, user_id: int, question_id: int, content: str):
+        self.user_id = user_id
+        self.content = content
+        self.question_id = question_id
+
+    def format(self):
+        return {
+            'id': self.id,
+            'user': self.user.format(),
+            'question_id': self.question_id,
+            'content': self.content,
             'created_at': self.created_at
         }
 
