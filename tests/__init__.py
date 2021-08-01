@@ -1,5 +1,5 @@
-from auth import gen_token
 import unittest
+from auth import generate_token
 from app import create_app
 from db.models import Question, Answer, User, Role
 from config import TestingConfig
@@ -24,10 +24,15 @@ class SalTestCase(unittest.TestCase):
         self.question.insert()
         self.answer = Answer(self.user.id, self.question.id, 'Yes it is')
         self.answer.insert()
-        self.token = gen_token(self.app.config['SECRET_KEY'], self.user)
+        # generate token
+        # push an application context as generate_token function needs it
+        # ref: https://flask.palletsprojects.com/en/2.0.x/appcontext/#lifetime-of-the-context
+        self.app.app_context().push()
+        self.token = generate_token('ahmedhrayyan')
 
     def tearDown(self):
         ''' Executes after each test '''
+        db.session.remove()
         db.drop_all()
 
     def test_422_upload(self):
@@ -161,7 +166,7 @@ class SalTestCase(unittest.TestCase):
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
-        self.assertIn(content, json_data['data']['content'])
+        self.assertEqual(content, json_data['data']['content'])
 
     def test_patch_question(self):
         res = self.client().patch('/api/questions/%i' % self.question.id,
@@ -175,6 +180,41 @@ class SalTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
         self.assertEqual(self.answer.id, json_data['data']['accepted_answer'])
+
+    def test_400_vote_question(self):
+        res = self.client().post('/api/questions/%i/vote' % self.question.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 },
+                                 json={
+                                     'vote': 'test'
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(json_data['success'])
+
+    def test_vote_question(self):
+        res = self.client().post('/api/questions/%i/vote' % self.question.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 },
+                                 json={
+                                     'vote': True
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
+        self.assertEqual(json_data['data']['viewer_vote'], True)
+
+    def test_unvote_question(self):
+        res = self.client().post('/api/questions/%i/unvote' % self.question.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
+        self.assertEqual(json_data['data']['viewer_vote'], None)
 
     def test_404_delete_question(self):
         res = self.client().delete('/api/questions/10000',

@@ -233,6 +233,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions')
+    @requires_auth(optional=True)
     def get_questions():
         all_questions = Question.query.order_by(
             Question.created_at.desc()).all()
@@ -247,7 +248,7 @@ def create_app(config=ProductionConfig):
     @app.get('/api/questions/<int:question_id>')
     def show_question(question_id):
         question = Question.query.get(question_id)
-        if question == None:
+        if question is None:
             abort(404)
         # add list of the question answers to the question dict
         answers = [answer.format() for answer in question.answers]
@@ -282,7 +283,7 @@ def create_app(config=ProductionConfig):
     def patch_question(question_id):
         data = request.get_json() or []
         question = Question.query.get(question_id)
-        if question == None:
+        if question is None:
             abort(404, 'question not found')
         user = User.query.filter_by(username=get_jwt_sub()).first()
 
@@ -310,11 +311,60 @@ def create_app(config=ProductionConfig):
             'data': question.format()
         })
 
+    @app.post('/api/questions/<int:question_id>/vote')
+    @requires_auth()
+    def vote_question(question_id):
+        data = request.get_json()
+        if 'vote' not in data or not isinstance(data['vote'], bool):
+            abort(400, 'vote expected in request body and to be of type Boolean')
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'question not found')
+
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        try:
+            question.vote(user, data['vote'])
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': question.id,
+                'upvotes': question.votes.filter_by(vote=True).count(),
+                'downvotes': question.votes.filter_by(vote=False).count(),
+                'viewer_vote': question.get_user_vote(user)
+            }
+        })
+
+    @app.post('/api/questions/<int:question_id>/unvote')
+    @requires_auth()
+    def unvote_question(question_id):
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'question not found')
+
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        try:
+            question.unvote(user)
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': question.id,
+                'upvotes': question.votes.filter_by(vote=True).count(),
+                'downvotes': question.votes.filter_by(vote=False).count(),
+                'viewer_vote': question.get_user_vote(user)
+            }
+        })
+
     @app.delete('/api/questions/<int:question_id>')
     @requires_auth()
     def delete_question(question_id):
         question = Question.query.get(question_id)
-        if question == None:
+        if question is None:
             abort(404)
         user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target question
@@ -334,7 +384,7 @@ def create_app(config=ProductionConfig):
     @app.get('/api/answers/<int:answer_id>')
     def show_answer(answer_id):
         answer = Answer.query.get(answer_id)
-        if answer == None:
+        if answer is None:
             abort(404)
         return jsonify({
             'success': True,
@@ -350,7 +400,7 @@ def create_app(config=ProductionConfig):
         if 'question_id' not in data:
             abort(400, 'question_id expected in request body')
         question = Question.query.get(data['question_id'])
-        if question == None:
+        if question is None:
             abort(404, 'question not found')
         # sanitize input
         content = bleach.clean(data['content'])
@@ -400,7 +450,7 @@ def create_app(config=ProductionConfig):
     @requires_auth()
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
-        if answer == None:
+        if answer is None:
             abort(404)
         user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target answer
