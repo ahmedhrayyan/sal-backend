@@ -3,9 +3,6 @@ from flask import request, _request_ctx_stack, current_app
 from jose import jwt
 from datetime import datetime, timedelta
 
-from jose.exceptions import JWTClaimsError
-from db.models import Role, User
-
 
 class AuthError(Exception):
     ''' Base class for all auth excpetions '''
@@ -37,35 +34,61 @@ def get_token_auth_header() -> str:
     return token
 
 
-def requires_auth(f):
-    ''' Decorator to validate jwt on requests and to add the validated payload to _request_ctx_stack '''
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = get_token_auth_header()
-        secret_key = current_app.config['SECRET_KEY']
-        try:
-            payload = jwt.decode(token, secret_key, 'HS256')
-        except (jwt.JWTClaimsError, jwt.JWTError):
-            raise AuthError('Token is invalid', 401)
+def verify_jwt_in_request():
+    '''
+    Verify that a valid JWT is present in the request, and add
+    the verified payload to the reqest context
+    '''
 
-        _request_ctx_stack.top.curr_user = payload
-        return f(*args, **kwargs)
-    return decorated
+    token = get_token_auth_header()
+    secret_key = current_app.config['SECRET_KEY']
+    try:
+        payload = jwt.decode(token, secret_key, 'HS256')
+    except (jwt.JWTClaimsError, jwt.JWTError):
+        raise AuthError('Token is invalid', 401)
+
+    _request_ctx_stack.top.current_user = payload
+
+
+def requires_auth(optional: bool = False):
+    ''' A decorator to protect a Flask endpoint with JSON Web Tokens. '''
+    def wrapper(f):
+        @wraps(f)
+        def decorator(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except AuthError as e:
+                if not optional:
+                    raise e
+
+            return f(*args, **kwargs)
+        return decorator
+    return wrapper
 
 
 def requires_permission(required_permission: str) -> bool:
-    ''' check if specific permission exists in the current user '''
-    permissions = _request_ctx_stack.top.curr_user['permissions']
+    ''' In a protected endpoint, check if a specific permission exists in the current user '''
+    permissions = _request_ctx_stack.top.current_user['permissions']
     return required_permission in permissions
 
 
-def gen_token(secret_key: str, user: User) -> str:
+def generate_token(sub: str, permissions: list = []) -> str:
     ''' Generate JWT token '''
-    permissions = Role.query.get(user.role_id).permissions
     payload = {
-        'sub': user.username,
+        'sub': sub,
         'exp': datetime.now() + timedelta(days=30),
-        'permissions': [permission.name for permission in permissions]
+        'permissions': permissions
     }
-    token = jwt.encode(payload, secret_key, 'HS256')
+    token = jwt.encode(payload, current_app.config['SECRET_KEY'], 'HS256')
     return str(token)
+
+
+def get_jwt_sub() -> str:
+    '''
+    In a protected endpoint, this will return the user object for the JWT that is accessing the endpoint.
+    If no JWT is present, ``None`` is returned.
+    '''
+    if not hasattr(_request_ctx_stack.top, 'current_user'):
+        return None
+    else:
+        return _request_ctx_stack.top.current_user['sub']

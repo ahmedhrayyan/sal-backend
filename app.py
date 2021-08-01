@@ -1,12 +1,12 @@
 from os import path, mkdir
 from typing import BinaryIO
 from uuid import uuid4
-from flask import Flask, jsonify, request, abort, _request_ctx_stack, send_from_directory, render_template
+from flask import Flask, jsonify, request, abort, send_from_directory, render_template
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
-from auth import AuthError, gen_token, requires_auth, requires_permission
+from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
@@ -53,7 +53,7 @@ def create_app(config=ProductionConfig):
         return render_template('index.html')
 
     @app.post("/api/upload")
-    @requires_auth
+    @requires_auth()
     def upload():
         if 'file' not in request.files:
             abort(400, "No file founded")
@@ -134,16 +134,15 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'token': gen_token(app.config['SECRET_KEY'], new_user),
+            'token': generate_token(new_user.username),
             'data': new_user.format(),
         })
 
     @app.patch("/api/user")
-    @requires_auth
+    @requires_auth()
     def patch_user():
         data = request.get_json() or {}
-        username = _request_ctx_stack.top.curr_user['sub']
-        user = User.query.filter_by(username=username).one_or_none()
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         # updating user data
         if 'first_name' in data:
             user.first_name = str(data['first_name']).lower().strip()
@@ -208,17 +207,19 @@ def create_app(config=ProductionConfig):
         if not user or not user.checkpw(str(password)):
             abort(422, 'username or password is not correct')
 
+        role = Role.query.get(user.role_id)
+        permissions = [permission.name for permission in role.permissions]
+
         return jsonify({
             'success': True,
-            'token': gen_token(app.config['SECRET_KEY'], user),
+            'token': generate_token(user.username, permissions),
             'data': user.format(),
         })
 
     @app.get('/api/notifications')
-    @requires_auth
+    @requires_auth()
     def get_user_notifications():
-        username = _request_ctx_stack.top.curr_user['sub']
-        user = User.query.filter_by(username=username).one_or_none()
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         notifications, meta = paginate(
             user.notifications, request.args.get('page', 1, int))
         unread_count = Notification.query.filter_by(
@@ -258,18 +259,14 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/questions')
-    @requires_auth
+    @requires_auth()
     def post_question():
         data = request.get_json() or []
         if 'content' not in data:
             abort(400, 'content expected in request body')
 
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
-
-        new_question = Question(user_id, data['content'])
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        new_question = Question(user.id, data['content'])
         try:
             new_question.insert()
         except Exception:
@@ -281,18 +278,16 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/questions/<int:question_id>')
-    @requires_auth
+    @requires_auth()
     def patch_question(question_id):
         data = request.get_json() or []
         question = Question.query.get(question_id)
         if question == None:
             abort(404, 'question not found')
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+
         # check if current user owns the target question
-        if user_id != question.user_id:
+        if user.id != question.user_id:
             raise AuthError('You can\'t update others questions', 403)
 
         # update accepted answer
@@ -316,17 +311,14 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/questions/<int:question_id>')
-    @requires_auth
+    @requires_auth()
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question == None:
             abort(404)
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target question
-        if user_id != question.user_id:
+        if user.id != question.user_id:
             if not requires_permission('delete:questions'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users questions', 403)
@@ -350,7 +342,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/answers')
-    @requires_auth
+    @requires_auth()
     def post_answer():
         data = request.get_json() or []
         if 'content' not in data:
@@ -364,11 +356,8 @@ def create_app(config=ProductionConfig):
         content = bleach.clean(data['content'])
         # supporting markdown
         content = markdown(content)
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
-        new_answer = Answer(user_id, question.id, content)
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        new_answer = Answer(user.id, question.id, content)
         try:
             new_answer.insert()
         except Exception:
@@ -379,18 +368,15 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/answers/<int:answer_id>')
-    @requires_auth
+    @requires_auth()
     def patch_answer(answer_id):
         data = request.get_json() or []
         answer = Answer.query.get(answer_id)
         if not answer:
             abort("404", "answer not found!")
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if current user owns the target answer
-        if user_id != answer.user_id:
+        if user.id != answer.user_id:
             raise AuthError('You can\'t update others answers', 403)
 
         # update content
@@ -411,17 +397,14 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/answers/<int:answer_id>')
-    @requires_auth
+    @requires_auth()
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer == None:
             abort(404)
-        # retrive user_id using username (which is stored in the stack by requires_auth decorator)
-        username = _request_ctx_stack.top.curr_user['sub']
-        user_id = User.query.filter_by(
-            username=username).with_entities(User.id).one().id
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target answer
-        if user_id != answer.user_id:
+        if user.id != answer.user_id:
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
@@ -461,9 +444,9 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/question')
-    @requires_auth
+    @requires_auth()
     def report_question():
-        username = _request_ctx_stack.top.curr_user['sub']
+        username = get_jwt_sub()
         question_id = request.get_json().get('question_id')
         if question_id is None:
             abort(400, 'question_id expted in request body')
@@ -487,9 +470,9 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/answer')
-    @requires_auth
+    @requires_auth()
     def report_answer():
-        username = _request_ctx_stack.top.curr_user['sub']
+        username = get_jwt_sub()
         answer_id = request.get_json().get('answer_id')
         if answer_id is None:
             abort(400, 'answer_id expted in request body')
