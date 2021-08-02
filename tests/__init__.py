@@ -293,6 +293,41 @@ class SalTestCase(unittest.TestCase):
         self.assertTrue(json_data['success'])
         self.assertIn(content, json_data['data']['content'])
 
+    def test_400_vote_answer(self):
+        res = self.client().post('/api/answers/%i/vote' % self.answer.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 },
+                                 json={
+                                     'vote': 'test'
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(json_data['success'])
+
+    def test_vote_answer(self):
+        res = self.client().post('/api/answers/%i/vote' % self.answer.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 },
+                                 json={
+                                     'vote': True
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
+        self.assertEqual(json_data['data']['viewer_vote'], True)
+
+    def test_unvote_answer(self):
+        res = self.client().post('/api/answers/%i/unvote' % self.answer.id,
+                                 headers={
+                                     'Authorization': 'Bearer %s' % self.token
+                                 })
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
+        self.assertEqual(json_data['data']['viewer_vote'], None)
+
     def test_404_delete_answer(self):
         res = self.client().delete('/api/answers/10000',
                                    headers={

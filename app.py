@@ -446,6 +446,56 @@ def create_app(config=ProductionConfig):
             'data': answer.format()
         })
 
+    @app.post('/api/answers/<int:answer_id>/vote')
+    @requires_auth()
+    def vote_answer(answer_id):
+        data = request.get_json()
+        if 'vote' not in data or not isinstance(data['vote'], bool):
+            abort(400, 'vote expected in request body and to be of type Boolean')
+        answer = Answer.query.get(answer_id)
+        if answer is None:
+            abort(404, 'answer not found')
+
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        answer.vote(user, data['vote'])
+        # try:
+        #     answer.vote(user, data['vote'])
+        # except Exception:
+        #     abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': answer.id,
+                'upvotes': answer.votes.filter_by(vote=True).count(),
+                'downvotes': answer.votes.filter_by(vote=False).count(),
+                'viewer_vote': answer.get_user_vote(user)
+            }
+        })
+
+    @app.post('/api/answers/<int:answer_id>/unvote')
+    @requires_auth()
+    def unvote_answer(answer_id):
+        answer = Answer.query.get(answer_id)
+        if answer is None:
+            abort(404, 'answer not found')
+
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        try:
+            answer.unvote(user)
+        except Exception:
+            abort(422)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': answer.id,
+                'upvotes': answer.votes.filter_by(vote=True).count(),
+                'downvotes': answer.votes.filter_by(vote=False).count(),
+                'viewer_vote': answer.get_user_vote(user)
+            }
+        })
+
     @app.delete('/api/answers/<int:answer_id>')
     @requires_auth()
     def delete_answer(answer_id):
