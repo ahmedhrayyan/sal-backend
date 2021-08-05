@@ -185,14 +185,6 @@ class Question(db.Model, BaseModel):
 
 
     def format(self):
-        # query showing list of question's answers
-        query = Answer.query.filter_by(question_id=self.id)
-        # prime answer will be either the either the accepted or the latest answer
-        if (self.accepted_answer):
-            prime_answer = Answer.query.get(self.accepted_answer)
-        else:
-            prime_answer = query.order_by(Answer.created_at.desc()).first()
-
         curr_user = User.query.filter_by(username=get_jwt_sub()).first()
         return {
             'id': self.id,
@@ -200,8 +192,7 @@ class Question(db.Model, BaseModel):
             'content': self.content,
             'created_at': self.created_at,
             'accepted_answer': self.accepted_answer,
-            'answers_count': query.count(),
-            'prime_answer': prime_answer and prime_answer.format(),
+            'answers_count': len(self.answers),
             'upvotes': self.votes.filter_by(vote=True).count(),
             'downvotes': self.votes.filter_by(vote=False).count(),
             # viewer vote will be True if upvote, False if downvote and None if the viewer has not voted
