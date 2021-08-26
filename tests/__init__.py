@@ -143,6 +143,12 @@ class SalTestCase(unittest.TestCase):
         self.assertTrue(json_data['success'])
         self.assertEqual(self.question.id, json_data['data']['id'])
 
+    def test_get_question_answers(self):
+        res = self.client().get('/api/questions/%i/answers' % self.question.id)
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
+
     def test_400_post_question(self):
         res = self.client().post('/api/questions',
                                  headers={

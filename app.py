@@ -250,13 +250,22 @@ def create_app(config=ProductionConfig):
         question = Question.query.get(question_id)
         if question is None:
             abort(404)
-        # add list of the question answers to the question dict
-        answers = [answer.format() for answer in question.answers]
-        question = question.format()
-        question.update(answers=answers)
         return jsonify({
             'success': True,
-            'data': question
+            'data': question.format()
+        })
+
+    @app.get('/api/questions/<int:question_id>/answers')
+    def get_question_answers(question_id):
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'Question not found')
+
+        answers, meta = paginate(question.answers, request.args.get('page', 1, int))
+        return jsonify({
+            'success': True,
+            'data': [answer.format() for answer in answers],
+            'meta': meta
         })
 
     @app.post('/api/questions')
