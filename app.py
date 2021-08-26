@@ -152,11 +152,11 @@ def create_app(config=ProductionConfig):
             if re.match(app.config['EMAIL_PATTERN'], email) is None:
                 abort(422, 'Email is not valid')
             user.email = email
-        if 'username' in data:
-            username = str(data['username']).lower().strip()
-            if len(username) < 4:
-                abort(422, 'Username have to be at least 4 characters in length')
-            user.username = username
+        # if 'username' in data:
+        #     username = str(data['username']).lower().strip()
+        #     if len(username) < 4:
+        #         abort(422, 'Username have to be at least 4 characters in length')
+        #     user.username = username
         if 'password' in data:
             password = str(data['password']).lower().strip()
             if len(password) < 8:
