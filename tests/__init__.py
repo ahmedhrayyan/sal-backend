@@ -76,7 +76,7 @@ class SalTestCase(unittest.TestCase):
         res_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res_data['success'])
-        self.assertEqual(res_data['data']['username'], 'test')
+        self.assertIsInstance(res_data['token'], str)
 
     def test_patch_user(self):
         res = self.client().patch('/api/user',
@@ -111,7 +111,17 @@ class SalTestCase(unittest.TestCase):
         res_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res_data['success'])
-        self.assertEqual(res_data['data']['username'], 'ahmedhrayyan')
+        self.assertIsInstance(res_data['token'], str)
+
+    def test_get_own_data(self):
+        res = self.client().get('/api/own-data',
+                                headers={
+                                    'Authorization': 'Bearer %s' % self.token
+                                })
+        res_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res_data['success'])
+        self.assertEqual(res_data['data']['username'], self.user.username)
 
     def test_get_notifications(self):
         res = self.client().get('/api/notifications',

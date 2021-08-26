@@ -135,7 +135,6 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'token': generate_token(new_user.username),
-            'data': new_user.format(),
         })
 
     @app.patch("/api/user")
@@ -213,7 +212,18 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'token': generate_token(user.username, permissions),
-            'data': user.format(),
+        })
+
+    @app.get('/api/own-data')
+    @requires_auth()
+    def get_own_data():
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        user_data = user.format()
+        # include confidential data like id and email and phone
+        user_data.update(id=user.id, email=user.email, phone=user.phone)
+        return jsonify({
+            'success': True,
+            'data': user_data
         })
 
     @app.get('/api/notifications')
@@ -261,7 +271,8 @@ def create_app(config=ProductionConfig):
         if question is None:
             abort(404, 'Question not found')
 
-        answers, meta = paginate(question.answers, request.args.get('page', 1, int))
+        answers, meta = paginate(
+            question.answers, request.args.get('page', 1, int))
         return jsonify({
             'success': True,
             'data': [answer.format() for answer in answers],
