@@ -56,6 +56,7 @@ class QuestionVote(db.Model):
     user = db.relationship('User', backref=backref(
         "questions_votes", cascade="all, delete-orphan", lazy="dynamic"))
 
+
 class AnswerVote(db.Model):
     __tablename__ = "answers_votes"
     answer_id = Column(Integer, ForeignKey('answers.id'), primary_key=True)
@@ -125,12 +126,10 @@ class User(db.Model, BaseModel):
                 pass
 
         return {
-            'id': self.id,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'email': self.email,
+            'full_name': '%s %s' % (self.first_name, self.last_name),
             'username': self.username,
-            'phone': self.phone,
             'job': self.job,
             'avatar': avatar,
             'created_at': self.created_at
@@ -182,7 +181,6 @@ class Question(db.Model, BaseModel):
     def hasvoted(self, user: User) -> bool:
         ''' Check wether a specific user has voted the question '''
         return self.votes.filter_by(user=user).first() is not None
-
 
     def format(self):
         curr_user = User.query.filter_by(username=get_jwt_sub()).first()
@@ -244,7 +242,6 @@ class Answer(db.Model, BaseModel):
     def hasvoted(self, user: User) -> bool:
         ''' Check wether a specific user has voted the question '''
         return self.votes.filter_by(user=user).first() is not None
-
 
     def format(self):
         curr_user = User.query.filter_by(username=get_jwt_sub()).first()
