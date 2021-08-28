@@ -255,6 +255,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions/<int:question_id>')
+    @requires_auth(optional=True)
     def show_question(question_id):
         question = Question.query.get(question_id)
         if question is None:
@@ -265,6 +266,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions/<int:question_id>/answers')
+    @requires_auth(optional=True)
     def get_question_answers(question_id):
         question = Question.query.get(question_id)
         if question is None:
@@ -401,6 +403,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/answers/<int:answer_id>')
+    @requires_auth(optional=True)
     def show_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer is None:
@@ -548,6 +551,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/users/<username>/questions')
+    @requires_auth(optional=True)
     def get_user_questions(username):
         user = User.query.filter_by(username=username).one_or_none()
         if not user:
