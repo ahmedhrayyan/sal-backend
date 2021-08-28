@@ -80,6 +80,7 @@ class User(db.Model, BaseModel):
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     email_confirmed = Column(Boolean, default=False, nullable=False)
     job = Column(VARCHAR(50), nullable=True)
+    bio = Column(Text, nullable=True)
     phone = Column(VARCHAR(50), nullable=True, unique=True)
     avatar = Column(Text, nullable=True)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
@@ -90,15 +91,16 @@ class User(db.Model, BaseModel):
     notifications = db.relationship(
         'Notification', order_by='desc(Notification.created_at)', lazy=True, cascade='all')
 
-    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int, job: str = None, phone: str = None, avatar: str = None):
+    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int, job: str = None, bio: str = None, phone: str = None, avatar: str = None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.username = username
         self.password = bcrypt.hashpw(
             bytes(password, 'utf-8'), bcrypt.gensalt(12))
-        self.job = job
         self.role_id = role_id
+        self.job = job
+        self.bio = bio
         self.phone = phone
         self.avatar = avatar
 
@@ -131,6 +133,7 @@ class User(db.Model, BaseModel):
             'full_name': '%s %s' % (self.first_name, self.last_name),
             'username': self.username,
             'job': self.job,
+            'bio': self.bio,
             'avatar': avatar,
             'created_at': self.created_at
         }
