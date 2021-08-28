@@ -122,23 +122,19 @@ def create_app(config=ProductionConfig):
         email = str(data['email']).lower().strip()
         username = str(data['username']).lower().strip()
         password = str(data['password']).lower()
-        job = str(data['job']).lower().strip() if data.get('job') else None
-        phone = data.get('phone')
 
         # validating data
         if re.match(app.config['EMAIL_PATTERN'], email) is None:
             abort(422, 'Email is not valid')
-        if len(password) < 8:
-            abort(422, 'Password have to be at least 8 characters in length')
-        if phone and re.match(app.config['PHONE_PATTERN'], phone) is None:
-            abort(422, 'Phone is not valid')
         if len(username) < 4:
             abort(422, 'Username have to be at least 4 characters in length')
+        if len(password) < 8:
+            abort(422, 'Password have to be at least 8 characters in length')
 
         default_role = Role.query.filter_by(name="general").one_or_none().id
 
         new_user = User(first_name, last_name, email,
-                        username, password, default_role, job, phone)
+                        username, password, default_role)
 
         try:
             new_user.insert()
@@ -146,10 +142,8 @@ def create_app(config=ProductionConfig):
             # Integrity error means a unique value already exist in a different record
             if User.query.filter_by(email=email).one_or_none():
                 msg = 'Email is already in use'
-            elif User.query.filter_by(username=username).one_or_none():
-                msg = "Username is already in use"
             else:
-                msg = "Phone is already in use"
+                msg = "Username is already in use"
             abort(422, msg)
 
         return jsonify({
@@ -202,6 +196,8 @@ def create_app(config=ProductionConfig):
             user.phone = phone
         if 'job' in data:
             user.job = str(data['job']).lower().strip()
+        if 'bio' in data:
+            user.bio = str(data['bio']).lower().strip()
         if 'avatar' in data:
             if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], data['avatar'])):
                 abort(422, "Avatar is not valid")
@@ -231,7 +227,7 @@ def create_app(config=ProductionConfig):
 
     @app.get('/api/notifications')
     @requires_auth()
-    def get_user_notifications():
+    def get_notifications():
         user = User.query.filter_by(username=get_jwt_sub()).first()
         notifications, meta = paginate(
             user.notifications, request.args.get('page', 1, int))
