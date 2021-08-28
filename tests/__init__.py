@@ -78,8 +78,8 @@ class SalTestCase(unittest.TestCase):
         self.assertTrue(res_data['success'])
         self.assertIsInstance(res_data['token'], str)
 
-    def test_patch_user(self):
-        res = self.client().patch('/api/user',
+    def test_patch_profile(self):
+        res = self.client().patch('/api/profile',
                                   headers={
                                       'Authorization': 'Bearer %s' % self.token
                                   },
@@ -113,8 +113,14 @@ class SalTestCase(unittest.TestCase):
         self.assertTrue(res_data['success'])
         self.assertIsInstance(res_data['token'], str)
 
-    def test_get_own_data(self):
-        res = self.client().get('/api/own-data',
+    def test_401_get_profile(self):
+        res = self.client().get('/api/profile')
+        res_data = res.get_json()
+        self.assertEqual(res.status_code, 401)
+        self.assertFalse(res_data['success'])
+
+    def test_get_profile(self):
+        res = self.client().get('/api/profile',
                                 headers={
                                     'Authorization': 'Bearer %s' % self.token
                                 })

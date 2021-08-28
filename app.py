@@ -87,6 +87,26 @@ def create_app(config=ProductionConfig):
         except Exception:
             abort(404, "File not found")
 
+    @app.post('/api/login')
+    def login():
+        data = request.get_json() or {}
+        if 'username' not in data or 'password' not in data:
+            abort(400, 'username and password expected in request body')
+
+        username = data['username']
+        password = data['password']
+        user = User.query.filter_by(username=username).one_or_none()
+        if not user or not user.checkpw(str(password)):
+            abort(422, 'username or password is not correct')
+
+        role = Role.query.get(user.role_id)
+        permissions = [permission.name for permission in role.permissions]
+
+        return jsonify({
+            'success': True,
+            'token': generate_token(user.username, permissions),
+        })
+
     @app.post("/api/register")
     def register():
         data = request.get_json() or {}
@@ -137,9 +157,21 @@ def create_app(config=ProductionConfig):
             'token': generate_token(new_user.username),
         })
 
-    @app.patch("/api/user")
+    @app.get('/api/profile')
     @requires_auth()
-    def patch_user():
+    def show_profile():
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        profile = user.format()
+        # include confidential data like id, email and phone
+        profile.update(id=user.id, email=user.email, phone=user.phone)
+        return jsonify({
+            'success': True,
+            'data': profile
+        })
+
+    @app.patch("/api/profile")
+    @requires_auth()
+    def patch_profile():
         data = request.get_json() or {}
         user = User.query.filter_by(username=get_jwt_sub()).first()
         # updating user data
@@ -189,41 +221,12 @@ def create_app(config=ProductionConfig):
         except Exception:
             abort(422)
 
+        profile = user.format()
+        # include confidential data like id, email and phone
+        profile.update(id=user.id, email=user.email, phone=user.phone)
         return jsonify({
             'success': True,
-            'data': user.format(),
-        })
-
-    @app.post('/api/login')
-    def login():
-        data = request.get_json() or {}
-        if 'username' not in data or 'password' not in data:
-            abort(400, 'username and password expected in request body')
-
-        username = data['username']
-        password = data['password']
-        user = User.query.filter_by(username=username).one_or_none()
-        if not user or not user.checkpw(str(password)):
-            abort(422, 'username or password is not correct')
-
-        role = Role.query.get(user.role_id)
-        permissions = [permission.name for permission in role.permissions]
-
-        return jsonify({
-            'success': True,
-            'token': generate_token(user.username, permissions),
-        })
-
-    @app.get('/api/own-data')
-    @requires_auth()
-    def get_own_data():
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        user_data = user.format()
-        # include confidential data like id and email and phone
-        user_data.update(id=user.id, email=user.email, phone=user.phone)
-        return jsonify({
-            'success': True,
-            'data': user_data
+            'data': profile
         })
 
     @app.get('/api/notifications')
