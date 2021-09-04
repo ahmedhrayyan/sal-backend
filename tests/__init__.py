@@ -38,8 +38,7 @@ class SalTestCase(unittest.TestCase):
     def test_422_upload(self):
         res = self.client().post('api/upload',
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
+                                     'Authorization': 'Bearer %s' % self.token},
                                  data={'file': (BytesIO(b'IMAGE DATA'), 'file.jpg')})  # fake data
         json_data = res.get_json()
         self.assertEqual(res.status_code, 422)
@@ -81,11 +80,8 @@ class SalTestCase(unittest.TestCase):
     def test_patch_profile(self):
         res = self.client().patch('/api/profile',
                                   headers={
-                                      'Authorization': 'Bearer %s' % self.token
-                                  },
-                                  json={
-                                      'job': 'test',
-                                  })
+                                      'Authorization': 'Bearer %s' % self.token},
+                                  json={'job': 'test'})
         res_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res_data['success'])
@@ -121,9 +117,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_get_profile(self):
         res = self.client().get('/api/profile',
-                                headers={
-                                    'Authorization': 'Bearer %s' % self.token
-                                })
+                                headers={'Authorization': 'Bearer %s' % self.token})
         res_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res_data['success'])
@@ -131,9 +125,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_get_notifications(self):
         res = self.client().get('/api/notifications',
-                                headers={
-                                    'Authorization': 'Bearer %s' % self.token
-                                })
+                                headers={'Authorization': 'Bearer %s' % self.token})
         res_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res_data['success'])
@@ -167,9 +159,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_400_post_question(self):
         res = self.client().post('/api/questions',
-                                 headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 })
+                                 headers={'Authorization': 'Bearer %s' % self.token})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 400)
         self.assertFalse(json_data['success'])
@@ -179,12 +169,8 @@ class SalTestCase(unittest.TestCase):
         content = 'Is this great or what'
         res = self.client().post('/api/questions',
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'user_id': self.user.id,
-                                     'content': content
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'user_id': self.user.id, 'content': content})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -193,11 +179,8 @@ class SalTestCase(unittest.TestCase):
     def test_patch_question(self):
         res = self.client().patch('/api/questions/%i' % self.question.id,
                                   headers={
-                                      'Authorization': 'Bearer %s' % self.token
-                                  },
-                                  json={
-                                      'accepted_answer': self.answer.id
-                                  })
+                                      'Authorization': 'Bearer %s' % self.token},
+                                  json={'accepted_answer': self.answer.id})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -206,11 +189,8 @@ class SalTestCase(unittest.TestCase):
     def test_400_vote_question(self):
         res = self.client().post('/api/questions/%i/vote' % self.question.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'vote': 'test'
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 5})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 400)
         self.assertFalse(json_data['success'])
@@ -218,21 +198,18 @@ class SalTestCase(unittest.TestCase):
     def test_vote_question(self):
         res = self.client().post('/api/questions/%i/vote' % self.question.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'vote': True
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 1})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
         self.assertEqual(json_data['data']['viewer_vote'], True)
 
     def test_unvote_question(self):
-        res = self.client().post('/api/questions/%i/unvote' % self.question.id,
+        res = self.client().post('/api/questions/%i/vote' % self.question.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 0})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -240,10 +217,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_404_delete_question(self):
         res = self.client().delete('/api/questions/10000',
-                                   headers={
-                                       'Authorization': 'Bearer %s' % self.token
-                                   },
-                                   )
+                                   headers={'Authorization': 'Bearer %s' % self.token})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 404)
         self.assertFalse(json_data['success'])
@@ -251,10 +225,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_delete_question(self):
         res = self.client().delete('/api/questions/%i' % self.question.id,
-                                   headers={
-                                       'Authorization': 'Bearer %s' % self.token
-                                   },
-                                   )
+                                   headers={'Authorization': 'Bearer %s' % self.token})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -276,10 +247,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_400_post_answer(self):
         res = self.client().post('/api/answers',
-                                 headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 content_type='application/json')
+                                 headers={'Authorization': 'Bearer %s' % self.token})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 400)
         self.assertFalse(json_data['success'])
@@ -289,13 +257,10 @@ class SalTestCase(unittest.TestCase):
         content = 'answer'
         res = self.client().post('/api/answers',
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'user_id': self.user.id,
-                                     'question_id': self.question.id,
-                                     'content': content
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'user_id': self.user.id,
+                                       'question_id': self.question.id,
+                                       'content': content})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -305,11 +270,8 @@ class SalTestCase(unittest.TestCase):
         content = 'new answer'
         res = self.client().patch('/api/answers/%i' % self.answer.id,
                                   headers={
-                                      'Authorization': 'Bearer %s' % self.token
-                                  },
-                                  json={
-                                      'content': content
-                                  })
+                                      'Authorization': 'Bearer %s' % self.token},
+                                  json={'content': content})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -318,11 +280,8 @@ class SalTestCase(unittest.TestCase):
     def test_400_vote_answer(self):
         res = self.client().post('/api/answers/%i/vote' % self.answer.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'vote': 'test'
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 5})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 400)
         self.assertFalse(json_data['success'])
@@ -330,21 +289,18 @@ class SalTestCase(unittest.TestCase):
     def test_vote_answer(self):
         res = self.client().post('/api/answers/%i/vote' % self.answer.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'vote': True
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 1})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
         self.assertEqual(json_data['data']['viewer_vote'], True)
 
     def test_unvote_answer(self):
-        res = self.client().post('/api/answers/%i/unvote' % self.answer.id,
+        res = self.client().post('/api/answers/%i/vote' % self.answer.id,
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'vote': 0})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -352,10 +308,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_404_delete_answer(self):
         res = self.client().delete('/api/answers/10000',
-                                   headers={
-                                       'Authorization': 'Bearer %s' % self.token
-                                   },
-                                   )
+                                   headers={'Authorization': 'Bearer %s' % self.token},)
         json_data = res.get_json()
         self.assertEqual(res.status_code, 404)
         self.assertFalse(json_data['success'])
@@ -363,10 +316,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_delete_answer(self):
         res = self.client().delete('/api/answers/%i' % self.answer.id,
-                                   headers={
-                                       'Authorization': 'Bearer %s' % self.token
-                                   },
-                                   )
+                                   headers={'Authorization': 'Bearer %s' % self.token})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -402,11 +352,8 @@ class SalTestCase(unittest.TestCase):
     def test_report_question(self):
         res = self.client().post('/api/report/question',
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'question_id': self.question.id
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'question_id': self.question.id})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
@@ -414,11 +361,8 @@ class SalTestCase(unittest.TestCase):
     def test_report_answer(self):
         res = self.client().post('/api/report/answer',
                                  headers={
-                                     'Authorization': 'Bearer %s' % self.token
-                                 },
-                                 json={
-                                     'answer_id': self.answer.id
-                                 })
+                                     'Authorization': 'Bearer %s' % self.token},
+                                 json={'answer_id': self.answer.id})
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])

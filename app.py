@@ -335,39 +335,20 @@ def create_app(config=ProductionConfig):
     @app.post('/api/questions/<int:question_id>/vote')
     @requires_auth()
     def vote_question(question_id):
-        data = request.get_json()
-        if 'vote' not in data or not isinstance(data['vote'], bool):
-            abort(400, 'vote expected in request body and to be of type Boolean')
+        vote = request.get_json().get('vote')
+        # 0 for removing vote, 1 for upvote and 2 for downvote
+        if vote == None or vote not in (0, 1, 2):
+            abort(400, 'vote expected in request body and to be only 0, 1 or 2')
         question = Question.query.get(question_id)
         if question is None:
             abort(404, 'question not found')
 
         user = User.query.filter_by(username=get_jwt_sub()).first()
         try:
-            question.vote(user, data['vote'])
-        except Exception:
-            abort(422)
-
-        return jsonify({
-            'success': True,
-            'data': {
-                'id': question.id,
-                'upvotes': question.votes.filter_by(vote=True).count(),
-                'downvotes': question.votes.filter_by(vote=False).count(),
-                'viewer_vote': question.get_user_vote(user)
-            }
-        })
-
-    @app.post('/api/questions/<int:question_id>/unvote')
-    @requires_auth()
-    def unvote_question(question_id):
-        question = Question.query.get(question_id)
-        if question is None:
-            abort(404, 'question not found')
-
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        try:
-            question.unvote(user)
+            if vote == 0:
+                question.unvote(user)
+            else:
+                question.vote(user, True if vote == 1 else False)
         except Exception:
             abort(422)
 
@@ -471,40 +452,20 @@ def create_app(config=ProductionConfig):
     @app.post('/api/answers/<int:answer_id>/vote')
     @requires_auth()
     def vote_answer(answer_id):
-        data = request.get_json()
-        if 'vote' not in data or not isinstance(data['vote'], bool):
-            abort(400, 'vote expected in request body and to be of type Boolean')
-        answer = Answer.query.get(answer_id)
-        if answer is None:
-            abort(404, 'answer not found')
-
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        answer.vote(user, data['vote'])
-        # try:
-        #     answer.vote(user, data['vote'])
-        # except Exception:
-        #     abort(422)
-
-        return jsonify({
-            'success': True,
-            'data': {
-                'id': answer.id,
-                'upvotes': answer.votes.filter_by(vote=True).count(),
-                'downvotes': answer.votes.filter_by(vote=False).count(),
-                'viewer_vote': answer.get_user_vote(user)
-            }
-        })
-
-    @app.post('/api/answers/<int:answer_id>/unvote')
-    @requires_auth()
-    def unvote_answer(answer_id):
+        vote = request.get_json().get('vote')
+        # 0 for removing vote, 1 for upvote and 2 for downvote
+        if vote == None or vote not in (0, 1, 2):
+            abort(400, 'vote expected in request body and to be only 0, 1 or 2')
         answer = Answer.query.get(answer_id)
         if answer is None:
             abort(404, 'answer not found')
 
         user = User.query.filter_by(username=get_jwt_sub()).first()
         try:
-            answer.unvote(user)
+            if vote == 0:
+                answer.unvote(user)
+            else:
+                answer.vote(user, True if vote == 1 else False)
         except Exception:
             abort(422)
 
