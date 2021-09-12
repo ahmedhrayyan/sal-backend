@@ -135,6 +135,8 @@ class User(db.Model, BaseModel):
             'job': self.job,
             'bio': self.bio,
             'avatar': avatar,
+            'questions_count': len(self.questions),
+            'answers_count': len(self.answers),
             'created_at': self.created_at
         }
 
