@@ -273,7 +273,7 @@ def create_app(config=ProductionConfig):
             abort(404, 'Question not found')
 
         answers, meta = paginate(
-            question.answers, request.args.get('page', 1, int))
+            question.answers, request.args.get('page', 1, int), 4)
         return jsonify({
             'success': True,
             'data': [answer.format() for answer in answers],
