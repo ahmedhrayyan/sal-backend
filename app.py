@@ -634,15 +634,11 @@ def create_app(config=ProductionConfig):
         delete_users = Permission('delete:users')
         delete_answers = Permission('delete:answers')
         delete_questions = Permission('delete:questions')
-        delete_users.insert()
-        delete_answers.insert()
-        delete_questions.insert()
         # roles
         general = Role('general')
         superamdin = Role('superadmin')
-        superamdin.permissions.append(delete_users)
-        superamdin.permissions.append(delete_answers)
-        superamdin.permissions.append(delete_questions)
+        superamdin.permissions.extend(
+            [delete_users, delete_answers, delete_questions])
         general.insert()
         superamdin.insert()
 
