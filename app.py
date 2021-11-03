@@ -10,7 +10,6 @@ from auth import AuthError, generate_token, requires_auth, requires_permission, 
 from sqlalchemy.exc import IntegrityError
 import imghdr
 import re
-from markdown import markdown
 import bleach
 from config import ProductionConfig
 
@@ -413,8 +412,6 @@ def create_app(config=ProductionConfig):
             abort(404, 'question not found')
         # sanitize input
         content = bleach.clean(data['content'])
-        # supporting markdown
-        content = markdown(content)
         user = User.query.filter_by(username=get_jwt_sub()).first()
         new_answer = Answer(user.id, question.id, content)
         # notification
@@ -446,9 +443,7 @@ def create_app(config=ProductionConfig):
         # update content
         if 'content' in data:
             # sanitize input
-            content = bleach.clean(data['content'])
-            # supporting markdown
-            answer.content = markdown(content)
+            answer.content = bleach.clean(data['content'])
 
         try:
             answer.update()
