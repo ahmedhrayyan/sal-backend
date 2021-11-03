@@ -306,16 +306,20 @@ class Notification(db.Model, BaseModel):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     content = Column(Text, nullable=False)
-    read = Column(Boolean, default=False, nullable=False)
+    url = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
 
-    def __init__(self, user_id: int, content: str):
+    def __init__(self, user_id: int, content: str, url: str):
         self.user_id = user_id
         self.content = content
+        self.url = url
 
     def format(self):
         return {
             'id': self.id,
             'content': self.content,
+            'url': self.url,
+            'is_read': self.is_read,
             'created_at': self.created_at
         }
