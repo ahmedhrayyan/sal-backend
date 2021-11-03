@@ -232,7 +232,7 @@ def create_app(config=ProductionConfig):
         notifications, meta = paginate(
             user.notifications, request.args.get('page', 1, int))
         unread_count = Notification.query.filter_by(
-            user_id=user.id, read=False).count()
+            user_id=user.id, is_read=False).count()
 
         return jsonify({
             'success': True,
@@ -349,6 +349,12 @@ def create_app(config=ProductionConfig):
                 question.unvote(user)
             else:
                 question.vote(user, True if vote == 1 else False)
+                # notification
+                content = 'Your question has new %s "%s"' % (
+                    'upvote' if vote == 1 else 'downvote', question.content)
+                url = '/questions/%i' % question_id
+                notification = Notification(question.user_id, content, url)
+                notification.insert()
         except Exception:
             abort(422)
 
@@ -411,8 +417,13 @@ def create_app(config=ProductionConfig):
         content = markdown(content)
         user = User.query.filter_by(username=get_jwt_sub()).first()
         new_answer = Answer(user.id, question.id, content)
+        # notification
+        content = 'Your question has new answer "%s"' % question.content
+        url = '/questions/%i' % data['question_id']
+        notification = Notification(question.user_id, content, url)
         try:
             new_answer.insert()
+            notification.insert()
         except Exception:
             abort(422)
         return jsonify({
@@ -466,6 +477,12 @@ def create_app(config=ProductionConfig):
                 answer.unvote(user)
             else:
                 answer.vote(user, True if vote == 1 else False)
+                # notification
+                content = 'Your answer has new %s "%s"' % (
+                    'upvote' if vote == 1 else 'downvote', answer.content)
+                url = '/questions/%i#%i' % (answer.question_id, answer_id)
+                notification = Notification(answer.user_id, content, url)
+                notification.insert()
         except Exception:
             abort(422)
 
