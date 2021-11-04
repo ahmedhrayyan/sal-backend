@@ -229,9 +229,8 @@ def create_app(config=ProductionConfig):
     def get_notifications():
         user = User.query.filter_by(username=get_jwt_sub()).first()
         notifications, meta = paginate(
-            user.notifications, request.args.get('page', 1, int))
-        unread_count = Notification.query.filter_by(
-            user_id=user.id, is_read=False).count()
+            user.notifications.all(), request.args.get('page', 1, int))
+        unread_count = user.notifications.count()
 
         return jsonify({
             'success': True,

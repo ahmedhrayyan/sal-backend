@@ -89,7 +89,7 @@ class User(db.Model, BaseModel):
     answers = db.relationship(
         'Answer', backref='user', order_by='desc(Answer.created_at)', lazy=True, cascade='all')
     notifications = db.relationship(
-        'Notification', order_by='desc(Notification.created_at)', lazy=True, cascade='all')
+        'Notification', order_by='desc(Notification.created_at)', lazy="dynamic", cascade='all')
 
     def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int, job: str = None, bio: str = None, phone: str = None, avatar: str = None):
         self.first_name = first_name
