@@ -1,7 +1,7 @@
 import unittest
 from auth import generate_token
 from app import create_app
-from db.models import Question, Answer, User, Role
+from db.models import Question, Answer, User, Role, Notification
 from config import TestingConfig
 from io import BytesIO
 from db import db
@@ -24,6 +24,8 @@ class SalTestCase(unittest.TestCase):
         self.question.insert()
         self.answer = Answer(self.user.id, self.question.id, 'Yes it is')
         self.answer.insert()
+        self.notification = Notification(self.user.id, 'test', '/test')
+        self.notification.insert()
         # generate token
         # push an application context as generate_token function needs it
         # ref: https://flask.palletsprojects.com/en/2.0.x/appcontext/#lifetime-of-the-context
@@ -321,6 +323,21 @@ class SalTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])
         self.assertEqual(self.answer.id, json_data['deleted_id'])
+
+    def test_404_set_notification_read(self):
+        res = self.client().post('/api/notifications/10000/set-read',
+                                 headers={'Authorization': 'Bearer %s' % self.token},)
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 404)
+        self.assertFalse(json_data['success'])
+        self.assertTrue(json_data['message'])
+
+    def test_404_set_notification_read(self):
+        res = self.client().post('/api/notifications/%i/set-read' % self.notification.id,
+                                 headers={'Authorization': 'Bearer %s' % self.token},)
+        json_data = res.get_json()
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(json_data['success'])
 
     def test_404_show_user(self):
         res = self.client().get('/api/users/x')

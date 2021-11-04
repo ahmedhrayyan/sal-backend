@@ -240,6 +240,31 @@ def create_app(config=ProductionConfig):
             'meta': meta
         })
 
+    @app.post('/api/notifications/<int:notification_id>/set-read')
+    @requires_auth()
+    def set_notification_as_read(notification_id):
+        user = User.query.filter_by(username=get_jwt_sub()).first()
+        notification: Notification = Notification.query.get(notification_id)
+        if not notification:
+            abort(404, "notification not found")
+        if notification.user_id != user.id:
+            raise AuthError('You can\'t mutate others notifications', 403)
+
+        notification.is_read = True
+        try:
+            notification.update()
+        except:
+            abort(422)
+
+        unread_count = Notification.query.filter_by(
+            user_id=user.id, is_read=False).count()
+
+        return jsonify({
+            'success': True,
+            'data': {'id': notification.id, 'is_read': True},
+            'unread_count': unread_count,
+        })
+
     @app.get('/api/questions')
     @requires_auth(optional=True)
     def get_questions():
