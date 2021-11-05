@@ -336,19 +336,15 @@ def create_app(config=ProductionConfig):
     @app.post('/api/search')
     @requires_auth()
     def search():
-        print(11111111111111111111)
         data = request.get_json() or []
         if 'searchTerm' not in data:
             abort(400, 'searchTerm expected in the request body')
         search_term = data.get('searchTerm', None)
-        print(2)
         try:
             if search_term == "":
                 all_questions = Question.query.order_by(
                     Question.created_at.desc()).all()
-                print(3)
             else:
-                print(4)
                 all_questions = Question.query.filter(
                     Question.content.ilike(f'%{search_term}%')
                 ).order_by(Question.created_at.desc()).all()
