@@ -271,7 +271,7 @@ def create_app(config=ProductionConfig):
 
         if search_term:
             all_questions = query.filter(
-                Question.content.ilike(f'%{search_term}%').all())
+                Question.content.ilike(f'%{search_term}%')).all()
         else:
             all_questions = query.all()
 
@@ -506,7 +506,8 @@ def create_app(config=ProductionConfig):
                 # notification
                 content = 'Your answer has new %s "%s"' % (
                     'upvote' if vote == 1 else 'downvote', answer.content)
-                url = '/questions/%i?answer_id=%i' % (answer.question_id, answer_id)
+                url = '/questions/%i?answer_id=%i' % (
+                    answer.question_id, answer_id)
                 notification = Notification(answer.user_id, content, url)
                 notification.insert()
         except Exception:
