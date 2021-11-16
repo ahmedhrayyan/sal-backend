@@ -506,7 +506,7 @@ def create_app(config=ProductionConfig):
                 # notification
                 content = 'Your answer has new %s "%s"' % (
                     'upvote' if vote == 1 else 'downvote', answer.content)
-                url = '/questions/%i#%i' % (answer.question_id, answer_id)
+                url = '/questions/%i?answer_id=%i' % (answer.question_id, answer_id)
                 notification = Notification(answer.user_id, content, url)
                 notification.insert()
         except Exception:
