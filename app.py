@@ -267,24 +267,22 @@ def create_app(config=ProductionConfig):
     @requires_auth(optional=True)
     def get_questions():
         search_term = request.args.get('searchTerm', '', str)
-        try:
-            if search_term:
-                all_questions = Question.query.filter(
-                    Question.content.ilike(f'%{search_term}%')
-                ).order_by(Question.created_at.desc()).all()
-            else:
-                all_questions = Question.query.order_by(
-                    Question.created_at.desc()).all()
-            questions, meta = paginate(
-                all_questions, request.args.get('page', 1, int))
-            return jsonify({
-                'success': True,
-                'data': [question.format() for question in questions],
-                'meta': meta,
-                'search_term': search_term
-            })
-        except Exception:
-            abort(422)
+        query = Question.query.order_by(Question.created_at.desc())
+
+        if search_term:
+            all_questions = query.filter(
+                Question.content.ilike(f'%{search_term}%').all())
+        else:
+            all_questions = query.all()
+
+        questions, meta = paginate(
+            all_questions, request.args.get('page', 1, int))
+        return jsonify({
+            'success': True,
+            'data': [question.format() for question in questions],
+            'meta': meta,
+            'search_term': search_term
+        })
 
     @app.get('/api/questions/<int:question_id>')
     @requires_auth(optional=True)
