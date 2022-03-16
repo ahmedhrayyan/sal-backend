@@ -8,14 +8,10 @@ import bcrypt
 
 
 class BaseModel:
-    ''' Helper class witch add basic methods to sub models '''
-
-    def __init__(self):
-        ''' Generate new orm object '''
-        pass
+    """ Helper class witch add basic methods to sub models """
 
     def update(self):
-        ''' updating element in db  '''
+        """ updating element in db  """
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
@@ -23,7 +19,7 @@ class BaseModel:
             raise e
 
     def delete(self):
-        ''' delete item from db '''
+        """ delete item from db """
         try:
             db.session.delete(self)
             db.session.commit()
@@ -32,17 +28,13 @@ class BaseModel:
             raise e
 
     def insert(self):
-        ''' insert item into db '''
+        """ insert item into db """
         try:
             db.session.add(self)
             db.session.commit()
         except exc.SQLAlchemyError as e:
             db.session.rollback()
             raise e
-
-    def format(self):
-        ''' return data as a dict witch can be seralized '''
-        pass
 
 
 class QuestionVote(db.Model):
@@ -91,7 +83,8 @@ class User(db.Model, BaseModel):
     notifications = db.relationship(
         'Notification', order_by='desc(Notification.created_at)', lazy="dynamic", cascade='all')
 
-    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int, job: str = None, bio: str = None, phone: str = None, avatar: str = None):
+    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int,
+                 job: str = None, bio: str = None, phone: str = None, avatar: str = None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -150,7 +143,8 @@ class Question(db.Model, BaseModel):
     accepted_answer = Column(Integer, ForeignKey(
         'answers.id', use_alter=True, ondelete="SET NULL"), nullable=True)
     answers = db.relationship('Answer', backref='question',
-                              order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id', cascade='all')
+                              order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id',
+                              cascade='all')
 
     def __init__(self, user_id: int, content: str):
         self.user_id = user_id
@@ -302,6 +296,8 @@ class Permission(db.Model, BaseModel):
 
 
 class Notification(db.Model, BaseModel):
+    """ Notification model """
+
     __tablename__ = 'notifications'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
@@ -314,12 +310,3 @@ class Notification(db.Model, BaseModel):
         self.user_id = user_id
         self.content = content
         self.url = url
-
-    def format(self):
-        return {
-            'id': self.id,
-            'content': self.content,
-            'url': self.url,
-            'is_read': self.is_read,
-            'created_at': self.created_at
-        }

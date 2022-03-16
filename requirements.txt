@@ -19,6 +19,7 @@ Jinja2==3.0.1
 Mako==1.1.4
 Markdown==3.3.4
 MarkupSafe==2.0.1
+marshmallow==3.14.1
 packaging==20.9
 psycopg2-binary==2.9.1
 pyasn1==0.4.8

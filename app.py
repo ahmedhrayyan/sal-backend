@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
+from db.schemas import notification_schema
 from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
 from sqlalchemy.exc import IntegrityError
 import imghdr
@@ -234,7 +235,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': [notification.format() for notification in notifications],
+            'data': notification_schema.dump(notifications, many=True),
             'unread_count': unread_count,
             'meta': meta
         })
