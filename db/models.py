@@ -10,6 +10,9 @@ import bcrypt
 class BaseModel:
     """ Helper class witch add basic methods to sub models """
 
+    def __init__(self, **kwargs):
+        pass
+
     def update(self):
         """ updating element in db  """
         try:
@@ -146,13 +149,9 @@ class Question(db.Model, BaseModel):
                               order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id',
                               cascade='all')
 
-    def __init__(self, user_id: int, content: str):
-        self.user_id = user_id
-        self.content = content
-
     def vote(self, user: User, vote: bool):
-        ''' upvote or downvote a question '''
-        if self.hasvoted(user):
+        """ upvote or downvote a question """
+        if self.has_voted(user):
             # update the vote itself if the user has already voted
             vote_obj = self.votes.filter_by(user=user).first()
             vote_obj.vote = vote
@@ -165,36 +164,21 @@ class Question(db.Model, BaseModel):
         # update in either cases
         self.update()
 
-    def unvote(self, user: User):
-        ''' remove specific user vote '''
+    def remove_vote(self, user: User):
+        """ remove user vote """
         self.votes.filter_by(user=user).delete()
         self.update()
 
     def get_user_vote(self, user: User):
-        ''' Returns user vote for the question. None if the user has not voted'''
-        if self.hasvoted(user):
+        """ Returns user vote for the question. None if the user has not voted """
+        if self.has_voted(user):
             return self.votes.filter_by(user=user).first().vote
         else:
             return None
 
-    def hasvoted(self, user: User) -> bool:
-        ''' Check wether a specific user has voted the question '''
+    def has_voted(self, user: User) -> bool:
+        """ Check weather a user has voted the question """
         return self.votes.filter_by(user=user).first() is not None
-
-    def format(self):
-        curr_user = User.query.filter_by(username=get_jwt_sub()).first()
-        return {
-            'id': self.id,
-            'user': self.user.format(),
-            'content': self.content,
-            'created_at': self.created_at,
-            'accepted_answer': self.accepted_answer,
-            'answers_count': len(self.answers),
-            'upvotes': self.votes.filter_by(vote=True).count(),
-            'downvotes': self.votes.filter_by(vote=False).count(),
-            # viewer vote will be True if upvote, False if downvote and None if the viewer has not voted
-            'viewer_vote': self.get_user_vote(curr_user) if curr_user else None
-        }
 
 
 class Answer(db.Model, BaseModel):
@@ -206,14 +190,9 @@ class Answer(db.Model, BaseModel):
 
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
 
-    def __init__(self, user_id: int, question_id: int, content: str):
-        self.user_id = user_id
-        self.content = content
-        self.question_id = question_id
-
     def vote(self, user: User, vote: bool):
-        ''' upvote or downvote a question '''
-        if self.hasvoted(user):
+        """ upvote or down-vote a question """
+        if self.has_voted(user):
             # update the vote itself if the user has already voted
             vote_obj = self.votes.filter_by(user=user).first()
             vote_obj.vote = vote
@@ -226,35 +205,21 @@ class Answer(db.Model, BaseModel):
         # update in either cases
         self.update()
 
-    def unvote(self, user: User):
-        ''' remove specific user vote '''
+    def remove_vote(self, user: User):
+        """ remove user vote """
         self.votes.filter_by(user=user).delete()
         self.update()
 
     def get_user_vote(self, user: User):
-        ''' Returns user vote for the question. None if the user has not voted'''
-        if self.hasvoted(user):
+        """ Returns user vote for the question. None if the user has not voted """
+        if self.has_voted(user):
             return self.votes.filter_by(user=user).first().vote
         else:
             return None
 
-    def hasvoted(self, user: User) -> bool:
-        ''' Check wether a specific user has voted the question '''
+    def has_voted(self, user: User) -> bool:
+        """ Check weather the user has voted the question """
         return self.votes.filter_by(user=user).first() is not None
-
-    def format(self):
-        curr_user = User.query.filter_by(username=get_jwt_sub()).first()
-        return {
-            'id': self.id,
-            'user': self.user.format(),
-            'question_id': self.question_id,
-            'content': self.content,
-            'created_at': self.created_at,
-            # viewer vote will be True if upvote, False if downvote and None if the viewer has not voted
-            'upvotes': self.votes.filter_by(vote=True).count(),
-            'downvotes': self.votes.filter_by(vote=False).count(),
-            'viewer_vote': self.get_user_vote(curr_user) if curr_user else None
-        }
 
 
 roles_permissions = db.Table('roles_permissions',

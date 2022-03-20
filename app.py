@@ -4,11 +4,13 @@ from uuid import uuid4
 from flask import Flask, jsonify, request, abort, send_from_directory, render_template
 from flask_cors import CORS
 from flask_mail import Mail, Message
+from marshmallow import ValidationError
+
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
-from db.schemas import notification_schema
+from db.schemas import notification_schema, answer_schema, AnswerSchema, question_schema, QuestionSchema, vote_schema
 from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import imghdr
 import re
 import bleach
@@ -251,10 +253,7 @@ def create_app(config=ProductionConfig):
             raise AuthError('You can\'t mutate others notifications', 403)
 
         notification.is_read = True
-        try:
-            notification.update()
-        except:
-            abort(422)
+        notification.update()
 
         unread_count = user.notifications.filter_by(is_read=False).count()
 
@@ -278,9 +277,10 @@ def create_app(config=ProductionConfig):
 
         questions, meta = paginate(
             all_questions, request.args.get('page', 1, int))
+
         return jsonify({
             'success': True,
-            'data': [question.format() for question in questions],
+            'data': question_schema.dump(questions, many=True),
             'meta': meta,
             'search_term': search_term
         })
@@ -293,7 +293,7 @@ def create_app(config=ProductionConfig):
             abort(404)
         return jsonify({
             'success': True,
-            'data': question.format()
+            'data': question_schema.dump(question)
         })
 
     @app.get('/api/questions/<int:question_id>/answers')
@@ -307,96 +307,77 @@ def create_app(config=ProductionConfig):
             question.answers, request.args.get('page', 1, int), 4)
         return jsonify({
             'success': True,
-            'data': [answer.format() for answer in answers],
+            'data': answer_schema.dump(answers, many=True),
             'meta': meta
         })
 
     @app.post('/api/questions')
     @requires_auth()
     def post_question():
-        data = request.get_json() or []
-        if 'content' not in data:
-            abort(400, 'content expected in request body')
-
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        new_question = Question(user.id, data['content'])
-        try:
-            new_question.insert()
-        except Exception:
-            abort(422)
+        # excluding accepted_answer field from the schema (the question has no answers yet to accept one)
+        new_question = QuestionSchema(exclude=["accepted_answer"]).load(request.json)
+        new_question.insert()
 
         return jsonify({
             'success': True,
-            'data': new_question.format()
+            'data': question_schema.dump(new_question)
         })
 
     @app.patch('/api/questions/<int:question_id>')
     @requires_auth()
     def patch_question(question_id):
-        data = request.get_json() or []
+        data = question_schema.load(request.json, partial=True)
+
+        # check if the target question exists
         question = Question.query.get(question_id)
         if question is None:
             abort(404, 'question not found')
-        user = User.query.filter_by(username=get_jwt_sub()).first()
 
+        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if current user owns the target question
         if user.id != question.user_id:
             raise AuthError('You can\'t update others questions', 403)
 
-        # update accepted answer
+        # validate accepted_answer as it needs custom validation
         if 'accepted_answer' in data:
             answer = Answer.query.get(data['accepted_answer'])
-            if not answer or answer.question_id != question_id:
-                abort(400, 'the provided answer is not valid')
-            question.accepted_answer = data['accepted_answer']
-        # update question content
-        if 'content' in data:
-            question.content = data['content']
+            # the answer must not be None and should belong to the question
+            if answer is None or answer.question_id != question_id:
+                raise ValidationError({'accepted_answer': ["Not valid."]})
 
-        try:
-            question.update()
-        except Exception:
-            abort(422)
+        question.query.update(values=data)
+        question.update()
 
         return jsonify({
             'success': True,
-            'data': question.format()
+            'data': question_schema.dump(question)
         })
 
     @app.post('/api/questions/<int:question_id>/vote')
     @requires_auth()
     def vote_question(question_id):
-        vote = request.get_json().get('vote')
-        # 0 for removing vote, 1 for upvote and 2 for downvote
-        if vote == None or vote not in (0, 1, 2):
-            abort(400, 'vote expected in request body and to be only 0, 1 or 2')
+        data = vote_schema.load(request.json)
+
+        # check if the target question exists
         question = Question.query.get(question_id)
         if question is None:
             abort(404, 'question not found')
 
         user = User.query.filter_by(username=get_jwt_sub()).first()
-        try:
-            if vote == 0:
-                question.unvote(user)
-            else:
-                question.vote(user, True if vote == 1 else False)
-                # notification
-                content = 'Your question has new %s "%s"' % (
-                    'upvote' if vote == 1 else 'downvote', question.content)
-                url = '/questions/%i' % question_id
-                notification = Notification(question.user_id, content, url)
-                notification.insert()
-        except Exception:
-            abort(422)
+        if data['vote'] == 0:
+            question.remove_vote(user)
+        else:
+            question.vote(user, True if data['vote'] == 1 else False)
+            # notification
+            content = 'Your question has new %s "%s"' % (
+                'upvote' if data['vote'] == 1 else 'downvote', question.content)
+            url = '/questions/%i' % question_id
+            notification = Notification(question.user_id, content, url)
+            notification.insert()
 
         return jsonify({
             'success': True,
-            'data': {
-                'id': question.id,
-                'upvotes': question.votes.filter_by(vote=True).count(),
-                'downvotes': question.votes.filter_by(vote=False).count(),
-                'viewer_vote': question.get_user_vote(user)
-            }
+            'data': QuestionSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(question)
         })
 
     @app.delete('/api/questions/<int:question_id>')
@@ -405,16 +386,15 @@ def create_app(config=ProductionConfig):
         question = Question.query.get(question_id)
         if question is None:
             abort(404)
+
         user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target question
         if user.id != question.user_id:
             if not requires_permission('delete:questions'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users questions', 403)
-        try:
-            question.delete()
-        except Exception:
-            abort(422)
+
+        question.delete()
         return jsonify({
             'success': True,
             'deleted_id': int(question_id)
@@ -428,106 +408,84 @@ def create_app(config=ProductionConfig):
             abort(404)
         return jsonify({
             'success': True,
-            'data': answer.format()
+            'data': answer_schema.dump(answer)
         })
 
     @app.post('/api/answers')
     @requires_auth()
     def post_answer():
-        data = request.get_json() or []
-        if 'content' not in data:
-            abort(400, 'content expected in request body')
-        if 'question_id' not in data:
-            abort(400, 'question_id expected in request body')
-        question = Question.query.get(data['question_id'])
-        if question is None:
-            abort(404, 'question not found')
-        # sanitize input
-        content = bleach.clean(data['content'])
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        new_answer = Answer(user.id, question.id, content)
+        new_answer = answer_schema.load(request.json)
+        new_answer.insert()
+
         # notification
-        content = 'Your question has new answer "%s"' % question.content
-        url = '/questions/%i' % data['question_id']
-        notification = Notification(question.user_id, content, url)
-        try:
-            new_answer.insert()
-            notification.insert()
-        except Exception:
-            abort(422)
+        content = 'Your question has new answer "%s"' % new_answer.question.content
+        url = '/questions/%i' % new_answer.question_id
+        notification = Notification(new_answer.question.user_id, content, url)
+        notification.insert()
+
         return jsonify({
             'success': True,
-            'data': new_answer.format()
+            'data': answer_schema.dump(new_answer)
         })
 
     @app.patch('/api/answers/<int:answer_id>')
     @requires_auth()
     def patch_answer(answer_id):
-        data = request.get_json() or []
+        data = AnswerSchema(exclude=["question_id"]).load(request.json, partial=True)
+
+        # check if the target answer exists
         answer = Answer.query.get(answer_id)
         if not answer:
-            abort("404", "answer not found!")
+            abort(404, "answer not found!")
+
         user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if current user owns the target answer
         if user.id != answer.user_id:
             raise AuthError('You can\'t update others answers', 403)
 
-        # update content
-        if 'content' in data:
-            # sanitize input
-            answer.content = bleach.clean(data['content'])
-
-        try:
-            answer.update()
-        except Exception:
-            abort(422)
+        answer.query.update(values=data)
+        answer.update()
 
         return jsonify({
             'success': True,
-            'data': answer.format()
+            'data': answer_schema.dump(answer)
         })
 
     @app.post('/api/answers/<int:answer_id>/vote')
     @requires_auth()
     def vote_answer(answer_id):
-        vote = request.get_json().get('vote')
-        # 0 for removing vote, 1 for upvote and 2 for downvote
-        if vote == None or vote not in (0, 1, 2):
-            abort(400, 'vote expected in request body and to be only 0, 1 or 2')
+        data = vote_schema.load(request.json)
+
         answer = Answer.query.get(answer_id)
+
+        # check if the target answer exists
         if answer is None:
             abort(404, 'answer not found')
 
         user = User.query.filter_by(username=get_jwt_sub()).first()
-        try:
-            if vote == 0:
-                answer.unvote(user)
-            else:
-                answer.vote(user, True if vote == 1 else False)
-                # notification
-                content = 'Your answer has new %s "%s"' % (
-                    'upvote' if vote == 1 else 'downvote', answer.content)
-                url = '/questions/%i?answer_id=%i' % (
-                    answer.question_id, answer_id)
-                notification = Notification(answer.user_id, content, url)
-                notification.insert()
-        except Exception:
-            abort(422)
+        if data['vote'] == 0:
+            answer.remove_vote(user)
+        else:
+            answer.vote(user, True if data['vote'] == 1 else False)
+            # notification
+            content = 'Your answer has new %s "%s"' % (
+                'upvote' if data['vote'] == 1 else 'downvote', answer.content)
+            url = '/questions/%i?answer_id=%i' % (
+                answer.question_id, answer_id)
+            notification = Notification(answer.user_id, content, url)
+            notification.insert()
 
         return jsonify({
             'success': True,
-            'data': {
-                'id': answer.id,
-                'upvotes': answer.votes.filter_by(vote=True).count(),
-                'downvotes': answer.votes.filter_by(vote=False).count(),
-                'viewer_vote': answer.get_user_vote(user)
-            }
+            'data': AnswerSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(answer)
         })
 
     @app.delete('/api/answers/<int:answer_id>')
     @requires_auth()
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
+
+        # check if the target answer exists
         if answer is None:
             abort(404)
         user = User.query.filter_by(username=get_jwt_sub()).first()
@@ -536,10 +494,7 @@ def create_app(config=ProductionConfig):
             if not requires_permission('delete:answers'):
                 raise AuthError('You don\'t have '
                                 'the authority to delete other users answers', 403)
-        try:
-            answer.delete()
-        except Exception:
-            abort(422)
+        answer.delete()
         return jsonify({
             'success': True,
             'deleted_id': int(answer_id)
@@ -670,6 +625,13 @@ def create_app(config=ProductionConfig):
             'message': error.message,
             'error': error.code
         }), error.code
+
+    @app.errorhandler(ValidationError)
+    def marshmallow_error_handler(error):
+        return jsonify({
+            'message': 'The given data was invalid.',
+            'errors': error.messages,
+        }), 400
 
     ### COMMANDS ###
 
