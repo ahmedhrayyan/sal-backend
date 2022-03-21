@@ -71,7 +71,7 @@ class User(db.Model, BaseModel):
     last_name = Column(VARCHAR(20), nullable=False)
     email = Column(VARCHAR(60), nullable=False, unique=True)
     username = Column(VARCHAR(20), nullable=False, unique=True)
-    password = Column(LargeBinary, nullable=False)
+    _password = Column(LargeBinary, nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     email_confirmed = Column(Boolean, default=False, nullable=False)
     job = Column(VARCHAR(50), nullable=True)
@@ -86,37 +86,22 @@ class User(db.Model, BaseModel):
     notifications = db.relationship(
         'Notification', order_by='desc(Notification.created_at)', lazy="dynamic", cascade='all')
 
-    def __init__(self, first_name: str, last_name: str, email: str, username: str, password: str, role_id: int,
-                 job: str = None, bio: str = None, phone: str = None, avatar: str = None):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.email = email
-        self.username = username
-        self.password = bcrypt.hashpw(
-            bytes(password, 'utf-8'), bcrypt.gensalt(12))
-        self.role_id = role_id
-        self.job = job
-        self.bio = bio
-        self.phone = phone
-        self.avatar = avatar
+    @property
+    def password(self):
+        return "***"
+
+    @password.setter
+    def password(self, value):
+        self._password = bcrypt.hashpw(bytes(value, 'utf-8'), bcrypt.gensalt(12))
 
     def checkpw(self, password: str):
-        ''' Check if the provided password is equal to user password '''
-        return bcrypt.checkpw(bytes(password, 'utf-8'), self.password)
-
-    def set_pw(self, password: str):
-        '''
-        Set current user passowed.
-
-        password is hashed first before getting assigned to user
-        '''
-        self.password = bcrypt.hashpw(
-            bytes(password, 'utf-8'), bcrypt.gensalt(12))
+        """ Check if the provided password is equal to user password """
+        return bcrypt.checkpw(bytes(password, 'utf-8'), self._password)
 
     def format(self):
         # prepend uploads endpoint to self.avatar
         avatar = self.avatar
-        if (avatar):
+        if avatar:
             try:
                 # will fail if called outside an endpoint
                 avatar = request.root_url + 'uploads/' + avatar
