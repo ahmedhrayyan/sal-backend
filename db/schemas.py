@@ -57,14 +57,11 @@ question_schema = QuestionSchema()
 class AnswerSchema(BaseQASchema):
     question_id = fields.Int(required=True, validate=lambda id: Question.query.get(id) is not None)
 
-    @pre_load
-    def process_input(self, data, **kwargs):
-        # sanitize content
-        data['content'] = clean(data['content'])
-        return data
-
     @post_load
     def create_answer(self, data, **kwargs):
+        # sanitize content
+        data['content'] = clean(data['content'])
+
         # if partial option was passed, return the dictionary of fields not an object (useful for updating)
         if kwargs.get("partial"):
             return data

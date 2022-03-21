@@ -8,10 +8,10 @@ from db import db
 
 
 class SalTestCase(unittest.TestCase):
-    ''' This class represents Sal test case '''
+    """ This class represents Sal test case """
 
     def setUp(self):
-        ''' Executes before each test. Inti the app and define test variables '''
+        """ Executes before each test. Inti the app and define test variables """
         self.app = create_app(TestingConfig)
         self.client = self.app.test_client
         # seed data
@@ -20,11 +20,11 @@ class SalTestCase(unittest.TestCase):
         self.user = User('Ahmed', 'Hamed', 'ahmedhrayyan@outlook.com',
                          'ahmedhrayyan', 'secret', self.role.id)
         self.user.insert()
-        self.question = Question(self.user.id, 'Is sal the best QA engine')
+        self.question = Question(user_id=self.user.id, content='Is sal the best QA engine')
         self.question.insert()
-        self.answer = Answer(self.user.id, self.question.id, 'Yes it is')
+        self.answer = Answer(user_id=self.user.id, question_id=self.question.id, content='Yes it is')
         self.answer.insert()
-        self.notification = Notification(self.user.id, 'test', '/test')
+        self.notification = Notification(user_id=self.user.id, content='test', url='/test')
         self.notification.insert()
         # generate token
         # push an application context as generate_token function needs it
@@ -33,7 +33,7 @@ class SalTestCase(unittest.TestCase):
         self.token = generate_token('ahmedhrayyan')
 
     def tearDown(self):
-        ''' Executes after each test '''
+        """ Executes after each test """
         db.session.remove()
         db.drop_all()
 
@@ -310,7 +310,7 @@ class SalTestCase(unittest.TestCase):
 
     def test_404_delete_answer(self):
         res = self.client().delete('/api/answers/10000',
-                                   headers={'Authorization': 'Bearer %s' % self.token},)
+                                   headers={'Authorization': 'Bearer %s' % self.token}, )
         json_data = res.get_json()
         self.assertEqual(res.status_code, 404)
         self.assertFalse(json_data['success'])
@@ -326,15 +326,15 @@ class SalTestCase(unittest.TestCase):
 
     def test_404_set_notification_read(self):
         res = self.client().post('/api/notifications/10000/set-read',
-                                 headers={'Authorization': 'Bearer %s' % self.token},)
+                                 headers={'Authorization': 'Bearer %s' % self.token}, )
         json_data = res.get_json()
         self.assertEqual(res.status_code, 404)
         self.assertFalse(json_data['success'])
         self.assertTrue(json_data['message'])
 
-    def test_404_set_notification_read(self):
+    def test_200_set_notification_read(self):
         res = self.client().post('/api/notifications/%i/set-read' % self.notification.id,
-                                 headers={'Authorization': 'Bearer %s' % self.token},)
+                                 headers={'Authorization': 'Bearer %s' % self.token}, )
         json_data = res.get_json()
         self.assertEqual(res.status_code, 200)
         self.assertTrue(json_data['success'])

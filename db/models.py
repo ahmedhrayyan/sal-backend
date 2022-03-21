@@ -270,8 +270,3 @@ class Notification(db.Model, BaseModel):
     url = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-
-    def __init__(self, user_id: int, content: str, url: str):
-        self.user_id = user_id
-        self.content = content
-        self.url = url

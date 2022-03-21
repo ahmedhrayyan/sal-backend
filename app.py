@@ -372,7 +372,7 @@ def create_app(config=ProductionConfig):
             content = 'Your question has new %s "%s"' % (
                 'upvote' if data['vote'] == 1 else 'downvote', question.content)
             url = '/questions/%i' % question_id
-            notification = Notification(question.user_id, content, url)
+            notification = Notification(user_id=question.user_id, content=content, url=url)
             notification.insert()
 
         return jsonify({
@@ -420,7 +420,7 @@ def create_app(config=ProductionConfig):
         # notification
         content = 'Your question has new answer "%s"' % new_answer.question.content
         url = '/questions/%i' % new_answer.question_id
-        notification = Notification(new_answer.question.user_id, content, url)
+        notification = Notification(user_id=new_answer.question.user_id, content=content, url=url)
         notification.insert()
 
         return jsonify({
@@ -472,7 +472,7 @@ def create_app(config=ProductionConfig):
                 'upvote' if data['vote'] == 1 else 'downvote', answer.content)
             url = '/questions/%i?answer_id=%i' % (
                 answer.question_id, answer_id)
-            notification = Notification(answer.user_id, content, url)
+            notification = Notification(user_id=answer.user_id, content=content, url=url)
             notification.insert()
 
         return jsonify({
@@ -523,7 +523,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': [questions.format() for questions in questions],
+            'data': question_schema.dump(questions, many=True),
             'meta': meta
         })
 
@@ -629,6 +629,7 @@ def create_app(config=ProductionConfig):
     @app.errorhandler(ValidationError)
     def marshmallow_error_handler(error):
         return jsonify({
+            'success': False,
             'message': 'The given data was invalid.',
             'errors': error.messages,
         }), 400
