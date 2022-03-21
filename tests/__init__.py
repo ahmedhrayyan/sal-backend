@@ -165,7 +165,7 @@ class SalTestCase(unittest.TestCase):
         json_data = res.get_json()
         self.assertEqual(res.status_code, 400)
         self.assertFalse(json_data['success'])
-        self.assertTrue(json_data['message'])
+        self.assertIsInstance(json_data['message'], str)
 
     def test_post_question(self):
         content = 'Is this great or what'

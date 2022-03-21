@@ -1,34 +1,33 @@
+import imghdr
+import re
 from os import path, mkdir
 from typing import BinaryIO
 from uuid import uuid4
 from flask import Flask, jsonify, request, abort, send_from_directory, render_template
+from werkzeug.exceptions import NotFound
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from marshmallow import ValidationError
-
+from sqlalchemy.exc import IntegrityError
+from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
+from config import ProductionConfig
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
 from db.schemas import notification_schema, answer_schema, AnswerSchema, question_schema, QuestionSchema, vote_schema
-from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-import imghdr
-import re
-import bleach
-from config import ProductionConfig
 
 
 def validate_image(stream: BinaryIO):
-    ''' Return correct image extension '''
+    """ Return correct image extension """
     # check file format
     header = stream.read(512)
     stream.seek(0)
-    format = imghdr.what(None, header)
+    extension = imghdr.what(None, header)
     # jpeg normally uses jpg file extension
-    return format if format != "jpeg" else "jpg"
+    return extension if extension != "jpeg" else "jpg"
 
 
 def paginate(items: list, page: int = 1, per_page: int = 20):
-    ''' Return a list of paginated items and a dict contains meta data '''
+    """ Return a list of paginated items and a dict contains metadata """
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
     meta = {
@@ -40,7 +39,7 @@ def paginate(items: list, page: int = 1, per_page: int = 20):
 
 
 def create_app(config=ProductionConfig):
-    ''' create and configure the app '''
+    """ create and configure the app """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
     CORS(app)
@@ -48,7 +47,7 @@ def create_app(config=ProductionConfig):
 
     setup_db(app)
 
-    ### ENDPOINTS ###
+    # -------------- ENDPOINTS ------------------- #
 
     @app.route("/")
     def index():
@@ -71,7 +70,7 @@ def create_app(config=ProductionConfig):
         # generate unique filename
         filename = uuid4().hex + "." + file_ext
 
-        # Create upload folder if it doesnot exist
+        # Create upload folder if it doesn't exist
         if not path.isdir(app.config['UPLOAD_FOLDER']):
             mkdir(app.config['UPLOAD_FOLDER'])
 
@@ -86,7 +85,7 @@ def create_app(config=ProductionConfig):
     def uploaded_file(filename):
         try:
             return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-        except Exception:
+        except NotFound:
             abort(404, "File not found")
 
     @app.post('/api/login')
@@ -114,7 +113,7 @@ def create_app(config=ProductionConfig):
         data = request.get_json() or {}
         required_fields = ['first_name', 'last_name',
                            'email', 'username', 'password']
-        # abort if any required field doesnot exist in request body
+        # abort if any required field doesn't exist in request body
         for field in required_fields:
             if field not in data:
                 abort(400, '%s is required' % field)
@@ -216,8 +215,6 @@ def create_app(config=ProductionConfig):
             else:
                 msg = "Phone is already in use"
             abort(422, msg)
-        except Exception:
-            abort(422)
 
         profile = user.format()
         # include confidential data like id, email and phone
@@ -533,7 +530,7 @@ def create_app(config=ProductionConfig):
         username = get_jwt_sub()
         question_id = request.get_json().get('question_id')
         if question_id is None:
-            abort(400, 'question_id expted in request body')
+            abort(400, 'question_id expected in request body')
         question = Question.query.get(question_id)
         if question is None:
             abort(404, 'question not found!')
@@ -559,7 +556,7 @@ def create_app(config=ProductionConfig):
         username = get_jwt_sub()
         answer_id = request.get_json().get('answer_id')
         if answer_id is None:
-            abort(400, 'answer_id expted in request body')
+            abort(400, 'answer_id expected in request body')
         answer = Answer.query.get(answer_id)
         if answer is None:
             abort(404, 'answer not found!')
@@ -576,55 +573,7 @@ def create_app(config=ProductionConfig):
             'success': True
         })
 
-    ### HANDLING ERRORS ###
-
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 404
-        }), 404
-
-    @app.errorhandler(400)
-    def bad_request(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 400
-        }), 400
-
-    @app.errorhandler(422)
-    def un_processable(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 422
-        }), 422
-
-    @app.errorhandler(405)
-    def method_not_allowed(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 405
-        }), 405
-
-    @app.errorhandler(413)
-    def too_large(error):
-        return jsonify({
-            'success': False,
-            'message': error.description,
-            'error': 413
-        }), 413
-
-    @app.errorhandler(AuthError)
-    def handle_auth_error(error):
-        return jsonify({
-            'success': False,
-            'message': error.message,
-            'error': error.code
-        }), error.code
+    # -------------- HANDLING ERRORS ------------------- #
 
     @app.errorhandler(ValidationError)
     def marshmallow_error_handler(error):
@@ -634,7 +583,21 @@ def create_app(config=ProductionConfig):
             'errors': error.messages,
         }), 400
 
-    ### COMMANDS ###
+    @app.errorhandler(Exception)
+    def default_error_handler(error):
+        # log error outside testing environment, useful for debugging
+        if app.config['TESTING'] is not True:
+            app.logger.exception(error)
+
+        code = getattr(error, 'code', 500)
+        message = getattr(error, 'description', "Something went wrong")
+
+        return jsonify({
+            'success': False,
+            'message': message
+        }), code
+
+    # -------------- COMMANDS ------------------- #
 
     @app.cli.command('db_seed')
     def db_seed():
@@ -644,10 +607,10 @@ def create_app(config=ProductionConfig):
         delete_questions = Permission('delete:questions')
         # roles
         general = Role('general')
-        superamdin = Role('superadmin')
-        superamdin.permissions.extend(
+        super_admin = Role('super_admin')
+        super_admin.permissions.extend(
             [delete_users, delete_answers, delete_questions])
         general.insert()
-        superamdin.insert()
+        super_admin.insert()
 
     return app
