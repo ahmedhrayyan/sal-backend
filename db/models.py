@@ -13,8 +13,14 @@ class BaseModel:
     def __init__(self, **kwargs):
         pass
 
-    def update(self):
-        """ updating element in db  """
+    def update(self, **kwargs):
+        """ update element in db  """
+
+        # update fields using python dict
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:

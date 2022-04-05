@@ -13,7 +13,7 @@ from auth import AuthError, generate_token, requires_auth, requires_permission, 
 from config import ProductionConfig
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
-from db.schemas import notification_schema, answer_schema, AnswerSchema, question_schema, QuestionSchema, vote_schema
+import db.schemas as schemas
 
 
 def validate_image(stream: BinaryIO):
@@ -90,14 +90,10 @@ def create_app(config=ProductionConfig):
 
     @app.post('/api/login')
     def login():
-        data = request.get_json() or {}
-        if 'username' not in data or 'password' not in data:
-            abort(400, 'username and password expected in request body')
+        data = schemas.login_schema.load(request.json)
 
-        username = data['username']
-        password = data['password']
-        user = User.query.filter_by(username=username).one_or_none()
-        if not user or not user.checkpw(str(password)):
+        user = User.query.filter_by(username=data['username']).one_or_none()
+        if not user or not user.checkpw(data['password']):
             abort(422, 'username or password is not correct')
 
         role = Role.query.get(user.role_id)
@@ -110,42 +106,12 @@ def create_app(config=ProductionConfig):
 
     @app.post("/api/register")
     def register():
-        data = request.get_json() or {}
-        required_fields = ['first_name', 'last_name',
-                           'email', 'username', 'password']
-        # abort if any required field doesn't exist in request body
-        for field in required_fields:
-            if field not in data:
-                abort(400, '%s is required' % field)
-
-        first_name = str(data['first_name']).lower().strip()
-        last_name = str(data['last_name']).lower().strip()
-        email = str(data['email']).lower().strip()
-        username = str(data['username']).lower().strip()
-        password = str(data['password']).lower()
-
-        # validating data
-        if re.match(app.config['EMAIL_PATTERN'], email) is None:
-            abort(422, 'Email is not valid')
-        if len(username) < 4:
-            abort(422, 'Username have to be at least 4 characters in length')
-        if len(password) < 8:
-            abort(422, 'Password have to be at least 8 characters in length')
-
-        default_role = Role.query.filter_by(name="general").one_or_none().id
-
-        new_user = User(first_name, last_name, email,
-                        username, password, default_role)
+        new_user = schemas.user_schema.load(request.json)
 
         try:
             new_user.insert()
-        except IntegrityError:
-            # Integrity error means a unique value already exist in a different record
-            if User.query.filter_by(email=email).one_or_none():
-                msg = 'Email is already in use'
-            else:
-                msg = "Username is already in use"
-            abort(422, msg)
+        except IntegrityError as e:
+            abort(422, e.orig.diag.message_detail)
 
         return jsonify({
             'success': True,
@@ -156,72 +122,25 @@ def create_app(config=ProductionConfig):
     @requires_auth()
     def show_profile():
         user = User.query.filter_by(username=get_jwt_sub()).first()
-        profile = user.format()
-        # include confidential data like id, email and phone
-        profile.update(id=user.id, email=user.email, phone=user.phone)
         return jsonify({
             'success': True,
-            'data': profile
+            'data': schemas.user_schema.dump(user)
         })
 
     @app.patch("/api/profile")
     @requires_auth()
     def patch_profile():
-        data = request.get_json() or {}
+        data = schemas.UserSchema(exclude=['password']).load(request.json, partial=True)
         user = User.query.filter_by(username=get_jwt_sub()).first()
-        # updating user data
-        if 'first_name' in data:
-            user.first_name = str(data['first_name']).lower().strip()
-        if 'last_name' in data:
-            user.last_name = str(data['last_name']).lower().strip()
-        if 'email' in data:
-            email = str(data['email']).lower().strip()
-            if re.match(app.config['EMAIL_PATTERN'], email) is None:
-                abort(422, 'Email is not valid')
-            user.email = email
-        # if 'username' in data:
-        #     username = str(data['username']).lower().strip()
-        #     if len(username) < 4:
-        #         abort(422, 'Username have to be at least 4 characters in length')
-        #     user.username = username
-        if 'password' in data:
-            password = str(data['password']).lower().strip()
-            if len(password) < 8:
-                abort(422, 'Password have to be at least 8 characters in length')
-            # passwords have to be hashed first
-            user.set_pw(password)
-        if 'phone' in data:
-            phone = data['phone']
-            if phone and re.match(app.config['PHONE_PATTERN'], phone) is None:
-                abort(422, 'Phone is not valid')
-            user.phone = phone
-        if 'job' in data:
-            user.job = str(data['job']).lower().strip()
-        if 'bio' in data:
-            user.bio = str(data['bio']).lower().strip()
-        if 'avatar' in data:
-            if not path.isfile(path.join(app.config['UPLOAD_FOLDER'], data['avatar'])):
-                abort(422, "Avatar is not valid")
-            user.avatar = data['avatar']
 
         try:
-            user.update()
-        except IntegrityError:
-            # Integrity error means a unique value already exist in a different record
-            if 'email' in data and User.query.filter_by(email=data['email']).one_or_none():
-                msg = 'Email is already in use'
-            elif 'username' in data and User.query.filter_by(username=data['username']).one_or_none():
-                msg = "Username is already in use"
-            else:
-                msg = "Phone is already in use"
-            abort(422, msg)
+            user.update(**data)
+        except IntegrityError as e:
+            abort(422, e.orig.diag.message_detail)
 
-        profile = user.format()
-        # include confidential data like id, email and phone
-        profile.update(id=user.id, email=user.email, phone=user.phone)
         return jsonify({
             'success': True,
-            'data': profile
+            'data': schemas.user_schema.dump(user)
         })
 
     @app.get('/api/notifications')
@@ -234,7 +153,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': notification_schema.dump(notifications, many=True),
+            'data': schemas.user_schema.dump(notifications, many=True),
             'unread_count': unread_count,
             'meta': meta
         })
@@ -277,7 +196,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': question_schema.dump(questions, many=True),
+            'data': schemas.question_schema.dump(questions, many=True),
             'meta': meta,
             'search_term': search_term
         })
@@ -290,7 +209,7 @@ def create_app(config=ProductionConfig):
             abort(404)
         return jsonify({
             'success': True,
-            'data': question_schema.dump(question)
+            'data': schemas.question_schema.dump(question)
         })
 
     @app.get('/api/questions/<int:question_id>/answers')
@@ -304,7 +223,7 @@ def create_app(config=ProductionConfig):
             question.answers, request.args.get('page', 1, int), 4)
         return jsonify({
             'success': True,
-            'data': answer_schema.dump(answers, many=True),
+            'data': schemas.answer_schema.dump(answers, many=True),
             'meta': meta
         })
 
@@ -312,18 +231,18 @@ def create_app(config=ProductionConfig):
     @requires_auth()
     def post_question():
         # excluding accepted_answer field from the schema (the question has no answers yet to accept one)
-        new_question = QuestionSchema(exclude=["accepted_answer"]).load(request.json)
+        new_question = schemas.QuestionSchema(exclude=["accepted_answer"]).load(request.json)
         new_question.insert()
 
         return jsonify({
             'success': True,
-            'data': question_schema.dump(new_question)
+            'data': schemas.question_schema.dump(new_question)
         })
 
     @app.patch('/api/questions/<int:question_id>')
     @requires_auth()
     def patch_question(question_id):
-        data = question_schema.load(request.json, partial=True)
+        data = schemas.question_schema.load(request.json, partial=True)
 
         # check if the target question exists
         question = Question.query.get(question_id)
@@ -342,18 +261,17 @@ def create_app(config=ProductionConfig):
             if answer is None or answer.question_id != question_id:
                 raise ValidationError({'accepted_answer': ["Not valid."]})
 
-        question.query.update(values=data)
-        question.update()
+        question.update(**data)
 
         return jsonify({
             'success': True,
-            'data': question_schema.dump(question)
+            'data': schemas.question_schema.dump(question)
         })
 
     @app.post('/api/questions/<int:question_id>/vote')
     @requires_auth()
     def vote_question(question_id):
-        data = vote_schema.load(request.json)
+        data = schemas.vote_schema.load(request.json)
 
         # check if the target question exists
         question = Question.query.get(question_id)
@@ -374,7 +292,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': QuestionSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(question)
+            'data': schemas.QuestionSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(question)
         })
 
     @app.delete('/api/questions/<int:question_id>')
@@ -405,13 +323,13 @@ def create_app(config=ProductionConfig):
             abort(404)
         return jsonify({
             'success': True,
-            'data': answer_schema.dump(answer)
+            'data': schemas.answer_schema.dump(answer)
         })
 
     @app.post('/api/answers')
     @requires_auth()
     def post_answer():
-        new_answer = answer_schema.load(request.json)
+        new_answer = schemas.answer_schema.load(request.json)
         new_answer.insert()
 
         # notification
@@ -422,13 +340,13 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': answer_schema.dump(new_answer)
+            'data': schemas.answer_schema.dump(new_answer)
         })
 
     @app.patch('/api/answers/<int:answer_id>')
     @requires_auth()
     def patch_answer(answer_id):
-        data = AnswerSchema(exclude=["question_id"]).load(request.json, partial=True)
+        data = schemas.AnswerSchema(exclude=["question_id"]).load(request.json, partial=True)
 
         # check if the target answer exists
         answer = Answer.query.get(answer_id)
@@ -440,18 +358,17 @@ def create_app(config=ProductionConfig):
         if user.id != answer.user_id:
             raise AuthError('You can\'t update others answers', 403)
 
-        answer.query.update(values=data)
-        answer.update()
+        answer.update(**data)
 
         return jsonify({
             'success': True,
-            'data': answer_schema.dump(answer)
+            'data': schemas.answer_schema.dump(answer)
         })
 
     @app.post('/api/answers/<int:answer_id>/vote')
     @requires_auth()
     def vote_answer(answer_id):
-        data = vote_schema.load(request.json)
+        data = schemas.vote_schema.load(request.json)
 
         answer = Answer.query.get(answer_id)
 
@@ -474,7 +391,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': AnswerSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(answer)
+            'data': schemas.AnswerSchema(only=('id', 'upvotes', 'downvotes', 'viewer_vote')).dump(answer)
         })
 
     @app.delete('/api/answers/<int:answer_id>')
@@ -520,7 +437,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': question_schema.dump(questions, many=True),
+            'data': schemas.question_schema.dump(questions, many=True),
             'meta': meta
         })
 
@@ -595,7 +512,7 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': False,
             'message': message
-        }), code
+        }), code if isinstance(code, int) else 500
 
     # -------------- COMMANDS ------------------- #
 
