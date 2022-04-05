@@ -12,13 +12,6 @@ class BaseSchema(Schema):
         unknown = EXCLUDE
 
 
-LoginSchema = BaseSchema.from_dict({'username': fields.Str(required=True), 'password': fields.Str(required=True)})
-login_schema = LoginSchema()
-
-VoteSchema = BaseSchema.from_dict({'vote': fields.Int(validate=validate.OneOf([0, 1, 2]))})
-vote_schema = VoteSchema()
-
-
 class NotificationSchema(BaseSchema):
     id = fields.Int(dump_only=True)
     is_read = fields.Bool(dump_only=True)
@@ -32,7 +25,7 @@ notification_schema = NotificationSchema()
 class UserSchema(BaseSchema):
     first_name = fields.Str(required=True)
     last_name = fields.Str(required=True)
-    email = fields.Email(required=True,)
+    email = fields.Email(required=True, )
     email_confirmed = fields.Bool(dump_only=True)
     username = fields.Str(required=True, validate=validate.Length(4, 20))
     password = fields.Str(required=True, load_only=True, validate=validate.Length(8, 28))
@@ -66,7 +59,7 @@ class BaseQASchema(BaseSchema):
     upvotes = fields.Function(lambda obj: obj.votes.filter_by(vote=True).count(), dump_only=True)
     downvotes = fields.Function(lambda obj: obj.votes.filter_by(vote=False).count(), dump_only=True)
     viewer_vote = fields.Method("get_viewer_vote", dump_only=True)
-    user = fields.Nested(UserSchema(only=['id', 'first_name', 'last_name', 'avatar', 'job']))
+    user = fields.Nested(UserSchema(only=['first_name', 'last_name', 'avatar', 'job']))
 
     def get_viewer_vote(self, obj):
         user = User.query.filter_by(username=get_jwt_sub()).first()
@@ -113,3 +106,15 @@ class AnswerSchema(BaseQASchema):
 
 
 answer_schema = AnswerSchema()
+
+LoginSchema = BaseSchema.from_dict({'username': fields.Str(required=True), 'password': fields.Str(required=True)})
+login_schema = LoginSchema()
+
+VoteSchema = BaseSchema.from_dict({'vote': fields.Int(validate=validate.OneOf([0, 1, 2]))})
+vote_schema = VoteSchema()
+
+ReportQSchema = BaseSchema.from_dict({'question_id': fields.Int(required=True)})
+report_q_schema = ReportQSchema()
+
+ReportASchema = BaseSchema.from_dict({'answer_id': fields.Int(required=True)})
+report_a_schema = ReportASchema()

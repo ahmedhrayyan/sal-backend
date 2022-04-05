@@ -1,5 +1,4 @@
 import imghdr
-import re
 from os import path, mkdir
 from typing import BinaryIO
 from uuid import uuid4
@@ -7,8 +6,8 @@ from flask import Flask, jsonify, request, abort, send_from_directory, render_te
 from werkzeug.exceptions import NotFound
 from flask_cors import CORS
 from flask_mail import Mail, Message
-from marshmallow import ValidationError
-from sqlalchemy.exc import IntegrityError
+from marshmallow import ValidationError, fields
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
 from config import ProductionConfig
 from db import setup_db
@@ -46,6 +45,14 @@ def create_app(config=ProductionConfig):
     mail = Mail(app)
 
     setup_db(app)
+
+    def create_notification(user_id: int, content: str, url: str):
+        notification = Notification(user_id=user_id, content=content, url=url)
+        try:
+            notification.insert()
+        except SQLAlchemyError as error:
+            # just log errors in case of creating notification error
+            app.logger.exception(error)
 
     # -------------- ENDPOINTS ------------------- #
 
@@ -153,7 +160,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': schemas.user_schema.dump(notifications, many=True),
+            'data': schemas.notification_schema.dump(notifications, many=True),
             'unread_count': unread_count,
             'meta': meta
         })
@@ -287,8 +294,7 @@ def create_app(config=ProductionConfig):
             content = 'Your question has new %s "%s"' % (
                 'upvote' if data['vote'] == 1 else 'downvote', question.content)
             url = '/questions/%i' % question_id
-            notification = Notification(user_id=question.user_id, content=content, url=url)
-            notification.insert()
+            create_notification(question.user_id, content, url)
 
         return jsonify({
             'success': True,
@@ -335,8 +341,7 @@ def create_app(config=ProductionConfig):
         # notification
         content = 'Your question has new answer "%s"' % new_answer.question.content
         url = '/questions/%i' % new_answer.question_id
-        notification = Notification(user_id=new_answer.question.user_id, content=content, url=url)
-        notification.insert()
+        create_notification(new_answer.question.user_id, content, url)
 
         return jsonify({
             'success': True,
@@ -386,8 +391,7 @@ def create_app(config=ProductionConfig):
                 'upvote' if data['vote'] == 1 else 'downvote', answer.content)
             url = '/questions/%i?answer_id=%i' % (
                 answer.question_id, answer_id)
-            notification = Notification(user_id=answer.user_id, content=content, url=url)
-            notification.insert()
+            create_notification(answer.user_id, content, url)
 
         return jsonify({
             'success': True,
@@ -445,10 +449,9 @@ def create_app(config=ProductionConfig):
     @requires_auth()
     def report_question():
         username = get_jwt_sub()
-        question_id = request.get_json().get('question_id')
-        if question_id is None:
-            abort(400, 'question_id expected in request body')
-        question = Question.query.get(question_id)
+        data = schemas.report_q_schema.load(request.json)
+
+        question = Question.query.get(data['question_id'])
         if question is None:
             abort(404, 'question not found!')
 
@@ -456,13 +459,12 @@ def create_app(config=ProductionConfig):
         # email admin (my self)
         msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
         msg.body = 'user "%s" has reported question "%i"' % (
-            username, question_id)
+            username, data['question_id'])
         msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
-            username, question_id)
-        try:
-            mail.send(msg)
-        except Exception as e:
-            abort(422, e)
+            username, data['question_id'])
+
+        mail.send(msg)
+
         return jsonify({
             'success': True
         })
@@ -471,21 +473,22 @@ def create_app(config=ProductionConfig):
     @requires_auth()
     def report_answer():
         username = get_jwt_sub()
-        answer_id = request.get_json().get('answer_id')
-        if answer_id is None:
-            abort(400, 'answer_id expected in request body')
-        answer = Answer.query.get(answer_id)
-        if answer is None:
-            abort(404, 'answer not found!')
+        data = schemas.report_a_schema.load(request.json)
 
-        msg = Message('Reporting answer')
+        answer = Answer.query.get(data['answer_id'])
+        if answer is None:
+            abort(404, 'question not found!')
+
+        msg = Message('Reporting question')
         # email admin (my self)
         msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
-        msg.body = 'user "%s" has reported answer "%i"' % (
-            username, answer_id)
-        msg.html = 'user <code>"%s"</code> has reported answer <code>"%i"</code>' % (
-            username, answer_id)
+        msg.body = 'user "%s" has reported question "%i"' % (
+            username, data['answer_id'])
+        msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
+            username, data['answer_id'])
+
         mail.send(msg)
+
         return jsonify({
             'success': True
         })
