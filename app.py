@@ -2,17 +2,19 @@ import imghdr
 from os import path, mkdir
 from typing import BinaryIO
 from uuid import uuid4
+
 from flask import Flask, jsonify, request, abort, send_from_directory, render_template
-from werkzeug.exceptions import NotFound
 from flask_cors import CORS
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt, current_user
 from flask_mail import Mail, Message
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt, current_user
+from werkzeug.exceptions import NotFound
+
+import db.schemas as schemas
 from config import ProductionConfig
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
-import db.schemas as schemas
 
 
 def validate_image(stream: BinaryIO):
@@ -494,6 +496,14 @@ def create_app(config=ProductionConfig):
         })
 
     # -------------- HANDLING ERRORS ------------------- #
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        return jsonify({'success': False, 'message': error_string}), 401
+
+    @jwt.expired_token_loader
+    def invalid_token_callback(jwt_header, jwt_payload):
+        return jsonify({'success': False, 'message': 'Token has expired'}), 401
 
     @app.errorhandler(ValidationError)
     def marshmallow_error_handler(error):
