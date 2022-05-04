@@ -6,9 +6,9 @@ from flask import Flask, jsonify, request, abort, send_from_directory, render_te
 from werkzeug.exceptions import NotFound
 from flask_cors import CORS
 from flask_mail import Mail, Message
-from marshmallow import ValidationError, fields
+from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from auth import AuthError, generate_token, requires_auth, requires_permission, get_jwt_sub
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt, current_user
 from config import ProductionConfig
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
@@ -37,12 +37,19 @@ def paginate(items: list, page: int = 1, per_page: int = 20):
     return items[start_index:end_index], meta
 
 
+def requires_permission(required_permission: str) -> bool:
+    """ In a protected endpoint, check if a specific permission exists in the current user """
+    permissions = get_jwt().get('permissions')
+    return permissions is not None and required_permission in permissions
+
+
 def create_app(config=ProductionConfig):
     """ create and configure the app """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
     CORS(app)
     mail = Mail(app)
+    jwt = JWTManager(app)
 
     setup_db(app)
 
@@ -54,6 +61,11 @@ def create_app(config=ProductionConfig):
             # just log errors in case of creating notification error
             app.logger.exception(error)
 
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        identity = jwt_data["sub"]
+        return User.query.filter_by(id=identity).one_or_none()
+
     # -------------- ENDPOINTS ------------------- #
 
     @app.route("/")
@@ -61,7 +73,7 @@ def create_app(config=ProductionConfig):
         return render_template('index.html')
 
     @app.post("/api/upload")
-    @requires_auth()
+    @jwt_required()
     def upload():
         if 'file' not in request.files:
             abort(400, "No file founded")
@@ -108,7 +120,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'token': generate_token(user.username, permissions),
+            'token': create_access_token(identity=user.id, additional_claims={'permissions': permissions}),
         })
 
     @app.post("/api/register")
@@ -122,41 +134,38 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'token': generate_token(new_user.username),
+            'token': create_access_token(identity=new_user.id, additional_claims={'permissions': []}),
         })
 
     @app.get('/api/profile')
-    @requires_auth()
+    @jwt_required()
     def show_profile():
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         return jsonify({
             'success': True,
-            'data': schemas.user_schema.dump(user)
+            'data': schemas.user_schema.dump(current_user)
         })
 
     @app.patch("/api/profile")
-    @requires_auth()
+    @jwt_required()
     def patch_profile():
         data = schemas.UserSchema(exclude=['password']).load(request.json, partial=True)
-        user = User.query.filter_by(username=get_jwt_sub()).first()
 
         try:
-            user.update(**data)
+            current_user.update(**data)
         except IntegrityError as e:
             abort(422, e.orig.diag.message_detail)
 
         return jsonify({
             'success': True,
-            'data': schemas.user_schema.dump(user)
+            'data': schemas.user_schema.dump(current_user)
         })
 
     @app.get('/api/notifications')
-    @requires_auth()
+    @jwt_required()
     def get_notifications():
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         notifications, meta = paginate(
-            user.notifications.all(), request.args.get('page', 1, int))
-        unread_count = user.notifications.filter_by(is_read=False).count()
+            current_user.notifications.all(), request.args.get('page', 1, int))
+        unread_count = current_user.notifications.filter_by(is_read=False).count()
 
         return jsonify({
             'success': True,
@@ -166,19 +175,18 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/notifications/<int:notification_id>/set-read')
-    @requires_auth()
+    @jwt_required()
     def set_notification_as_read(notification_id):
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         notification: Notification = Notification.query.get(notification_id)
         if not notification:
             abort(404, "notification not found")
-        if notification.user_id != user.id:
-            raise AuthError('You can\'t mutate others notifications', 403)
+        if notification.user_id != current_user.id:
+            raise abort(403, 'You can\'t mutate others notifications')
 
         notification.is_read = True
         notification.update()
 
-        unread_count = user.notifications.filter_by(is_read=False).count()
+        unread_count = current_user.notifications.filter_by(is_read=False).count()
 
         return jsonify({
             'success': True,
@@ -187,7 +195,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions')
-    @requires_auth(optional=True)
+    @jwt_required(optional=True)
     def get_questions():
         search_term = request.args.get('searchTerm', '', str)
         query = Question.query.order_by(Question.created_at.desc())
@@ -209,7 +217,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions/<int:question_id>')
-    @requires_auth(optional=True)
+    @jwt_required(optional=True)
     def show_question(question_id):
         question = Question.query.get(question_id)
         if question is None:
@@ -220,7 +228,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/questions/<int:question_id>/answers')
-    @requires_auth(optional=True)
+    @jwt_required(optional=True)
     def get_question_answers(question_id):
         question = Question.query.get(question_id)
         if question is None:
@@ -235,7 +243,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/questions')
-    @requires_auth()
+    @jwt_required()
     def post_question():
         # excluding accepted_answer field from the schema (the question has no answers yet to accept one)
         new_question = schemas.QuestionSchema(exclude=["accepted_answer"]).load(request.json)
@@ -247,7 +255,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/questions/<int:question_id>')
-    @requires_auth()
+    @jwt_required()
     def patch_question(question_id):
         data = schemas.question_schema.load(request.json, partial=True)
 
@@ -256,10 +264,9 @@ def create_app(config=ProductionConfig):
         if question is None:
             abort(404, 'question not found')
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if current user owns the target question
-        if user.id != question.user_id:
-            raise AuthError('You can\'t update others questions', 403)
+        if current_user.id != question.user_id:
+            raise abort(403, 'You can\'t update others questions')
 
         # validate accepted_answer as it needs custom validation
         if 'accepted_answer' in data:
@@ -276,7 +283,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/questions/<int:question_id>/vote')
-    @requires_auth()
+    @jwt_required()
     def vote_question(question_id):
         data = schemas.vote_schema.load(request.json)
 
@@ -285,11 +292,10 @@ def create_app(config=ProductionConfig):
         if question is None:
             abort(404, 'question not found')
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         if data['vote'] == 0:
-            question.remove_vote(user)
+            question.remove_vote(current_user)
         else:
-            question.vote(user, True if data['vote'] == 1 else False)
+            question.vote(current_user, True if data['vote'] == 1 else False)
             # notification
             content = 'Your question has new %s "%s"' % (
                 'upvote' if data['vote'] == 1 else 'downvote', question.content)
@@ -302,18 +308,17 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/questions/<int:question_id>')
-    @requires_auth()
+    @jwt_required()
     def delete_question(question_id):
         question = Question.query.get(question_id)
         if question is None:
             abort(404)
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target question
-        if user.id != question.user_id:
+        if current_user.id != question.user_id:
             if not requires_permission('delete:questions'):
-                raise AuthError('You don\'t have '
-                                'the authority to delete other users questions', 403)
+                abort(403, 'You don\'t have '
+                           'the authority to delete other users questions')
 
         question.delete()
         return jsonify({
@@ -322,7 +327,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/answers/<int:answer_id>')
-    @requires_auth(optional=True)
+    @jwt_required(optional=True)
     def show_answer(answer_id):
         answer = Answer.query.get(answer_id)
         if answer is None:
@@ -333,7 +338,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/answers')
-    @requires_auth()
+    @jwt_required()
     def post_answer():
         new_answer = schemas.answer_schema.load(request.json)
         new_answer.insert()
@@ -349,7 +354,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.patch('/api/answers/<int:answer_id>')
-    @requires_auth()
+    @jwt_required()
     def patch_answer(answer_id):
         data = schemas.AnswerSchema(exclude=["question_id"]).load(request.json, partial=True)
 
@@ -358,10 +363,9 @@ def create_app(config=ProductionConfig):
         if not answer:
             abort(404, "answer not found!")
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if current user owns the target answer
-        if user.id != answer.user_id:
-            raise AuthError('You can\'t update others answers', 403)
+        if current_user.id != answer.user_id:
+            raise abort(403, 'You can\'t update others answers')
 
         answer.update(**data)
 
@@ -371,7 +375,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/answers/<int:answer_id>/vote')
-    @requires_auth()
+    @jwt_required()
     def vote_answer(answer_id):
         data = schemas.vote_schema.load(request.json)
 
@@ -381,11 +385,10 @@ def create_app(config=ProductionConfig):
         if answer is None:
             abort(404, 'answer not found')
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         if data['vote'] == 0:
-            answer.remove_vote(user)
+            answer.remove_vote(current_user)
         else:
-            answer.vote(user, True if data['vote'] == 1 else False)
+            answer.vote(current_user, True if data['vote'] == 1 else False)
             # notification
             content = 'Your answer has new %s "%s"' % (
                 'upvote' if data['vote'] == 1 else 'downvote', answer.content)
@@ -399,19 +402,18 @@ def create_app(config=ProductionConfig):
         })
 
     @app.delete('/api/answers/<int:answer_id>')
-    @requires_auth()
+    @jwt_required()
     def delete_answer(answer_id):
         answer = Answer.query.get(answer_id)
 
         # check if the target answer exists
         if answer is None:
             abort(404)
-        user = User.query.filter_by(username=get_jwt_sub()).first()
         # check if the current user owns the target answer
-        if user.id != answer.user_id:
+        if current_user.id != answer.user_id:
             if not requires_permission('delete:answers'):
-                raise AuthError('You don\'t have '
-                                'the authority to delete other users answers', 403)
+                raise abort(403, 'You don\'t have '
+                                 'the authority to delete other users answers')
         answer.delete()
         return jsonify({
             'success': True,
@@ -430,7 +432,7 @@ def create_app(config=ProductionConfig):
         })
 
     @app.get('/api/users/<username>/questions')
-    @requires_auth(optional=True)
+    @jwt_required(optional=True)
     def get_user_questions(username):
         user = User.query.filter_by(username=username).one_or_none()
         if not user:
@@ -446,9 +448,8 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/question')
-    @requires_auth()
+    @jwt_required()
     def report_question():
-        username = get_jwt_sub()
         data = schemas.report_q_schema.load(request.json)
 
         question = Question.query.get(data['question_id'])
@@ -459,9 +460,9 @@ def create_app(config=ProductionConfig):
         # email admin (my self)
         msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
         msg.body = 'user "%s" has reported question "%i"' % (
-            username, data['question_id'])
+            current_user.username, data['question_id'])
         msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
-            username, data['question_id'])
+            current_user.username, data['question_id'])
 
         mail.send(msg)
 
@@ -470,9 +471,8 @@ def create_app(config=ProductionConfig):
         })
 
     @app.post('/api/report/answer')
-    @requires_auth()
+    @jwt_required()
     def report_answer():
-        username = get_jwt_sub()
         data = schemas.report_a_schema.load(request.json)
 
         answer = Answer.query.get(data['answer_id'])
@@ -483,9 +483,9 @@ def create_app(config=ProductionConfig):
         # email admin (my self)
         msg.add_recipient(app.config.get('MAIL_DEFAULT_SENDER'))
         msg.body = 'user "%s" has reported question "%i"' % (
-            username, data['answer_id'])
+            current_user.username, data['answer_id'])
         msg.html = 'user <code>"%s"</code> has reported question <code>"%i"</code>' % (
-            username, data['answer_id'])
+            current_user.username, data['answer_id'])
 
         mail.send(msg)
 
@@ -522,12 +522,12 @@ def create_app(config=ProductionConfig):
     @app.cli.command('db_seed')
     def db_seed():
         # permissions
-        delete_users = Permission('delete:users')
-        delete_answers = Permission('delete:answers')
-        delete_questions = Permission('delete:questions')
+        delete_users = Permission(name='delete:users')
+        delete_answers = Permission(name='delete:answers')
+        delete_questions = Permission(name='delete:questions')
         # roles
-        general = Role('general')
-        super_admin = Role('super_admin')
+        general = Role(name='general')
+        super_admin = Role(name='super_admin')
         super_admin.permissions.extend(
             [delete_users, delete_answers, delete_questions])
         general.insert()

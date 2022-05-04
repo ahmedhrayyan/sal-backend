@@ -1,6 +1,6 @@
+from flask_jwt_extended import current_user
 from bleach import clean
 from marshmallow import Schema, fields, post_load, EXCLUDE, validate
-from auth import get_jwt_sub
 from .models import Question, Answer, User, Role
 
 
@@ -62,8 +62,7 @@ class BaseQASchema(BaseSchema):
     user = fields.Nested(UserSchema(only=['first_name', 'last_name', 'avatar', 'job']))
 
     def get_viewer_vote(self, obj):
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        return obj.get_user_vote(user) if user else None
+        return obj.get_user_vote(current_user) if current_user else None
 
 
 class QuestionSchema(BaseQASchema):
@@ -76,11 +75,7 @@ class QuestionSchema(BaseQASchema):
         if kwargs.get("partial"):
             return data
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        if not data or not user:
-            return None
-
-        return Question(user_id=user.id, **data)
+        return Question(user_id=current_user.id, **data)
 
 
 question_schema = QuestionSchema()
@@ -98,11 +93,7 @@ class AnswerSchema(BaseQASchema):
         if kwargs.get("partial"):
             return data
 
-        user = User.query.filter_by(username=get_jwt_sub()).first()
-        if not data or not user:
-            return None
-
-        return Answer(user_id=user.id, **data)
+        return Answer(user_id=current_user.id, **data)
 
 
 answer_schema = AnswerSchema()

@@ -1,4 +1,3 @@
-from auth import get_jwt_sub
 from sqlalchemy.orm import backref
 from db import db
 from flask import request
@@ -226,29 +225,11 @@ class Role(db.Model, BaseModel):
     permissions = db.relationship(
         'Permission', secondary=roles_permissions, backref='roles', lazy=True)
 
-    def __init__(self, name: str):
-        self.name = name
-
-    def format(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-        }
-
 
 class Permission(db.Model, BaseModel):
     __tablename__ = 'permissions'
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(40), nullable=False, unique=True)
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def format(self):
-        return {
-            'id': self.id,
-            'name': self.name
-        }
 
 
 class Notification(db.Model, BaseModel):
