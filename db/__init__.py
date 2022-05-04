@@ -5,11 +5,11 @@ db = SQLAlchemy()
 
 
 def setup_db(app):
-    '''
+    """
     setup_db(app)
 
     binds a flask application and a SQLAlchemy service
-    '''
+    """
 
     db.app = app
     db.init_app(app)

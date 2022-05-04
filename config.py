@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
@@ -10,6 +11,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     JWT_ERROR_MESSAGE_KEY = "message"
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
 
     UPLOAD_FOLDER = "uploads"
     ALLOWED_EXTENSIONS = {'png', 'jpg'}
@@ -24,6 +26,8 @@ class ProductionConfig(Config):
     # see https://stackoverflow.com/a/66787229/10272966
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL'].replace(
         '://', 'ql://', 1) if os.environ['DATABASE_URL'].startswith('postgres://') else os.environ['DATABASE_URL']
+
+    REDIS_URL = os.environ['REDIS_URL']
 
     MAIL_SERVER = 'smtp.sal22.tech'
     MAIL_PORT = 25
@@ -40,6 +44,8 @@ class TestingConfig(Config):
     JWT_SECRET_KEY = 'test'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
         os.path.join(basedir, 'tests/test.db')
+
+    REDIS_URL = 'redis://localhost:6379/0'
 
     # Dummy data, emails will not be sent as long as TESTING is True
     MAIL_DEFAULT_SENDER = 'any'

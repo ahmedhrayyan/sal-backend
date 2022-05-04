@@ -1,4 +1,5 @@
 alembic==1.6.5
+async-timeout==4.0.2
 autopep8==1.5.7
 bcrypt==3.2.0
 bleach==3.3.0
@@ -6,6 +7,7 @@ blinker==1.4
 cffi==1.14.5
 click==8.0.1
 colorama==0.4.4
+Deprecated==1.2.13
 ecdsa==0.17.0
 Flask==2.0.1
 Flask-Cors==3.0.10
@@ -32,9 +34,11 @@ python-dateutil==2.8.1
 python-dotenv==0.18.0
 python-editor==1.0.4
 python-jose==3.3.0
+redis==4.2.2
 rsa==4.7.2
 six==1.16.0
 SQLAlchemy==1.4.20
 toml==0.10.2
 webencodings==0.5.1
 Werkzeug==2.0.1
+wrapt==1.14.1

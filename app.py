@@ -1,8 +1,8 @@
 import imghdr
+import redis
 from os import path, mkdir
 from typing import BinaryIO
 from uuid import uuid4
-
 from flask import Flask, jsonify, request, abort, send_from_directory, render_template
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt, current_user
@@ -55,6 +55,8 @@ def create_app(config=ProductionConfig):
 
     setup_db(app)
 
+    jwt_redis_blocklist = redis.from_url(config.REDIS_URL, decode_responses=True)
+
     def create_notification(user_id: int, content: str, url: str):
         notification = Notification(user_id=user_id, content=content, url=url)
         try:
@@ -67,6 +69,12 @@ def create_app(config=ProductionConfig):
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data["sub"]
         return User.query.filter_by(id=identity).one_or_none()
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+        jti = jwt_payload["jti"]
+        token_in_redis = jwt_redis_blocklist.get(jti)
+        return token_in_redis is not None
 
     # -------------- ENDPOINTS ------------------- #
 
@@ -137,6 +145,16 @@ def create_app(config=ProductionConfig):
         return jsonify({
             'success': True,
             'token': create_access_token(identity=new_user.id, additional_claims={'permissions': []}),
+        })
+
+    @app.delete('/api/logout')
+    @jwt_required()
+    def logout():
+        jti = get_jwt()['jti']
+        jwt_redis_blocklist.set(jti, "", ex=config.JWT_ACCESS_TOKEN_EXPIRES)
+        return jsonify({
+            'success': True,
+            'message': "Access token revoked"
         })
 
     @app.get('/api/profile')
@@ -500,10 +518,6 @@ def create_app(config=ProductionConfig):
     @jwt.invalid_token_loader
     def invalid_token_callback(error_string):
         return jsonify({'success': False, 'message': error_string}), 401
-
-    @jwt.expired_token_loader
-    def invalid_token_callback(jwt_header, jwt_payload):
-        return jsonify({'success': False, 'message': 'Token has expired'}), 401
 
     @app.errorhandler(ValidationError)
     def marshmallow_error_handler(error):
