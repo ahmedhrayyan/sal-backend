@@ -13,7 +13,6 @@ class Config(object):
     JWT_ERROR_MESSAGE_KEY = "message"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
 
-    UPLOAD_FOLDER = "uploads"
     ALLOWED_EXTENSIONS = {'png', 'jpg'}
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
@@ -28,6 +27,9 @@ class ProductionConfig(Config):
         '://', 'ql://', 1) if os.environ['DATABASE_URL'].startswith('postgres://') else os.environ['DATABASE_URL']
 
     REDIS_URL = os.environ['REDIS_URL']
+
+    UCARE_PUBLIC_KEY = os.environ['UCARE_PUBLIC_KEY']
+    UCARE_SECRET_KEY = os.environ['UCARE_SECRET_KEY']
 
     MAIL_SERVER = 'smtp.sal22.tech'
     MAIL_PORT = 25
@@ -46,6 +48,9 @@ class TestingConfig(Config):
         os.path.join(basedir, 'tests/test.db')
 
     REDIS_URL = 'redis://localhost:6379/0'
+
+    UCARE_PUBLIC_KEY = 'UCARE_PUBLIC_KEY'
+    UCARE_SECRET_KEY = 'UCARE_SECRET_KEY'
 
     # Dummy data, emails will not be sent as long as TESTING is True
     MAIL_DEFAULT_SENDER = 'any'

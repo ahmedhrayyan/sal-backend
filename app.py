@@ -1,16 +1,13 @@
 import imghdr
 import redis
-from os import path, mkdir
 from typing import BinaryIO
-from uuid import uuid4
-from flask import Flask, jsonify, request, abort, send_from_directory, render_template
+from flask import Flask, jsonify, request, abort, render_template
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt, current_user
 from flask_mail import Mail, Message
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from werkzeug.exceptions import NotFound
-
+from pyuploadcare import Uploadcare
 import db.schemas as schemas
 from config import ProductionConfig
 from db import setup_db
@@ -52,6 +49,7 @@ def create_app(config=ProductionConfig):
     CORS(app)
     mail = Mail(app)
     jwt = JWTManager(app)
+    uploadcare = Uploadcare(public_key=config.UCARE_PUBLIC_KEY, secret_key=config.UCARE_SECRET_KEY)
 
     setup_db(app)
 
@@ -88,34 +86,21 @@ def create_app(config=ProductionConfig):
         if 'file' not in request.files:
             abort(400, "No file founded")
         file = request.files['file']
+
         if file.filename == '':
             abort(400, 'No selected file')
-        file_ext = file.filename.rsplit('.', 1)[1].lower()
+        file_ext = validate_image(file.stream)
         if file_ext not in app.config['ALLOWED_EXTENSIONS']:
             abort(422, 'You cannot upload %s files' % file_ext)
-        if file_ext != validate_image(file.stream):
-            abort(422, 'Fake data was uploaded')
+        # set name on uploadcare cdn
+        file.name = file.filename
 
-        # generate unique filename
-        filename = uuid4().hex + "." + file_ext
-
-        # Create upload folder if it doesn't exist
-        if not path.isdir(app.config['UPLOAD_FOLDER']):
-            mkdir(app.config['UPLOAD_FOLDER'])
-
-        file.save(path.join(app.config['UPLOAD_FOLDER'], filename))
+        ucare_file = uploadcare.upload(file)
 
         return jsonify({
             'success': True,
-            'path': filename
+            'url': ucare_file.cdn_url
         })
-
-    @app.get("/uploads/<filename>")
-    def uploaded_file(filename):
-        try:
-            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-        except NotFound:
-            abort(404, "File not found")
 
     @app.post('/api/login')
     def login():

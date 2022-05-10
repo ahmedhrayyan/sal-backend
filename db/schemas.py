@@ -3,6 +3,8 @@ from bleach import clean
 from marshmallow import Schema, fields, post_load, EXCLUDE, validate
 from .models import Question, Answer, User, Role
 
+CDN_API = "https://ucarecdn.com/"
+
 
 class BaseSchema(Schema):
     created_at = fields.DateTime(dump_only=True)
@@ -32,7 +34,7 @@ class UserSchema(BaseSchema):
     job = fields.Str(validate=validate.Length(max=50))
     bio = fields.Str()
     phone = fields.Str()
-    avatar = fields.Str()
+    avatar = fields.URL(validate=lambda value: value.startswith(CDN_API))  # do not load malicious urls as avatar
     questions_count = fields.Function(lambda obj: len(obj.questions), dump_only=True)
     answers_count = fields.Function(lambda obj: len(obj.answers), dump_only=True)
 
