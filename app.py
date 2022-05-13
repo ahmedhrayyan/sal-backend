@@ -1,5 +1,6 @@
 import imghdr
 import redis
+import re
 from typing import BinaryIO
 from flask import Flask, jsonify, request, abort, render_template
 from flask_cors import CORS
@@ -12,6 +13,18 @@ import db.schemas as schemas
 from config import ProductionConfig
 from db import setup_db
 from db.models import Answer, Notification, Permission, Question, User, Role
+
+
+def parse_integrity_error(message: str) -> str:
+    """ Format SQLAlchemy Integrity error """
+    # Select unique field key & value from error message (they usually exist in parentheses)
+    unique_field = re.findall("\((\w+)\)", message)  # regexp ta capture whatever in parentheses in a string
+    if len(unique_field) == 2:
+        return f'Account with {unique_field[0]} ({unique_field[1]}) already exists'
+    else:
+        # just return the error message if our regex was not able to select unique key field & value
+        # happens because different databases have different message formats
+        return message
 
 
 def validate_image(stream: BinaryIO):
@@ -125,7 +138,7 @@ def create_app(config=ProductionConfig):
         try:
             new_user.insert()
         except IntegrityError as e:
-            abort(422, e.orig.diag.message_detail)
+            abort(422, parse_integrity_error(str(e.orig)))
 
         return jsonify({
             'success': True,
@@ -158,7 +171,7 @@ def create_app(config=ProductionConfig):
         try:
             current_user.update(**data)
         except IntegrityError as e:
-            abort(422, e.orig.diag.message_detail)
+            abort(422, parse_integrity_error(str(e.orig)))
 
         return jsonify({
             'success': True,
@@ -433,7 +446,7 @@ def create_app(config=ProductionConfig):
 
         return jsonify({
             'success': True,
-            'data': user.format()
+            'data': schemas.user_schema.dump(user)
         })
 
     @app.get('/api/users/<username>/questions')

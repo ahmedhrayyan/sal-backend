@@ -1,7 +1,7 @@
 from sqlalchemy.orm import backref
 from db import db
-from flask import request
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, VARCHAR, LargeBinary, exc, Text, Boolean
+import sqlalchemy as sa
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import bcrypt
 
@@ -10,7 +10,8 @@ class BaseModel:
     """ Helper class witch add basic methods to sub models """
 
     def __init__(self, **kwargs):
-        pass
+        # required: https://flask-sqlalchemy.palletsprojects.com/en/2.x/quickstart/#a-minimal-application
+        super(BaseModel, self).__init__(**kwargs)
 
     def update(self, **kwargs):
         """ update element in db  """
@@ -22,7 +23,7 @@ class BaseModel:
 
         try:
             db.session.commit()
-        except exc.SQLAlchemyError as e:
+        except SQLAlchemyError as e:
             db.session.rollback()
             raise e
 
@@ -31,7 +32,7 @@ class BaseModel:
         try:
             db.session.delete(self)
             db.session.commit()
-        except exc.SQLAlchemyError as e:
+        except SQLAlchemyError as e:
             db.session.rollback()
             raise e
 
@@ -40,16 +41,16 @@ class BaseModel:
         try:
             db.session.add(self)
             db.session.commit()
-        except exc.SQLAlchemyError as e:
+        except SQLAlchemyError as e:
             db.session.rollback()
             raise e
 
 
 class QuestionVote(db.Model):
     __tablename__ = "questions_votes"
-    question_id = Column(Integer, ForeignKey('questions.id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    vote = Column(Boolean, nullable=False)
+    question_id = sa.Column(sa.Integer, sa.ForeignKey('questions.id'), primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), primary_key=True)
+    vote = sa.Column(sa.Boolean, nullable=False)
 
     question = db.relationship('Question', backref=backref(
         "votes", cascade="all, delete-orphan", lazy="dynamic"))
@@ -59,9 +60,9 @@ class QuestionVote(db.Model):
 
 class AnswerVote(db.Model):
     __tablename__ = "answers_votes"
-    answer_id = Column(Integer, ForeignKey('answers.id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    vote = Column(Boolean, nullable=False)
+    answer_id = sa.Column(sa.Integer, sa.ForeignKey('answers.id'), primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), primary_key=True)
+    vote = sa.Column(sa.Boolean, nullable=False)
 
     answer = db.relationship('Answer', backref=backref(
         "votes", cascade="all, delete-orphan", lazy="dynamic"))
@@ -69,21 +70,21 @@ class AnswerVote(db.Model):
         "answers_votes", cascade="all, delete-orphan", lazy="dynamic"))
 
 
-class User(db.Model, BaseModel):
+class User(BaseModel, db.Model):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    first_name = Column(VARCHAR(20), nullable=False)
-    last_name = Column(VARCHAR(20), nullable=False)
-    email = Column(VARCHAR(60), nullable=False, unique=True)
-    username = Column(VARCHAR(20), nullable=False, unique=True)
-    _password = Column(LargeBinary, nullable=False)
-    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
-    email_confirmed = Column(Boolean, default=False, nullable=False)
-    job = Column(VARCHAR(50), nullable=True)
-    bio = Column(Text, nullable=True)
-    phone = Column(VARCHAR(50), nullable=True, unique=True)
-    avatar = Column(Text, nullable=True)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True)
+    first_name = sa.Column(sa.VARCHAR(20), nullable=False)
+    last_name = sa.Column(sa.VARCHAR(20), nullable=False)
+    email = sa.Column(sa.VARCHAR(60), nullable=False, unique=True)
+    username = sa.Column(sa.VARCHAR(20), nullable=False, unique=True)
+    _password = sa.Column(sa.LargeBinary, nullable=False)
+    role_id = sa.Column(sa.Integer, sa.ForeignKey('roles.id'), nullable=False)
+    email_confirmed = sa.Column(sa.Boolean, default=False, nullable=False)
+    job = sa.Column(sa.VARCHAR(50), nullable=True)
+    bio = sa.Column(sa.Text, nullable=True)
+    phone = sa.Column(sa.VARCHAR(50), nullable=True, unique=True)
+    avatar = sa.Column(sa.Text, nullable=True)
+    created_at = sa.Column(sa.DateTime(), default=datetime.utcnow, nullable=False)
     questions = db.relationship(
         'Question', backref='user', order_by='desc(Question.created_at)', lazy=True, cascade='all')
     answers = db.relationship(
@@ -103,37 +104,14 @@ class User(db.Model, BaseModel):
         """ Check if the provided password is equal to user password """
         return bcrypt.checkpw(bytes(password, 'utf-8'), self._password)
 
-    def format(self):
-        # prepend uploads endpoint to self.avatar
-        avatar = self.avatar
-        if avatar:
-            try:
-                # will fail if called outside an endpoint
-                avatar = request.root_url + 'uploads/' + avatar
-            except RuntimeError:
-                pass
 
-        return {
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'full_name': '%s %s' % (self.first_name, self.last_name),
-            'username': self.username,
-            'job': self.job,
-            'bio': self.bio,
-            'avatar': avatar,
-            'questions_count': len(self.questions),
-            'answers_count': len(self.answers),
-            'created_at': self.created_at
-        }
-
-
-class Question(db.Model, BaseModel):
+class Question(BaseModel, db.Model):
     __tablename__ = 'questions'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(Text, nullable=False)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
-    accepted_answer = Column(Integer, ForeignKey(
+    id = sa.Column(sa.Integer, primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    content = sa.Column(sa.Text, nullable=False)
+    created_at = sa.Column(sa.DateTime(), default=datetime.utcnow, nullable=False)
+    accepted_answer = sa.Column(sa.Integer, sa.ForeignKey(
         'answers.id', use_alter=True, ondelete="SET NULL"), nullable=True)
     answers = db.relationship('Answer', backref='question',
                               order_by='desc(Answer.created_at)', lazy=True, foreign_keys='Answer.question_id',
@@ -171,14 +149,14 @@ class Question(db.Model, BaseModel):
         return self.votes.filter_by(user=user).first() is not None
 
 
-class Answer(db.Model, BaseModel):
+class Answer(BaseModel, db.Model):
     __tablename__ = 'answers'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(Text, nullable=False)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    content = sa.Column(sa.Text, nullable=False)
+    created_at = sa.Column(sa.DateTime(), default=datetime.utcnow, nullable=False)
 
-    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
+    question_id = sa.Column(sa.Integer, sa.ForeignKey('questions.id'), nullable=False)
 
     def vote(self, user: User, vote: bool):
         """ upvote or down-vote a question """
@@ -213,32 +191,32 @@ class Answer(db.Model, BaseModel):
 
 
 roles_permissions = db.Table('roles_permissions',
-                             Column('role_id', Integer,
-                                    ForeignKey('roles.id'), nullable=False),
-                             Column('permission_id', Integer, ForeignKey('permissions.id'), nullable=False))
+                             sa.Column('role_id', sa.Integer,
+                                       sa.ForeignKey('roles.id'), nullable=False),
+                             sa.Column('permission_id', sa.Integer, sa.ForeignKey('permissions.id'), nullable=False))
 
 
-class Role(db.Model, BaseModel):
+class Role(BaseModel, db.Model):
     __tablename__ = 'roles'
-    id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(20), nullable=False, unique=True)
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.VARCHAR(20), nullable=False, unique=True)
     permissions = db.relationship(
         'Permission', secondary=roles_permissions, backref='roles', lazy=True)
 
 
-class Permission(db.Model, BaseModel):
+class Permission(BaseModel, db.Model):
     __tablename__ = 'permissions'
-    id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(40), nullable=False, unique=True)
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.VARCHAR(40), nullable=False, unique=True)
 
 
-class Notification(db.Model, BaseModel):
+class Notification(BaseModel, db.Model):
     """ Notification model """
 
     __tablename__ = 'notifications'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    content = Column(Text, nullable=False)
-    url = Column(Text, nullable=False)
-    is_read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(), default=datetime.utcnow, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    content = sa.Column(sa.Text, nullable=False)
+    url = sa.Column(sa.Text, nullable=False)
+    is_read = sa.Column(sa.Boolean, default=False, nullable=False)
+    created_at = sa.Column(sa.DateTime(), default=datetime.utcnow, nullable=False)
